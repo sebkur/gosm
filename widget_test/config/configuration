@@ -1,0 +1,17 @@
+longitude		15,3423
+lattitude		42,6787
+zoom			8
+show_grid		FALSE	
+set_position		FALSE
+position_x		0
+position_y		0
+set_size		TRUE
+size_width		1000
+size_height		500
+fullscreen		FALSE
+cache_dir		/tmp/osm/
+cache_size		128
+selection_color		#FF0044
+use_proxy		TRUE
+proxy_host		80.12.34.123
+proxy_port		80

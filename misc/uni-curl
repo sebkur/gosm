@@ -1,0 +1,1 @@
+export LD_LIBRARY_PATH=/import/adabas/lib:/home/bude/kuerten/dev/fakeroot/curl/lib/:/home/bude/kuerten/dev/fakeroot/curl/lib/

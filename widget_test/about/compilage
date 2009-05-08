@@ -1,0 +1,1 @@
+gcc `pkg-config --libs --cflags gtk+-2.0 gdk-2.0 webkit-1.0` -o window window.c browser.c

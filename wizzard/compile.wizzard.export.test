@@ -1,0 +1,1 @@
+gcc `pkg-config --libs --cflags gtk+-2.0 gdk-2.0 glib-2.0` -o wizzard_export select_export_window.c wizzard_export.c wizzard_export_test.c ../tilemath.c ../imageglue/imageglue.c 

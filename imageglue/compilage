@@ -1,0 +1,1 @@
+gcc `pkg-config --libs --cflags libpng glib-2.0` -o imageglue imageglue.c alone.c ../tilemath.c

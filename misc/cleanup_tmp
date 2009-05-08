@@ -1,0 +1,1 @@
+for f in /tmp/osm/*; do if ! [[ -s $f ]]; then echo $f; rm $f; fi; done

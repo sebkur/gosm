@@ -1,0 +1,29 @@
+gcc \
+`pkg-config --cflags --libs gtk+-2.0 gdk-2.0 cairo glib-2.0 gthread-2.0 libpng webkit-1.0` \
+`curl-config --cflags --libs` \
+-pthread \
+-lm \
+-o gosm \
+tool.c \
+ringbuffer.c \
+tile_cache.c \
+tilemath.c \
+select_tool.c \
+distance_tool.c \
+wizzard/select_use_window.c \
+wizzard/tile_download_window.c \
+wizzard/wizzard_download.c \
+wizzard/select_export_window.c \
+wizzard/wizzard_export.c \
+uri.c \
+about/about.c \
+manual/manual.c \
+tile_manager.c \
+tile_loader.c \
+map_area.c \
+map_navigator.c \
+imageglue/imageglue.c \
+config.c \
+config_widget.c \
+customio.c \
+gosm.c

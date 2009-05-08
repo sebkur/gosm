@@ -1,0 +1,27 @@
+File;
+ Quit;			menu_file_quit
+View;
+ Fullscreen;		menu_view_fullscreen;		check
+ Control;
+  Zoom In;		menu_control_zoom_in
+  Zoom Out;		menu_control_zoom_out
+  Move Up;		menu_control_move_up
+  Move Down;		menu_control_move_down
+  Move Left;		menu_control_move_left
+  Move Right;		menu_control_move_right;	icon; move_right.png
+ Tiles;
+  Osm;			menu_tiles_osm;			radio; group_tiles
+  Google;		menu_tiles_google;		radio; group_tiles
+  Yahoo;		menu_tiles_yahoo;		radio; group_tiles
+Selection;
+ Snap to Map;		menu_selection_snap;		check
+ Hide;			menu_selection_show;		check
+ Export;		menu_selection_export
+ Download;		menu_selection_download
+Options;
+ Preferences;		menu_options_preferences
+Help;
+ Manual;		menu_help_manual
+ About GOsmView;	menu_help_about_gosm
+ About OpenStreetMap;	menu_help_about_osm
+ License;		menu_help_license

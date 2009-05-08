@@ -1,0 +1,24 @@
+The following images where taken from the standard icon-set delivered with gnome by the Debian-project.
+The full path is givven from where it's been taken.
+
+document-save.png:	 	/usr/share/icons/gnome/24x24/actions/document-save.png
+edit-clear.png:		 	/usr/share/icons/gnome/24x24/actions/edit-clear.png
+edit-copy.png: 			/usr/share/icons/gnome/24x24/actions/edit-copy.png
+font.png:		 	/usr/share/icons/gnome/24x24/stock/text/stock_fontwork.png
+grid.png:		 	/usr/share/icons/gnome/24x24/stock/image/stock_guides.png
+measure.png:		 	adapted from: /usr/share/icons/gnome/24x24/stock/image/stock_node-add.png
+navigate.png:		 	/usr/share/icons/gnome/24x24/stock/navigation/stock_navigator.png
+network-idle.png:	 	/usr/share/icons/gnome/24x24/status/network-idle.png
+network-offline.png:	 	/usr/share/icons/gnome/24x24/status/network-offline.png
+select.png:		 	/usr/share/icons/gnome/24x24/stock/image/stock_draw-line-45.png
+stock_bookmark.png:	 	/usr/share/icons/gnome/24x24/stock/object/stock_bookmark.png
+stock_form-navigator.png:	/usr/share/icons/gnome/24x24/stock/form/stock_form-navigator.png
+stock_insert_image.png:	 	/usr/share/icons/gnome/24x24/stock/image/stock_insert_image.png
+stock_node-delete.png:	 	/usr/share/icons/gnome/24x24/stock/image/stock_node-delete.png
+stock_save-template.png: 	/usr/share/icons/gnome/24x24/stock/io/stock_save-template.png
+stock_show-hidden-controls.png:	/usr/share/icons/gnome/24x24/stock/form/stock_show-hidden-controls.png
+
+
+This image was taken from the oxygen-iconset, delivered by debian.
+
+gosm.png:		 	adapted from: /usr/share/icons/oxygen/48x48/categories/applications-internet.png

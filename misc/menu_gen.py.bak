@@ -1,0 +1,113 @@
+#!/usr/bin/python
+
+
+import sys
+import string
+
+#GtkWidget *menubar = gtk_menu_bar_new();
+#GtkWidget *item1   = gtk_menu_item_new_with_label("Options");
+#GtkWidget *menu1   = gtk_menu_new();
+#GtkWidget *item2   = gtk_menu_item_new_with_label("Preferences");
+#gtk_menu_shell_append((GtkMenuShell*)menubar, item1);
+#gtk_menu_item_set_submenu((GtkMenuItem*)item1, menu1);
+#gtk_menu_shell_append((GtkMenuShell*)menu1, item2);
+
+name_menu_bar = "menubar"
+name_menu_item = "item"
+name_menu_menu = "menu"
+
+def print_item(label, path, has_subs, part):
+	fill1 = 26 - 2*(len(path) - 1) - len(name_menu_item)
+	fill2 = 26 - 2*(len(path) - 1) - len(name_menu_menu)
+	fill3 = 18 - 2*(len(path) - 1) - len(name_menu_item)
+	fill4 = 18 - 2*(len(path) - 1) - len(name_menu_menu)
+	fill5 = 18 - 2*(len(path) - 1) - len(name_menu_bar)
+	name_item = name_menu_item 
+	name_menu = name_menu_menu
+	for p in path:
+		name_item += "_"+ str(p)
+		name_menu += "_"+ str(p)
+	if part == 1:
+		text_item = "GtkWidget *" + name_item
+		text_menu = "GtkWidget *" + name_menu
+		text_item += fill1 * ' '
+		text_menu += fill2 * ' '
+		text_item += "= gtk_menu_item_new_with_label(\"" + label + "\");"
+		text_menu += "= gtk_menu_new();"
+		print text_item
+		if has_subs:
+			print text_menu
+	if part == 2:
+		if has_subs:
+			print "gtk_menu_item_set_submenu((GtkMenuItem*)" + name_item + "," + fill3 * ' ' + name_menu + ");"
+	if part == 3:
+		fill = 0
+		if len(path) == 1:
+			parent_menu = name_menu_bar 
+			fill = fill5
+		else:
+			parent_menu = name_menu[:-2]
+			fill = fill4
+		print "gtk_menu_shell_append((GtkMenuShell*)"+ parent_menu + ", " + fill * ' ' + name_item +");" 
+
+def print_rek(structure, path, part):
+	if path != []:
+		print_item(structure[0], path, len(structure) > 1, part)
+	if len(structure) > 1:
+		for index in range(1,len(structure)):
+			print_rek(structure[index], path + [index], part)
+
+def print_out(structure):
+	print
+	print "GtkWidget *" + name_menu_bar + " = gtk_menu_bar_new();"
+	print_rek(structure, [], 1)
+	print_rek(structure, [], 2)
+	print_rek(structure, [], 3)
+
+def count_blanks(line):
+	count = 0
+	for c in line:
+		if c == ' ':
+			count += 1
+		else:
+			break
+	return count
+
+if len(sys.argv) != 2:
+	print "usage: menu_gen.py <menu_file>"
+else:
+	structure = ["root"];
+	active = structure;
+	path = []
+
+	filename = sys.argv[1]
+	print "processing file:", filename
+	file = open(filename)
+	lines = file.readlines()
+
+	ilevel = 0
+
+	for line in lines:
+		level = count_blanks(line)
+		options = line.split(';')
+		options[0] = string.strip(options[0])
+		if level - ilevel == 0:
+			active.append([line])
+		elif level - ilevel == 1:
+			path.append(len(active) - 1)
+			ilevel = level
+			active = active[-1]
+			active.append([line])
+		elif level - ilevel < 0:
+			times = ilevel - level
+			while (times > 0):
+				path.pop()
+				times -= 1
+			ilevel += level - ilevel
+			active = structure
+			for pos in path:
+				active = active[pos]
+			active.append([line])
+
+	print structure
+	print_out(structure)
