@@ -87,24 +87,29 @@ static void select_tool_init(SelectTool *select_tool)
 
 	GtkWidget * icon_download = gtk_image_new_from_file("icons/document-save.png");
 	GtkWidget * icon_export = gtk_image_new_from_file("icons/stock_insert_image.png");
+	GtkWidget * icon_data = gtk_image_new_from_file("icons/stock_update-data.png");
 	GtkWidget * icon_clipboard = gtk_image_new_from_file("icons/edit-copy.png");
 	GtkWidget * icon_bookmark= gtk_image_new_from_file("icons/stock_bookmark.png");
 	select_tool -> button_action = gtk_button_new();
 	select_tool -> button_export = gtk_button_new();
+	select_tool -> button_data   = gtk_button_new();
 	select_tool -> button_clipboard = gtk_button_new();
 	select_tool -> button_bookmark = gtk_button_new();
 	gtk_button_set_image(GTK_BUTTON(select_tool -> button_action), icon_download);
 	gtk_button_set_image(GTK_BUTTON(select_tool -> button_export), icon_export);
+	gtk_button_set_image(GTK_BUTTON(select_tool -> button_data), icon_data);
 	gtk_button_set_image(GTK_BUTTON(select_tool -> button_clipboard), icon_clipboard);
 	gtk_button_set_image(GTK_BUTTON(select_tool -> button_bookmark), icon_bookmark);
 	GtkWidget * box_buttons = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_buttons), select_tool -> button_action, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_buttons), select_tool -> button_export, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(box_buttons), select_tool -> button_data, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_buttons), select_tool -> button_clipboard, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_buttons), select_tool -> button_bookmark, FALSE, FALSE, 0);
 	gtk_widget_set_tooltip_text(select_tool -> button_action, "load to disk");
 	gtk_widget_set_tooltip_text(select_tool -> button_export, "export image");
-	gtk_widget_set_tooltip_text(select_tool -> button_clipboard, "copy to clipboard(stdout currently)");
+	gtk_widget_set_tooltip_text(select_tool -> button_data, "load xml data(not implemented)");
+	gtk_widget_set_tooltip_text(select_tool -> button_clipboard, "copy to clipboard");
 	gtk_widget_set_tooltip_text(select_tool -> button_bookmark, "bookmark(not implemented)");
 
 	select_tool -> widget = gtk_table_new(5, 3, FALSE);
@@ -120,7 +125,7 @@ static void select_tool_init(SelectTool *select_tool)
 	gtk_table_attach(GTK_TABLE(table), box_check_show,		0, 3, 3, 4, GTK_EXPAND | GTK_FILL, 0, 0, 0);
 	gtk_table_attach(GTK_TABLE(table), box_check_snap,		0, 3, 4, 5, GTK_EXPAND | GTK_FILL, 0, 0, 0);
 	gtk_table_attach(GTK_TABLE(table), box_buttons,			0, 3, 5, 6, GTK_EXPAND | GTK_FILL, 0, 0, 0);
-	
+
 	gtk_widget_set_size_request(table, 200, -1);
 	gtk_widget_set_size_request(select_tool -> lon1, 0 , -1);
 	gtk_widget_set_size_request(select_tool -> lon2, 0 , -1);

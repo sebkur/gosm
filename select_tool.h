@@ -47,6 +47,7 @@ struct _SelectTool
 	GtkWidget * check_snap;
 	GtkWidget * button_action;
 	GtkWidget * button_export;
+	GtkWidget * button_data;
 	GtkWidget * button_clipboard;
 	GtkWidget * button_bookmark;
 };
