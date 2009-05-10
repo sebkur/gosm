@@ -274,10 +274,13 @@ void function_load_from_disk(TileManager * tile_manager)
 }
 
 
-void tile_manager_download(const char* url, const char* file_name)
+void tile_manager_download(TileManager * tile_manager, const char* url, const char* file_name)
 { // TODO: recycle easyhandle like in tile_loader
   // better: use one method for both classes
-	CURL * easyhandle = curl_easy_init() ;
+	if (tile_manager -> easyhandle == NULL){
+		tile_manager -> easyhandle = curl_easy_init() ;
+	}
+	CURL * easyhandle = tile_manager -> easyhandle;
 	curl_easy_setopt( easyhandle, CURLOPT_URL, url ) ;
 	FILE * file = fopen( file_name, "w" ) ;
 	//curl_easy_setopt( easyhandle, CURLOPT_PROXY, "130.133.8.114:80");
@@ -285,7 +288,7 @@ void tile_manager_download(const char* url, const char* file_name)
 	//curl_easy_setopt(easyhandle, CURLOPT_NOPROGRESS, 1);
 	curl_easy_setopt(easyhandle, CURLOPT_USERAGENT, "Pure Data");
 	curl_easy_perform( easyhandle );
-	curl_easy_cleanup( easyhandle );
+	//curl_easy_cleanup( easyhandle );
 	fclose(file);
 }
 
@@ -296,7 +299,7 @@ void tile_manager_download_tile(TileManager * tile_manager, int zoom, int x, int
 	sprintf(url, FORMAT_URL, zoom, x, y);
 	sprintf(filename, tile_manager -> cache_files_format, zoom, x, y);
 	printf("downloading %s to %s\n", url, filename);
-	tile_manager_download(url, filename);
+	tile_manager_download(tile_manager, url, filename);
 	printf("got %s\n", filename);
 }
 

@@ -57,6 +57,8 @@ struct _MapArea
 
 	TileManager *tile_manager;
 	char * cache_dir;
+
+	int selection_mouseover;
 };
 
 struct _MapAreaClass
@@ -65,6 +67,8 @@ struct _MapAreaClass
 
 	void (* map_been_moved) (MapArea *map_area);
 
+	void (* map_selection_changed) (MapArea *map_area);
+	
 	void (* map_path_changed) (MapArea *map_area);
 };
 

@@ -26,6 +26,8 @@
 #include <glib/gthread.h>
 #include <unistd.h>
 
+#include <curl/curl.h>
+
 #include "tile_cache.h"
 #include "map_types.h"
 
@@ -66,6 +68,8 @@ struct _TileManager
 	char * cache_dir;
 	char * cache_files_format;
 	int cache_files_format_len;
+
+	CURL * easyhandle;
 };
 
 struct _TileManagerClass

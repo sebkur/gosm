@@ -123,6 +123,7 @@ static gboolean selection_check_visible_cb(GtkWidget *widget);
 static gboolean distance_remove_last_cb(GtkWidget *widget);
 static gboolean distance_clear_cb(GtkWidget *widget);
 static gboolean map_moved_cb(GtkWidget *widget);
+static gboolean map_selection_changed_cb(GtkWidget *widget);
 static gboolean map_path_cb(GtkWidget *widget);
 static gboolean show_manual_cb(GtkWidget *widget);
 static gboolean show_about_cb(GtkWidget *widget, gpointer nump);
@@ -453,6 +454,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(area), "map", G_CALLBACK(map_area_map_cb), NULL);
 	g_signal_connect(G_OBJECT(navigator), "key_press_event", G_CALLBACK(key_press_cb), NULL);
 	g_signal_connect(G_OBJECT(area), "map-been-moved", G_CALLBACK(map_moved_cb), NULL);
+	g_signal_connect(G_OBJECT(area), "map-selection-changed", G_CALLBACK(map_selection_changed_cb), NULL);
 	g_signal_connect(G_OBJECT(area), "map-path-changed", G_CALLBACK(map_path_cb), NULL);
 
 	gtk_container_add(GTK_CONTAINER(widget), vbox);
@@ -671,13 +673,15 @@ static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event)
 	}
 	/* mode select */
 	case 97:{ // a
-		//action_select_cb(GtkWidget *widget, gpointer cursor_id_p);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toolbar_buttons[0]), TRUE);
 		break;
 	}
 	case 115:{ // s
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toolbar_buttons[1]), TRUE);
 		break;
 	}
 	case 100:{ // d
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toolbar_buttons[2]), TRUE);
 		break;
 	}
 	/* mode select */
@@ -733,6 +737,15 @@ static gboolean map_moved_cb(GtkWidget *widget)
 		map_area_position_get_center_lat(area),
 		area -> map_position.zoom);
 	gtk_statusbar_push(GTK_STATUSBAR(statusbar), 1, status_bar_buffer);
+	select_tool_set_lons_n_lats(select_tool,
+		area -> selection.lon1,
+		area -> selection.lon2,
+		area -> selection.lat1,
+		area -> selection.lat2);
+}
+
+static gboolean map_selection_changed_cb(GtkWidget *widget)
+{
 	select_tool_set_lons_n_lats(select_tool,
 		area -> selection.lon1,
 		area -> selection.lon2,

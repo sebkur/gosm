@@ -33,7 +33,7 @@
 #include "tile_cache.h"
 #include "tile_manager.h"
 
-#define MATCHES(a,b)	(a & b) == b
+#define MATCHES(a,b)	((a & b) == b)
 #define TILESIZE	256
 #define CACHE_SIZE	164
 
@@ -46,11 +46,15 @@
 #define DIRECTION_DOWN		7
 #define DIRECTION_DOWN_RIGHT	8
 
+#define MAX_PAD_SIZE		40
+#define PAD_FRACTION		3
+
 G_DEFINE_TYPE (MapArea, map_area, GTK_TYPE_DRAWING_AREA);
 
 enum
 {
 	MAP_BEEN_MOVED,
+	MAP_SELECTION_CHANGED,
 	MAP_PATH_CHANGED,
 	LAST_SIGNAL
 };
@@ -90,11 +94,20 @@ static void map_area_class_init(MapAreaClass *class)
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0);
 
+	map_area_signals[MAP_SELECTION_CHANGED] = g_signal_new(
+		"map-selection-changed",
+		G_OBJECT_CLASS_TYPE (class),
+		G_SIGNAL_RUN_FIRST,
+		G_STRUCT_OFFSET (MapAreaClass, map_selection_changed),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0);
+
 	map_area_signals[MAP_PATH_CHANGED] = g_signal_new(
 		"map-path-changed",
 		G_OBJECT_CLASS_TYPE (class),
 		G_SIGNAL_RUN_FIRST,
-		G_STRUCT_OFFSET (MapAreaClass, map_been_moved),
+		G_STRUCT_OFFSET (MapAreaClass, map_path_changed),
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0);
@@ -349,11 +362,9 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 
 static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 {
-	//if (action_state == 2){
-		//printf("motion\n");
-	//}
 	MapArea *map_area = GOSM_MAP_AREA(widget);
 	MapPosition *map_position = &(map_area -> map_position);
+	// NAVIGATION mode
 	if (map_area -> action_state == 0){
 		if (MATCHES(event->state, GDK_BUTTON1_MASK)){
 			//printf("motion %d\n", event->state);
@@ -386,8 +397,91 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 			gtk_widget_queue_draw(widget);
 		}
 	}
+	// SELECTION mode
 	if (map_area -> action_state == 1){
+		/* RESCALE */
+		Selection selection = map_area -> selection;
+		int s_width = selection.x2 - selection.x1;
+		int s_height = selection.y2 - selection.y1;
+		int w = s_width / PAD_FRACTION > MAX_PAD_SIZE ? MAX_PAD_SIZE : s_width / PAD_FRACTION;
+		int h = s_height / PAD_FRACTION > MAX_PAD_SIZE ? MAX_PAD_SIZE : s_height / PAD_FRACTION;
+		int x = (int)event->x;
+		int y = (int)event->y;
+		int mouseover = 0;
+		// if mouse is not pressed:
+		// check if pointer is over one of the pads
+		if (!MATCHES(event->state, GDK_BUTTON1_MASK)){
+			if (y >= selection.y1 + h && y <= selection.y2 - h){
+				if (x >= selection.x1 && x <= selection.x1 + w){
+					mouseover = DIRECTION_LEFT;
+				}
+				if (x <= selection.x2 && x >= selection.x2 - w){
+					mouseover = DIRECTION_RIGHT;
+				}
+			}
+			if (x >= selection.x1 + w && x <= selection.x2 - w){
+				if (y >= selection.y1 && y <= selection.y1 + h){
+					mouseover = DIRECTION_TOP;
+				}
+				if (y <= selection.y2 && y >= selection.y2 - h){
+					mouseover = DIRECTION_DOWN;
+				}
+			}
+			if (map_area -> selection_mouseover != mouseover){
+				map_area -> selection_mouseover = mouseover;
+				gtk_widget_queue_draw(widget);
+			}
+		}
+		// if mouse is pressed:
+		// check how selection pad has been dragged
 		if (MATCHES(event->state, GDK_BUTTON1_MASK)){
+			if (map_area -> selection_mouseover == DIRECTION_LEFT){
+				int diff = x - point_drag.x;
+				if (selection.x1 + diff < selection.x2){
+					map_area -> selection.x1 += diff;
+					map_area -> selection.lon1 = map_area_x_to_lon(map_area, map_area -> selection.x1),
+					point_drag.x = x;
+					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
+					gtk_widget_queue_draw(widget);
+				}
+			}
+			if (map_area -> selection_mouseover == DIRECTION_RIGHT){
+				int diff = x - point_drag.x;
+				if (selection.x2 + diff > selection.x1){
+					map_area -> selection.x2 += diff;
+					map_area -> selection.lon2 = map_area_x_to_lon(map_area, map_area -> selection.x2),
+					point_drag.x = x;
+					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
+					gtk_widget_queue_draw(widget);
+				}
+			}
+			if (map_area -> selection_mouseover == DIRECTION_TOP){
+				int diff = y - point_drag.y;
+				if (selection.y1 + diff < selection.y2){
+					map_area -> selection.y1 += diff;
+					map_area -> selection.lat1 = map_area_y_to_lat(map_area, map_area -> selection.y1),
+					point_drag.y = y;
+					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
+					gtk_widget_queue_draw(widget);
+				}
+			}
+			if (map_area -> selection_mouseover == DIRECTION_DOWN){
+				int diff = y - point_drag.y;
+				if (selection.y2 + diff > selection.y1){
+					map_area -> selection.y2 += diff;
+					map_area -> selection.lat2 = map_area_y_to_lat(map_area, map_area -> selection.y2),
+					point_drag.y = y;
+					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
+					gtk_widget_queue_draw(widget);
+				}
+			}
+		}
+		/* RESCALE end */
+		/* SELECT */
+		// if mouse is not over a pad and mouse is pressed:
+		// set selection to:
+		// (last press position) to (current pointer position)
+		if (map_area -> selection_mouseover == 0 && MATCHES(event->state, GDK_BUTTON1_MASK)){
 			if (point_drag.x > (int) event -> x){	
 				map_area -> selection.x1 = (int) event -> x;
 				map_area -> selection.x2 = point_drag.x;
@@ -407,9 +501,10 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 			map_area -> selection.lat1 = map_area_y_to_lat(map_area, map_area -> selection.y1),
 			map_area -> selection.lat2 = map_area_y_to_lat(map_area, map_area -> selection.y2);
 
-			map_has_moved(widget);
+			g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
 			gtk_widget_queue_draw(widget);
 		}
+		/* SELECT end */
 	}
 }
 
@@ -590,6 +685,31 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			map_area -> selection.y2 - map_area -> selection.y1);
 		cairo_set_line_width(cr_sel, 1.0);
 		cairo_stroke(cr_sel);
+	
+		/* RESIZE PADS */	
+		Selection selection = map_area -> selection;
+		int s_width = selection.x2 - selection.x1;
+		int s_height = selection.y2 - selection.y1;
+		int w = s_width / PAD_FRACTION > MAX_PAD_SIZE ? MAX_PAD_SIZE : s_width / PAD_FRACTION;
+		int h = s_height / PAD_FRACTION > MAX_PAD_SIZE ? MAX_PAD_SIZE : s_height / PAD_FRACTION;
+		if (map_area -> selection_mouseover != 0){
+			pat_sel = cairo_pattern_create_rgba(1.0, 0.8, 0.3, 0.4);
+			cairo_set_source(cr_sel, pat_sel);
+			if (map_area -> selection_mouseover == DIRECTION_LEFT){
+				cairo_rectangle(cr_sel, selection.x1, selection.y1 + h, w, s_height - 2 * h );
+			}
+			if (map_area -> selection_mouseover == DIRECTION_RIGHT){
+				cairo_rectangle(cr_sel, selection.x2 - w, selection.y1 + h, w, s_height - 2 * h );
+			}
+			if (map_area -> selection_mouseover == DIRECTION_TOP){
+				cairo_rectangle(cr_sel, selection.x1+w, selection.y1, s_width - 2 * w, h );
+			}
+			if (map_area -> selection_mouseover == DIRECTION_DOWN){
+				cairo_rectangle(cr_sel, selection.x1+w, selection.y2 - h, s_width - 2 * w, h );
+			}
+			cairo_fill(cr_sel);
+		}
+		/* RESIZE PADS end */
 	}
 	// DRAW PATH
 	int last_x, last_y; gboolean first = TRUE;
