@@ -73,4 +73,10 @@ typedef struct LonLatPair {
 	double lat;
 } LonLatPair;
 
+typedef struct ColorQuadriple {
+	double r;
+	double g;
+	double b;
+	double a;
+} ColorQuadriple;
 #endif

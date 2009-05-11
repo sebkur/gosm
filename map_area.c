@@ -46,6 +46,7 @@
 #define DIRECTION_DOWN		7
 #define DIRECTION_DOWN_RIGHT	8
 
+// selection resize pads
 #define MAX_PAD_SIZE		40
 #define PAD_FRACTION		3
 
@@ -411,6 +412,18 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 		// if mouse is not pressed:
 		// check if pointer is over one of the pads
 		if (!MATCHES(event->state, GDK_BUTTON1_MASK)){
+			if (y >= selection.y1 && y <= selection.y1 + h && x >= selection.x1 && x <= selection.x1 + w){
+				mouseover = DIRECTION_TOP_LEFT;
+			}
+			if (y >= selection.y1 && y <= selection.y1 + h && x >= selection.x2 - w && x <= selection.x2){
+				mouseover = DIRECTION_TOP_RIGHT;
+			}
+			if (y >= selection.y2 - h && y <= selection.y2 && x >= selection.x1 && x <= selection.x1 + w){
+				mouseover = DIRECTION_DOWN_LEFT;
+			}
+			if (y >= selection.y2 - h && y <= selection.y2 && x >= selection.x2 - w && x <= selection.x2){
+				mouseover = DIRECTION_DOWN_RIGHT;
+			}
 			if (y >= selection.y1 + h && y <= selection.y2 - h){
 				if (x >= selection.x1 && x <= selection.x1 + w){
 					mouseover = DIRECTION_LEFT;
@@ -435,7 +448,8 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 		// if mouse is pressed:
 		// check how selection pad has been dragged
 		if (MATCHES(event->state, GDK_BUTTON1_MASK)){
-			if (map_area -> selection_mouseover == DIRECTION_LEFT){
+			int mo = map_area -> selection_mouseover;
+			if (mo == DIRECTION_LEFT || mo == DIRECTION_TOP_LEFT || mo == DIRECTION_DOWN_LEFT){
 				int diff = x - point_drag.x;
 				if (selection.x1 + diff < selection.x2){
 					map_area -> selection.x1 += diff;
@@ -445,7 +459,7 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 					gtk_widget_queue_draw(widget);
 				}
 			}
-			if (map_area -> selection_mouseover == DIRECTION_RIGHT){
+			if (mo == DIRECTION_RIGHT || mo == DIRECTION_TOP_RIGHT || mo == DIRECTION_DOWN_RIGHT){
 				int diff = x - point_drag.x;
 				if (selection.x2 + diff > selection.x1){
 					map_area -> selection.x2 += diff;
@@ -455,7 +469,7 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 					gtk_widget_queue_draw(widget);
 				}
 			}
-			if (map_area -> selection_mouseover == DIRECTION_TOP){
+			if (mo == DIRECTION_TOP || mo == DIRECTION_TOP_LEFT || mo == DIRECTION_TOP_RIGHT){
 				int diff = y - point_drag.y;
 				if (selection.y1 + diff < selection.y2){
 					map_area -> selection.y1 += diff;
@@ -465,7 +479,7 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 					gtk_widget_queue_draw(widget);
 				}
 			}
-			if (map_area -> selection_mouseover == DIRECTION_DOWN){
+			if (mo == DIRECTION_DOWN || mo == DIRECTION_DOWN_LEFT || mo == DIRECTION_DOWN_RIGHT){
 				int diff = y - point_drag.y;
 				if (selection.y2 + diff > selection.y1){
 					map_area -> selection.y2 += diff;
@@ -667,7 +681,8 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	if (map_area -> show_selection){
 		// fill
 		cairo_t * cr_sel = gdk_cairo_create(widget->window);
-		cairo_pattern_t * pat_sel = cairo_pattern_create_rgba(1.0, 1.0, 0.5, 0.4);
+		ColorQuadriple * c = &(map_area -> color_selection);
+		cairo_pattern_t * pat_sel = cairo_pattern_create_rgba(c -> r, c -> g, c -> b, c -> a);
 		cairo_set_source(cr_sel, pat_sel);
 		cairo_rectangle(cr_sel,
 			map_area -> selection.x1,
@@ -676,7 +691,8 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			map_area -> selection.y2 - map_area -> selection.y1);
 		cairo_fill(cr_sel);
 		// outline
-		pat_sel = cairo_pattern_create_rgba(1.0, 1.0, 0.75, 1.0);
+		c = &(map_area -> color_selection_out);
+		pat_sel = cairo_pattern_create_rgba(c -> r, c -> g, c -> b, c -> a);
 		cairo_set_source(cr_sel, pat_sel);
 		cairo_rectangle(cr_sel,
 			map_area -> selection.x1,
@@ -693,19 +709,42 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		int w = s_width / PAD_FRACTION > MAX_PAD_SIZE ? MAX_PAD_SIZE : s_width / PAD_FRACTION;
 		int h = s_height / PAD_FRACTION > MAX_PAD_SIZE ? MAX_PAD_SIZE : s_height / PAD_FRACTION;
 		if (map_area -> selection_mouseover != 0){
-			pat_sel = cairo_pattern_create_rgba(1.0, 0.8, 0.3, 0.4);
+			ColorQuadriple * c = &(map_area -> color_selection_pad);
+			pat_sel = cairo_pattern_create_rgba(c -> r, c -> g, c -> b, c -> a);
 			cairo_set_source(cr_sel, pat_sel);
-			if (map_area -> selection_mouseover == DIRECTION_LEFT){
+			switch(map_area -> selection_mouseover){
+			case(DIRECTION_TOP_LEFT):{
+				cairo_rectangle(cr_sel, selection.x1, selection.y1, w, h);
+				break;
+			}
+			case(DIRECTION_TOP_RIGHT):{
+				cairo_rectangle(cr_sel, selection.x2 - w, selection.y1, w, h);
+				break;
+			}
+			case(DIRECTION_DOWN_LEFT):{
+				cairo_rectangle(cr_sel, selection.x1, selection.y2 - h, w, h);
+				break;
+			}
+			case(DIRECTION_DOWN_RIGHT):{
+				cairo_rectangle(cr_sel, selection.x2 - w, selection.y2 - h, w, h);
+				break;
+			}
+			case(DIRECTION_LEFT):{
 				cairo_rectangle(cr_sel, selection.x1, selection.y1 + h, w, s_height - 2 * h );
+				break;
 			}
-			if (map_area -> selection_mouseover == DIRECTION_RIGHT){
+			case(DIRECTION_RIGHT):{
 				cairo_rectangle(cr_sel, selection.x2 - w, selection.y1 + h, w, s_height - 2 * h );
+				break;
 			}
-			if (map_area -> selection_mouseover == DIRECTION_TOP){
+			case(DIRECTION_TOP):{
 				cairo_rectangle(cr_sel, selection.x1+w, selection.y1, s_width - 2 * w, h );
+				break;
 			}
-			if (map_area -> selection_mouseover == DIRECTION_DOWN){
+			case(DIRECTION_DOWN):{
 				cairo_rectangle(cr_sel, selection.x1+w, selection.y2 - h, s_width - 2 * w, h );
+				break;
+			}
 			}
 			cairo_fill(cr_sel);
 		}
@@ -757,3 +796,9 @@ static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event)
 	return FALSE;
 }
 
+void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad)
+{
+	map_area -> color_selection = c_s;
+	map_area -> color_selection_out = c_s_out;
+	map_area -> color_selection_pad = c_s_pad;
+}

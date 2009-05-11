@@ -177,13 +177,16 @@ int main(int argc, char *argv[])
 	config = config_new();
 	config_load_config_file(config);
 
-	int		width 		= *(int*)config_get_entry_data(config, "size_width");
-	int		height		= *(int*)config_get_entry_data(config, "size_height");
-	double		longitude	= *(double*)config_get_entry_data(config, "longitude");
-	double		lattitude	= *(double*)config_get_entry_data(config, "lattitude");
-	int		zoom		= *(int*)config_get_entry_data(config, "zoom");
-			network_state	= *(gboolean*)config_get_entry_data(config, "online_on_startup");
-	 		cache_dir	= config_get_entry_data(config, "cache_dir");
+	int		width 			= *(int*)config_get_entry_data(config, "size_width");
+	int		height			= *(int*)config_get_entry_data(config, "size_height");
+	double		longitude		= *(double*)config_get_entry_data(config, "longitude");
+	double		lattitude		= *(double*)config_get_entry_data(config, "lattitude");
+	int		zoom			= *(int*)config_get_entry_data(config, "zoom");
+			network_state		= *(gboolean*)config_get_entry_data(config, "online_on_startup");
+	 		cache_dir		= config_get_entry_data(config, "cache_dir");
+	ColorQuadriple	color_selection 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection");
+	ColorQuadriple	color_selection_out 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection_out");
+	ColorQuadriple	color_selection_pad 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection_pad");
 
 	// ensure, that the tmp-directory for tiles exists	
 	if (!check_for_cache_directory(cache_dir)){
@@ -213,6 +216,7 @@ int main(int argc, char *argv[])
 	printf("%d\n", network_state);
 	map_area_set_network_state(area, network_state);
 	map_area_set_cache_directory(area, cache_dir);
+	map_area_set_color_selection(area, color_selection, color_selection_out, color_selection_pad);
 
 	// Selection-Widget in sidebar
 	select_tool = select_tool_new();

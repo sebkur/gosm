@@ -28,6 +28,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
+#include "map_types.h"
 #include "customio.h"
 #include "config.h"
 #include "configuration.h"
@@ -116,9 +117,20 @@ config_widget_construct(ConfigWidget * config_widget, Configuration * configurat
 		labels[i] = gtk_label_new(ce.name);
 		switch (ce.type){
 		case TYPE_DIR:
-		case TYPE_COLOR:
 		case TYPE_IP:{
 			sprintf(buf, "%s", (char*)ce.data);
+			entries[i] = gtk_entry_new();
+			gtk_entry_set_text(GTK_ENTRY(entries[i]), buf) ;
+			break;
+		}
+		case TYPE_COLOR:{
+			sprintdouble(buf, ((ColorQuadriple*)ce.data) -> r, 2);
+			sprintf(buf+strlen(buf), "%s", ",");
+			sprintdouble(buf+strlen(buf), ((ColorQuadriple*)ce.data) -> g, 2);
+			sprintf(buf+strlen(buf), "%s", ",");
+			sprintdouble(buf+strlen(buf), ((ColorQuadriple*)ce.data) -> b, 2);
+			sprintf(buf+strlen(buf), "%s", ",");
+			sprintdouble(buf+strlen(buf), ((ColorQuadriple*)ce.data) -> a, 2);
 			entries[i] = gtk_entry_new();
 			gtk_entry_set_text(GTK_ENTRY(entries[i]), buf);
 			break;

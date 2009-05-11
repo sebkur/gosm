@@ -59,6 +59,9 @@ struct _MapArea
 	char * cache_dir;
 
 	int selection_mouseover;
+	ColorQuadriple color_selection;
+	ColorQuadriple color_selection_out;
+	ColorQuadriple color_selection_pad;
 };
 
 struct _MapAreaClass
@@ -94,5 +97,7 @@ void map_area_set_network_state(MapArea * map_area, gboolean state);
 
 void map_area_path_remove_point(MapArea *map_area);
 void map_area_path_clear(MapArea *map_area);
+
+void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad);
 
 #endif

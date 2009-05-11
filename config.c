@@ -40,32 +40,35 @@
 #include "customio.h"
 #include "config.h"
 #include "configuration.h"
+#include "map_types.h"
 
 ConfEntry ConfEntries[] = {
-	{"online_on_startup",	TYPE_BOOLEAN,	"TRUE",		NULL},
-        {"longitude",           TYPE_DOUBLE,    "13.4",         NULL},
-        {"lattitude",           TYPE_DOUBLE,    "52.52",        NULL},
-        {"zoom",                TYPE_INT,       "11",           NULL},
-        {"show_grid",           TYPE_BOOLEAN,   "FALSE",        NULL},
-	{"show_tilenumbers",	TYPE_BOOLEAN,	"FALSE",	NULL},
-	{"show_menubar",	TYPE_BOOLEAN,	"TRUE",		NULL},
-	{"show_toolbar",	TYPE_BOOLEAN,	"TRUE",		NULL},
-	{"show_statusbar",	TYPE_BOOLEAN,	"TRUE",		NULL},
-	{"show_controls",	TYPE_BOOLEAN,	"TRUE",		NULL},
-	{"show_sidebar",	TYPE_BOOLEAN,	"TRUE",		NULL},
-        {"set_position",        TYPE_BOOLEAN,   "FALSE",        NULL},
-        {"position_x",          TYPE_INT,       "0",            NULL},
-        {"position_y",          TYPE_INT,       "0",            NULL},
-        {"set_size",            TYPE_BOOLEAN,   "TRUE",         NULL},
-        {"size_width",          TYPE_INT,       "800",          NULL},
-        {"size_height",         TYPE_INT,       "600",          NULL},
-        {"fullscreen",          TYPE_BOOLEAN,   "FALSE",        NULL},
-        {"cache_dir",           TYPE_DIR,       "/tmp/osm",     NULL},
-        {"cache_size",          TYPE_INT,       "120",          NULL},
-        {"selection_color",     TYPE_COLOR,     "#FF0044",      NULL},
-        {"use_proxy",           TYPE_BOOLEAN,   "FALSE",         NULL},
-        {"proxy_host",          TYPE_IP,        "proxy.ip.add", NULL},
-        {"proxy_port",          TYPE_INT,       "80",           NULL}
+	{"online_on_startup",	TYPE_BOOLEAN,	"TRUE",			NULL},
+        {"longitude",           TYPE_DOUBLE,    "13.4",         	NULL},
+        {"lattitude",           TYPE_DOUBLE,    "52.52",        	NULL},
+        {"zoom",                TYPE_INT,       "6",	           	NULL},
+        {"show_grid",           TYPE_BOOLEAN,   "FALSE",        	NULL},
+	{"show_tilenumbers",	TYPE_BOOLEAN,	"FALSE",		NULL},
+	{"show_menubar",	TYPE_BOOLEAN,	"TRUE",			NULL},
+	{"show_toolbar",	TYPE_BOOLEAN,	"TRUE",			NULL},
+	{"show_statusbar",	TYPE_BOOLEAN,	"TRUE",			NULL},
+	{"show_controls",	TYPE_BOOLEAN,	"TRUE",			NULL},
+	{"show_sidebar",	TYPE_BOOLEAN,	"TRUE",			NULL},
+        {"set_position",        TYPE_BOOLEAN,   "FALSE",        	NULL},
+        {"position_x",          TYPE_INT,       "0",            	NULL},
+        {"position_y",          TYPE_INT,       "0",            	NULL},
+        {"set_size",            TYPE_BOOLEAN,   "TRUE",         	NULL},
+        {"size_width",          TYPE_INT,       "800",          	NULL},
+        {"size_height",         TYPE_INT,       "600",          	NULL},
+        {"fullscreen",          TYPE_BOOLEAN,   "FALSE",        	NULL},
+        {"cache_dir",           TYPE_DIR,       "/tmp/osm",     	NULL},
+        {"cache_size",          TYPE_INT,       "120",          	NULL},
+        {"color_selection",     TYPE_COLOR,     "1.0,1.0,0.5,0.4",	NULL},
+        {"color_selection_out", TYPE_COLOR,     "1.0,1.0,0.8,0.9",	NULL},
+        {"color_selection_pad", TYPE_COLOR,     "1.0,0.8,0.3,0.4",	NULL},
+        {"use_proxy",           TYPE_BOOLEAN,   "FALSE",		NULL},
+        {"proxy_host",          TYPE_IP,        "proxy.ip.add",		NULL},
+        {"proxy_port",          TYPE_INT,       "80",			NULL}
 };
 
 gboolean config_set_entry_data(ConfEntry * ce, char * data_str);
@@ -103,15 +106,27 @@ gpointer config_get_entry_data(Configuration * configuration, char * name)
 gboolean config_load_config_file(Configuration * configuration)
 {
 	char * filename = "configuration";
+	char * dir = getenv("HOME");
+	if (dir == NULL){
+		return FALSE;
+	}
+	char * gosmdir = malloc(sizeof(char) * strlen(dir) + 6);
+	sprintf(gosmdir, "%s", dir);
+	sprintf(gosmdir+strlen(gosmdir), "%s", "/.gosm");
+	char * filepath = malloc(sizeof(char) * strlen(gosmdir) + 15);
+	sprintf(filepath, "%s", gosmdir);
+	sprintf(filepath+strlen(filepath), "%s", "/");
+	sprintf(filepath+strlen(filepath), "%s", filename);
+	printf("%s\n", filepath);
 
         struct stat sb;
-        int s = stat(filename, &sb);
+        int s = stat(filepath, &sb);
         if (s == -1){
                 printf("config file not found\n");
 		return FALSE;
         }
 
-        int fd = open(filename, O_RDONLY);
+        int fd = open(filepath, O_RDONLY);
         if (fd == -1){
                 printf("config file not found\n");
                 return FALSE;
@@ -142,7 +157,33 @@ gboolean config_load_config_file(Configuration * configuration)
 gboolean config_save_config_file(Configuration * configuration)
 {
 	char * filename = "configuration";
-	int fd = open(filename, O_RDWR | O_CREAT | O_TRUNC);
+	char * dir = getenv("HOME");
+	if (dir == NULL){
+		return FALSE;
+	}
+	char * gosmdir = malloc(sizeof(char) * strlen(dir) + 6);
+	sprintf(gosmdir, "%s", dir);
+	sprintf(gosmdir+strlen(gosmdir), "%s", "/.gosm");
+	char * filepath = malloc(sizeof(char) * strlen(gosmdir) + 15);
+	sprintf(filepath, "%s", gosmdir);
+	sprintf(filepath+strlen(filepath), "%s", "/");
+	sprintf(filepath+strlen(filepath), "%s", filename);
+	printf("%s\n", filepath);
+
+        struct stat sb;
+        int s = stat(gosmdir, &sb);
+        if (s == -1){
+                printf("gosm dir not found, trying to create\n");
+		mkdir(gosmdir, 0755);
+		s = stat(gosmdir, &sb);
+		if (s == -1){
+			return FALSE;
+		}else{
+			printf("successfully created gosm dir: %s\n", gosmdir);
+		}
+        }
+
+	int fd = open(filepath, O_RDWR | O_CREAT | O_TRUNC, 0644);
 	int i;
 	for (i = 0; i < configuration -> count; i++){
 		ConfEntry * ce = &(configuration -> entries[i]);
@@ -214,8 +255,19 @@ gboolean config_set_entry_data(ConfEntry * ce, char * data_str)
 		strncpy(ce -> data_str, b, strlen(b));
 		return TRUE;
 	}
+	case TYPE_COLOR:{
+		if (ce -> data == NULL){
+			ce -> data = malloc(sizeof(ColorQuadriple));
+		}
+                gchar ** split = g_strsplit(data_str, ",", 4);
+		if (split[0] == NULL || split[1] == NULL || split[2] == NULL || split[3] == NULL) return FALSE;
+		((ColorQuadriple*)ce -> data) -> r = strtodouble(split[0]);
+		((ColorQuadriple*)ce -> data) -> g = strtodouble(split[1]);
+		((ColorQuadriple*)ce -> data) -> b = strtodouble(split[2]);
+		((ColorQuadriple*)ce -> data) -> a = strtodouble(split[3]);
+		return TRUE;
+	}
 	case TYPE_DIR:
-	case TYPE_COLOR:
 	case TYPE_IP:{
 		int size_new = strlen(data_str) + 1;
 		if (ce -> data == NULL){
