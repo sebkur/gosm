@@ -94,6 +94,7 @@ static void tile_manager_init(TileManager *tile_manager)
 	tile_manager -> tile_cache	= cache_new(64); 					// TODO: CACHE_SIZE
 	tile_manager -> load_from_disk	= g_array_new(TRUE, TRUE, sizeof(struct MapTile));
 	tile_manager -> load_from_netw	= g_array_new(TRUE, TRUE, sizeof(struct MapTile));
+	tile_manager -> actual_load_from_netw	= g_array_new(TRUE, TRUE, sizeof(struct MapTile));
 
 	pthread_mutex_init(&(tile_manager -> mutex_load_from_disk), NULL);
 	pthread_mutex_init(&(tile_manager -> mutex_load_from_netw), NULL);
@@ -104,7 +105,7 @@ static void tile_manager_init(TileManager *tile_manager)
 
 	pthread_t thread_disk, thread_netw;
 	int p_disk = pthread_create(&thread_disk, NULL, (void *) function_load_from_disk, tile_manager);
-	int x = 0; for (x = 0; x < 1; x++){
+	int x = 0; for (x = 0; x < 8; x++){
 		int p_netw = pthread_create(&thread_netw, NULL, (void *) function_load_from_netw, tile_manager);
 	}
 }
@@ -141,6 +142,17 @@ gboolean is_in_list(GArray * array, MapTile * map_tile){
 		}
 	}
 	return FALSE;
+}
+
+int pos_in_list(GArray * array, MapTile * map_tile){
+	int i;
+	for (i = 0; i < array -> len; i++){
+		MapTile element = g_array_index(array, MapTile, i);
+		if (element.zoom == map_tile->zoom && element.x == map_tile->x && element.y == map_tile->y){
+			return i;
+		}
+	}
+	return -1;
 }
 
 gpointer tile_manager_request_tile(TileManager * tile_manager, int x, int y, int zoom)
@@ -185,7 +197,7 @@ void get_tile_from_network(TileManager * tile_manager, int x, int y, int zoom)
 	map_tile.x = x;
 	map_tile.y = y;
 	map_tile.zoom = zoom;
-	if (!(is_in_list(tile_manager -> load_from_netw, &map_tile) || !memcmp(&(tile_manager -> actual_load_from_netw), &map_tile, sizeof(MapTile)))){
+	if (!(is_in_list(tile_manager -> load_from_netw, &map_tile) || is_in_list(tile_manager -> actual_load_from_netw, &map_tile))){
 		g_array_append_val(tile_manager -> load_from_netw, map_tile);
 		printf("appended\n");
 	}
@@ -280,13 +292,13 @@ void function_load_from_disk(TileManager * tile_manager)
 }
 
 
-void tile_manager_download(TileManager * tile_manager, const char* url, const char* file_name)
+void tile_manager_download(TileManager * tile_manager, CURL * easyhandle, const char* url, const char* file_name)
 { // TODO: recycle easyhandle like in tile_loader
   // better: use one method for both classes
-	if (tile_manager -> easyhandle == NULL){
-		tile_manager -> easyhandle = curl_easy_init() ;
-	}
-	CURL * easyhandle = tile_manager -> easyhandle;
+	//if (tile_manager -> easyhandle == NULL){
+	//	tile_manager -> easyhandle = curl_easy_init() ;
+	//}
+	//CURL * easyhandle = tile_manager -> easyhandle;
 	curl_easy_setopt( easyhandle, CURLOPT_URL, url ) ;
 	FILE * file = fopen( file_name, "w" ) ;
 	//curl_easy_setopt( easyhandle, CURLOPT_PROXY, "130.133.8.114:80");
@@ -298,19 +310,20 @@ void tile_manager_download(TileManager * tile_manager, const char* url, const ch
 	fclose(file);
 }
 
-void tile_manager_download_tile(TileManager * tile_manager, int zoom, int x, int y)
+void tile_manager_download_tile(TileManager * tile_manager, CURL * easyhandle, int zoom, int x, int y)
 {
 	char url[100];
 	char filename[tile_manager -> cache_files_format_len + 22];
 	sprintf(url, FORMAT_URL, zoom, x, y);
 	sprintf(filename, tile_manager -> cache_files_format, zoom, x, y);
 	printf("downloading %s to %s\n", url, filename);
-	tile_manager_download(tile_manager, url, filename);
+	tile_manager_download(tile_manager, easyhandle, url, filename);
 	printf("got %s\n", filename);
 }
 
 void function_load_from_netw(TileManager * tile_manager)
 {
+	CURL * easyhandle = curl_easy_init();
 	while(TRUE){
 		while(TRUE){	
 			pthread_mutex_lock(&(tile_manager -> mutex_load_from_netw));
@@ -318,11 +331,18 @@ void function_load_from_netw(TileManager * tile_manager)
 				break;
 			}else{
 				MapTile map_tile = g_array_index(tile_manager -> load_from_netw, MapTile, tile_manager -> load_from_netw -> len - 1);
-				tile_manager -> actual_load_from_netw = map_tile;
+				g_array_append_val(tile_manager -> actual_load_from_netw, map_tile);
 				g_array_remove_index(tile_manager -> load_from_netw, tile_manager -> load_from_netw -> len - 1);
 				pthread_mutex_unlock(&(tile_manager -> mutex_load_from_netw));
 				// do actual work here
-				tile_manager_download_tile(tile_manager, map_tile.zoom, map_tile.x, map_tile.y);
+				tile_manager_download_tile(tile_manager, easyhandle, map_tile.zoom, map_tile.x, map_tile.y);
+				
+				pthread_mutex_lock(&(tile_manager -> mutex_load_from_netw));
+				int pos = pos_in_list(tile_manager -> actual_load_from_netw, &map_tile);
+				g_array_remove_index_fast(tile_manager -> actual_load_from_netw, pos);
+				printf("list len: %d\n", tile_manager -> actual_load_from_netw -> len);
+				pthread_mutex_unlock(&(tile_manager -> mutex_load_from_netw));
+
 				g_signal_emit (tile_manager, tile_manager_signals[TILE_LOADED_FROM_DISK], 0);
 			}
 		}

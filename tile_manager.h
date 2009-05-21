@@ -59,7 +59,7 @@ struct _TileManager
 	pthread_mutex_t mutex_wait_load_from_disk;
 
 	GArray *load_from_netw;
-	MapTile actual_load_from_netw;
+	GArray *actual_load_from_netw;
 	pthread_mutex_t mutex_load_from_netw;
 	pthread_cond_t  cond_wait_load_from_netw;
 	pthread_mutex_t mutex_wait_load_from_netw;
@@ -69,7 +69,7 @@ struct _TileManager
 	char * cache_files_format;
 	int cache_files_format_len;
 
-	CURL * easyhandle;
+	CURL * easyhandle; // TODO: unused now, remove
 };
 
 struct _TileManagerClass
