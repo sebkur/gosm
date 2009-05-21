@@ -558,6 +558,7 @@ void move(GtkWidget *widget, int direction)
 
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 {
+	//printf("expose\n");
 	MapArea *map_area = GOSM_MAP_AREA(widget);
 	MapPosition *map_position = &(map_area -> map_position);
 

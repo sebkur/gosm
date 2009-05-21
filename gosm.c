@@ -476,8 +476,10 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(toolbar_buttons[0]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(toolbar_buttons[1]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(toolbar_buttons[2]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
-	
+
+	gdk_threads_enter();	
 	gtk_main();
+	gdk_threads_leave();
 }
 
 gboolean check_for_cache_directory(char * fn)

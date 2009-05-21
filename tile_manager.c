@@ -212,8 +212,10 @@ void function_load_from_disk(TileManager * tile_manager)
 				// do actual work here
 				char path[tile_manager -> cache_files_format_len + 22];
 				sprintf(path, tile_manager -> cache_files_format, map_tile.zoom, map_tile.x, map_tile.y);
+				gdk_threads_enter();
 				GdkPixbuf * pixbuf = gdk_pixbuf_new_from_file(path, NULL);
 				if (!GDK_IS_PIXBUF(pixbuf)){
+					gdk_threads_leave();
 					// not on disk -> load from network
 					memset(&(tile_manager -> actual_load_from_disk), 0, sizeof(MapTile));
 					if (tile_manager -> network_state){
@@ -227,7 +229,7 @@ void function_load_from_disk(TileManager * tile_manager)
 					}*/
 				}else{
 					got = TRUE;
-					gdk_threads_enter();
+					//gdk_threads_enter();
 					GdkPixmap * pixmap = gdk_pixmap_new(NULL, 256, 256, 24);
 					GdkVisual * visual = gdk_visual_get_best_with_depth(24);
 					GdkColormap * colormap = gdk_colormap_new(visual, TRUE);
@@ -248,9 +250,13 @@ void function_load_from_disk(TileManager * tile_manager)
 						//printf("replaced\n");
 						CachedMapTile * cmt = (CachedMapTile*)(tile_manager -> tile_cache -> ring_buffer -> overwritten);
 						GdkPixmap * pm_old = cmt -> pixbuf;
+						pthread_mutex_unlock(&(tile_manager -> mutex_tile_cache));
+						gdk_threads_enter();
 						g_object_unref(pm_old);
+						gdk_threads_leave();
+					}else{
+						pthread_mutex_unlock(&(tile_manager -> mutex_tile_cache));
 					}
-					pthread_mutex_unlock(&(tile_manager -> mutex_tile_cache));
 					memset(&(tile_manager -> actual_load_from_disk), 0, sizeof(MapTile));
 				}
 			}
