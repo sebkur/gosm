@@ -206,7 +206,7 @@ int make_image_1(char * filename, char * cache_dir, int zoom,
 	fclose(fp_write);
 
 	printf("%d\n", s_w);
-	printf("%d\n", info_ptr -> valid);
+	//printf("%d\n", info_ptr -> valid);
 
 	return EXIT_SUCCESS;
 }
