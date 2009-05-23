@@ -715,14 +715,20 @@ static gboolean selection_clipboard_cb(GtkWidget *widget)
 	Selection s = area -> selection;
 	printf("Selection (lon1, lon2, lat1, lat2): %f %f %f %f\n", s.lon1, s.lon2, s.lat1, s.lat2);
 
+	double lon1, lon2, lat1, lat2;
+	lon1 = s.lon1 < s.lon2 ? s.lon1 : s.lon2;
+	lon2 = s.lon1 > s.lon2 ? s.lon1 : s.lon2;
+	lat1 = s.lat1 < s.lat2 ? s.lat1 : s.lat2;
+	lat2 = s.lat1 > s.lat2 ? s.lat1 : s.lat2;
+
 	char buf[40];
-	sprintdouble(buf, s.lon1, 7);
+	sprintdouble(buf, lon1, 7);
 	sprintf(buf+strlen(buf), "%s", ",");
-	sprintdouble(buf+strlen(buf), s.lat1, 7); 
+	sprintdouble(buf+strlen(buf), lat1, 7); 
 	sprintf(buf+strlen(buf), "%s", ",");
-	sprintdouble(buf+strlen(buf), s.lon2, 7); 
+	sprintdouble(buf+strlen(buf), lon2, 7); 
 	sprintf(buf+strlen(buf), "%s", ",");
-	sprintdouble(buf+strlen(buf), s.lat2, 7); 
+	sprintdouble(buf+strlen(buf), lat2, 7); 
 
 	GtkClipboard * cb = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
 	gtk_clipboard_set_text(cb, buf, strlen(buf));
