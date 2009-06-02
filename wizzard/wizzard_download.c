@@ -109,12 +109,12 @@ gboolean download_cb(GtkWidget *widget, WizzardDownload * wizzard)
 	Selection * selection = &(wizzard -> select_use_window -> selection);
 	gboolean to_load[18];
 	int i;
-	for (i = 0; i < 17; i++){
+	for (i = 0; i < 18; i++){
 		to_load[i] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(wizzard -> select_use_window -> to_load_wid[i]));
 	}
 
 	gboolean one_selected = FALSE;
-	for (i = 0; i < 17; i++){
+	for (i = 0; i < 18; i++){
 		if (to_load[i]){
 			one_selected = TRUE;
 			break;
@@ -127,7 +127,7 @@ gboolean download_cb(GtkWidget *widget, WizzardDownload * wizzard)
 	gtk_widget_hide_all(GTK_WIDGET(wizzard -> select_use_window));
 
 	int count = 0;
-        for (i = 1; i <= 17; i++){
+        for (i = 1; i <= 18; i++){
                 if (to_load[i-1]){
                         double x1 = lon_to_x(selection->lon1, i);
                         double x2 = lon_to_x(selection->lon2, i);
@@ -159,7 +159,7 @@ gboolean download_cb(GtkWidget *widget, WizzardDownload * wizzard)
 	wizzard -> handler_id_tile_loaded = g_signal_connect(G_OBJECT(wizzard -> tile_loader), "tile-loaded-succesfully", G_CALLBACK(loaded_cb), wizzard);
 
 	int x1, x2, y1, y2, ix, iy, zoom;
-	for (i = 0; i < 17; i++){
+	for (i = 0; i < 18; i++){
 		zoom = i+1;
 		if (to_load[i]){
 			x1 = (int)lon_to_x(selection->lon1, zoom);
@@ -189,4 +189,11 @@ void wizzard_download_show(WizzardDownload * wizzard)
 	wizzard -> select_use_window = GOSM_SELECT_USE_WINDOW(win);
 	g_signal_connect(G_OBJECT(wizzard -> select_use_window -> button_cancel), "clicked", G_CALLBACK(cancel_cb), wizzard);
 	g_signal_connect(G_OBJECT(wizzard -> select_use_window -> button_load), "clicked", G_CALLBACK(download_cb), wizzard);
+}
+
+void wizzard_download_set_active(WizzardDownload * wizzard, int zoomlevel, gboolean state)
+{
+	if(wizzard -> select_use_window != NULL){
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(wizzard -> select_use_window -> to_load_wid[zoomlevel-1]), state);
+	}
 }

@@ -25,6 +25,7 @@
 
 #include <sys/time.h>
 #include <string.h>
+#include <math.h>
 
 #include "map_area.h"
 #include "map_types.h"
@@ -112,6 +113,8 @@ static void map_area_class_init(MapAreaClass *class)
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0);
+
+	
 }
 
 void map_area_set_cache_directory(MapArea * map_area, char * directory)
@@ -165,6 +168,20 @@ static void map_area_init(MapArea *map_area)
 	map_area -> selection.x2 		= 0;
 	map_area -> selection.y1 		= 0;
 	map_area -> selection.y2 		= 0;
+	// test selection
+	/*
+	map_area -> selection.lon1 		= 12.94;
+	map_area -> selection.lat1 		= 52.74;
+	map_area -> selection.lon2 		= 13.75;
+	map_area -> selection.lat2 		= 52.3;
+	*/
+
+	map_area -> show_slice = FALSE;
+	map_area -> slice_zl= 13;
+        map_area -> slice_x = 1700;
+        map_area -> slice_y = 1200;
+        map_area -> slice_intersect_x = 150;
+        map_area -> slice_intersect_y = 150;
 
 	map_area -> path			= g_list_alloc();
 
@@ -702,7 +719,42 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			map_area -> selection.y2 - map_area -> selection.y1);
 		cairo_set_line_width(cr_sel, 1.0);
 		cairo_stroke(cr_sel);
-	
+
+		// slicing
+		if (map_area -> show_slice){
+			int z_diff = map_position -> zoom - map_area -> slice_zl;
+			double z_factor = pow(2, z_diff);
+			int z_slice_x = map_area -> slice_x * z_factor;
+			int z_slice_y = map_area -> slice_y * z_factor;
+			int z_slice_intersect_x = map_area -> slice_intersect_x * z_factor;
+			int z_slice_intersect_y = map_area -> slice_intersect_y * z_factor;
+			int sel_width  = map_area -> selection.x2 - map_area -> selection.x1;
+			int sel_height = map_area -> selection.y2 - map_area -> selection.y1;
+			int parts_x = 1 + ceil(((double)(sel_width  - z_slice_x)) / (z_slice_x - z_slice_intersect_x));
+			int parts_y = 1 + ceil(((double)(sel_height - z_slice_y)) / (z_slice_y - z_slice_intersect_y));
+			parts_x = parts_x > 0 ? parts_x : 1;
+			parts_y = parts_y > 0 ? parts_y : 1;
+			//TODO: more intelligent painting of squares
+			//	draw grid-lines instead of rectangles
+			if (parts_x * parts_y < 1000){
+				//printf("slices: %d %d\n", parts_x, parts_y);
+				pat_sel = cairo_pattern_create_rgba(0.5,0.5,0.5,0.4);
+				cairo_set_source(cr_sel, pat_sel);
+				int s_x, s_y;
+				for(s_x = 0; s_x < parts_x; s_x++){
+					for(s_y = 0; s_y < parts_y; s_y++){
+						cairo_rectangle(cr_sel,
+							map_area -> selection.x1 + s_x * (z_slice_x - z_slice_intersect_x),
+							map_area -> selection.y1 + s_y * (z_slice_y - z_slice_intersect_y), 
+							z_slice_x,
+							z_slice_y);
+					}
+				}
+				cairo_set_line_width(cr_sel, 1.0);
+				cairo_stroke(cr_sel);
+			}
+		}
+
 		/* RESIZE PADS */	
 		Selection selection = map_area -> selection;
 		int s_width = selection.x2 - selection.x1;

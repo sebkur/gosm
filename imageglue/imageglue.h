@@ -20,3 +20,9 @@
 
 
 int make_image(char * filename, char * cache_dir, int zoom, double lon1, double lon2, double lat1, double lat2);
+
+int make_image_simple(char * filename, int zoom, int x1, int x2, int y1, int y2);
+
+int make_image_1(char * filename, char * cache_dir, int zoom,
+			int x1,   int x2,   int y1,   int y2,
+			int x1_o, int x2_o, int y1_o, int y2_o);

@@ -10,11 +10,13 @@ tile_cache.c \
 tilemath.c \
 select_tool.c \
 distance_tool.c \
+atlas_tool.c \
 wizzard/select_use_window.c \
 wizzard/tile_download_window.c \
 wizzard/wizzard_download.c \
 wizzard/select_export_window.c \
 wizzard/wizzard_export.c \
+wizzard/atlas_template_dialog.c \
 uri.c \
 about/about.c \
 manual/manual.c \

@@ -38,7 +38,6 @@ struct _SelectTool
 {
 	GtkVBox parent;
 	/* public things? */
-	GtkWidget * widget;
 	GtkWidget * lon1;
 	GtkWidget * lon2;
 	GtkWidget * lat1;

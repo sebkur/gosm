@@ -42,8 +42,8 @@ struct _SelectUseWindow
 	GtkWidget *button_cancel;
 
 	Selection selection;
-	//gboolean to_load[17];
-	GtkWidget* to_load_wid[17];
+	//gboolean to_load[18];
+	GtkWidget* to_load_wid[18];
 };
 
 struct _SelectUseWindowClass

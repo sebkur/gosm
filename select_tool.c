@@ -112,8 +112,7 @@ static void select_tool_init(SelectTool *select_tool)
 	gtk_widget_set_tooltip_text(select_tool -> button_clipboard, "copy to clipboard");
 	gtk_widget_set_tooltip_text(select_tool -> button_bookmark, "bookmark(not implemented)");
 
-	select_tool -> widget = gtk_table_new(5, 3, FALSE);
-	GtkWidget * table = select_tool -> widget;
+	GtkWidget * table = gtk_table_new(5, 3, FALSE);
 	gtk_table_attach(GTK_TABLE(table), label_lon,			1, 2, 0, 1, GTK_EXPAND | GTK_FILL, 0, 0, 0);
 	gtk_table_attach(GTK_TABLE(table), label_lat,			2, 3, 0, 1, GTK_EXPAND | GTK_FILL, 0, 0, 0);
 	gtk_table_attach(GTK_TABLE(table), icon1,			0, 1, 1, 2, GTK_SHRINK, 0, 0, 0);
@@ -131,6 +130,8 @@ static void select_tool_init(SelectTool *select_tool)
 	gtk_widget_set_size_request(select_tool -> lon2, 0 , -1);
 	gtk_widget_set_size_request(select_tool -> lat1, 0 , -1);
 	gtk_widget_set_size_request(select_tool -> lat2, 0 , -1);
+
+	gtk_box_pack_start(GTK_BOX(select_tool), table, FALSE, FALSE, 0);
 }
 
 

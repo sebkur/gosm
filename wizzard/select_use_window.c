@@ -56,7 +56,7 @@ static void select_use_window_init(SelectUseWindow *select_use_window)
 void select_use_window_construct(SelectUseWindow *select_use_window)
 {
 	Selection * selection = &(select_use_window -> selection);
-	GtkWidget * table = gtk_table_new(18, 9, FALSE);
+	GtkWidget * table = gtk_table_new(19, 9, FALSE);
 	gtk_container_add(GTK_CONTAINER(select_use_window), table);
 	GtkWidget * label_level = gtk_label_new("Level");
 	GtkWidget * label_x1 = gtk_label_new("x1");
@@ -78,7 +78,7 @@ void select_use_window_construct(SelectUseWindow *select_use_window)
 	gtk_table_attach(GTK_TABLE(table), label_mult,		7, 8, 0, 1, 0, 0, 8, 0);
 	gtk_table_attach(GTK_TABLE(table), label_load,		8, 9, 0, 1, 0, 0, 8, 0);
 
-	int i; for (i = 1; i <= 17; i++){
+	int i; for (i = 1; i <= 18; i++){
 		char buf[16];
 		sprintf(buf, "%d", i);
 		GtkWidget * lab_lev = gtk_label_new(buf);
@@ -119,7 +119,7 @@ void select_use_window_construct(SelectUseWindow *select_use_window)
 		//g_signal_connect(G_OBJECT(check_load),  "toggled", G_CALLBACK(toggle_check_cb), GINT_TO_POINTER(i));
 	}
 	GtkWidget * hbox = gtk_hbox_new(FALSE, 0);
-	gtk_table_attach(GTK_TABLE(table), hbox, 0, 9, 18, 19, GTK_EXPAND | GTK_FILL, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), hbox, 0, 9, 19, 20, GTK_EXPAND | GTK_FILL, 0, 0, 0);
 	select_use_window -> button_load = gtk_button_new_with_label("Load to Disk");
 	GtkWidget * icon_load = gtk_image_new_from_stock("gtk-harddisk", GTK_ICON_SIZE_BUTTON);
 	gtk_button_set_image(GTK_BUTTON(select_use_window -> button_load), icon_load);

@@ -49,7 +49,7 @@ struct _WizzardDownload
 	TileLoader * tile_loader;
 
 	Selection selection;
-	gboolean to_load[17];
+	gboolean to_load[18];
 	gulong handler_id_tile_loaded;
 };
 
@@ -61,3 +61,5 @@ struct _WizzardDownloadClass
 WizzardDownload * wizzard_download_new(GtkWindow * parent_window, char * download_dir, Selection selection);
 
 void wizzard_download_show(WizzardDownload * wizzard);
+
+void wizzard_download_set_active(WizzardDownload * wizzard, int zoomlevel, gboolean state);

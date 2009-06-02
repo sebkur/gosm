@@ -1,7 +1,7 @@
 INSTALLATION
 
 Currently, you can just compile everything and use the software.
-To compile goto to enter:
+To compile, enter:
 
 . misc/compilage
 
@@ -27,7 +27,7 @@ libcurl3                                7.18.2-8.1
 libpng12-0                              1.2.27-2
 libwebkit-1.0-1                         1.0.1-4+b1
 
-for BUILDIING gosm you'll need:
+for BUILDING gosm you'll need:
 
 libglib2.0-dev                          2.20.1-1
 libgtk2.0-dev                           2.14.7-5 

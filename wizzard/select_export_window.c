@@ -83,7 +83,7 @@ void select_export_window_construct(SelectExportWindow *select_export_window, gi
 	select_export_window -> text_height	= gtk_label_new("0");
 	select_export_window -> combo 		= gtk_combo_box_new_text();
 	int i; char text[5];
-	for (i = 0; i < 17; i++){
+	for (i = 0; i < 18; i++){
 		sprintf(text, "%d", i+1);
 		gtk_combo_box_append_text(GTK_COMBO_BOX(select_export_window -> combo), text);
 	}

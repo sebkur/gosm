@@ -67,7 +67,7 @@ void tile_download_window_set_pause_button_state(TileDownloadWindow * tile_downl
 void tile_download_window_construct(TileDownloadWindow * tile_download_window, Selection * selection, gboolean *todo)
 {
 	int count = 0;	
-	int i; for (i = 1; i <= 17; i++){
+	int i; for (i = 1; i <= 18; i++){
 		if (todo[i-1]){
 	                double x1 = lon_to_x(selection->lon1, i);
 	                double x2 = lon_to_x(selection->lon2, i);

@@ -19,13 +19,17 @@
  */
 
 /** TODO:
- *	- there are 18 zoom-levels!! in some parts 17 are assumed
+ * 	- sum atlas picture up into a single pdf optionally
+ * 	- template selection for atlas export
+ *	- progress monitor for image export / atlas export
+ *	- make imageglue a class with events
+ *	- DONE there are 18 zoom-levels!! in some parts 17 are assumed
  * 	- use tile_loader for loading tiles in map_area
  *	- DONE on CACHE_MISS: let another thread load into memory from disk for complete
  *		fluid visuals. 3-level-cache should be represented in threading
  *	- DONE make config-dialog:
- *	- config-dialog should save settings on apply
- *	- config should be accessible from everywhere somehow
+ *	- DONE config-dialog should save settings on apply
+ *	- config should be accessible from everywhere somehow USE EXTERN
  * 	- DONE function 'load_new_tiles' is called on every position change
  * 		it handles checking for new tile-downloading quite inefficent
  * 		since it check existance of every single file on the tmp-dir
@@ -60,11 +64,16 @@
 #include "map_navigator.h"
 #include "select_tool.h"
 #include "distance_tool.h"
+#include "atlas.h"
+#include "atlas_tool.h"
 #include "wizzard/wizzard_download.h"
 #include "wizzard/wizzard_export.h"
+#include "wizzard/atlas_template_dialog.h"
 #include "about/about.h"
 #include "manual/manual.h"
 #include "tilemath.h"
+
+#include "imageglue/imageglue.h"
 
 #define CURSOR_HAND		0
 #define CURSOR_SELECT		1
@@ -90,6 +99,7 @@ char status_bar_buffer[50];
 
 SelectTool * select_tool;
 DistanceTool * distance_tool;
+AtlasTool * atlas_tool;
 
 GtkWidget ** toolbar_buttons; // first 3 buttons; CURSOR_* is used as index
 GtkWidget * button_network;
@@ -121,6 +131,10 @@ static gboolean selection_export_cb(GtkWidget *widget);
 static gboolean selection_clipboard_cb(GtkWidget *widget);
 static gboolean selection_check_snap_cb(GtkWidget *widget);
 static gboolean selection_check_visible_cb(GtkWidget *widget);
+static gboolean atlas_values_changed_cb(GtkWidget *widget);
+static gboolean atlas_template_cb(GtkWidget *widget);
+static gboolean atlas_download_cb(GtkWidget *widget);
+static gboolean atlas_export_cb(GtkWidget *widget);
 static gboolean distance_remove_last_cb(GtkWidget *widget);
 static gboolean distance_clear_cb(GtkWidget *widget);
 static gboolean map_moved_cb(GtkWidget *widget);
@@ -221,7 +235,7 @@ int main(int argc, char *argv[])
 	// Selection-Widget in sidebar
 	select_tool = select_tool_new();
 	GtkWidget *frame_select_tool= gtk_frame_new("Selection");
-	gtk_container_add(GTK_CONTAINER(frame_select_tool), select_tool -> widget);
+	gtk_container_add(GTK_CONTAINER(frame_select_tool), GTK_WIDGET(select_tool));
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(select_tool -> check_snap), area -> snap_selection);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(select_tool -> check_show), area -> show_selection);
 	g_signal_connect(G_OBJECT(select_tool -> button_action), "clicked", G_CALLBACK(selection_use_cb), NULL);
@@ -229,6 +243,22 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(select_tool -> button_clipboard), "clicked", G_CALLBACK(selection_clipboard_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> check_snap), "toggled", G_CALLBACK(selection_check_snap_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> check_show), "toggled", G_CALLBACK(selection_check_visible_cb), NULL);
+
+	// Atlas-Widget in sidebar
+	atlas_tool = atlas_tool_new();
+	GtkWidget *frame_atlas_tool= gtk_frame_new("Atlas");
+	gtk_container_add(GTK_CONTAINER(frame_atlas_tool), GTK_WIDGET(atlas_tool));
+	atlas_tool_set_values(atlas_tool,
+		area -> slice_x,
+		area -> slice_y,
+		area -> slice_intersect_x,
+		area -> slice_intersect_y,
+		area -> slice_zl,
+		area -> show_slice);
+	g_signal_connect(G_OBJECT(atlas_tool), "values-changed", G_CALLBACK(atlas_values_changed_cb), NULL);
+	g_signal_connect(G_OBJECT(atlas_tool -> button_template), "clicked", G_CALLBACK(atlas_template_cb), NULL);
+	g_signal_connect(G_OBJECT(atlas_tool -> button_action), "clicked", G_CALLBACK(atlas_download_cb), NULL);
+	g_signal_connect(G_OBJECT(atlas_tool -> button_export), "clicked", G_CALLBACK(atlas_export_cb), NULL);
 
 	// Distance-Widget in sidebar
 	distance_tool = GOSM_DISTANCE_TOOL(distance_tool_new());
@@ -440,6 +470,7 @@ int main(int argc, char *argv[])
 	side = gtk_vbox_new(FALSE, 0);
 	gtk_widget_set_size_request(side, 180, 0);
 	gtk_box_pack_start(GTK_BOX(side), frame_select_tool, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(side), frame_atlas_tool, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(side), frame_distance_tool, FALSE, FALSE, 0);
 
 	/**
@@ -744,6 +775,91 @@ static gboolean selection_check_visible_cb(GtkWidget *widget)
 {
 	area -> show_selection = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(select_tool -> check_show));
 	gtk_widget_queue_draw(GTK_WIDGET(area));
+}
+
+static gboolean atlas_values_changed_cb(GtkWidget *widget)
+{
+	printf("vals changed\n");
+	area -> slice_zl = atlas_tool -> slice_zoom;
+	area -> show_slice = atlas_tool -> visible;
+	area -> slice_x = atlas_tool -> slice_x;
+	area -> slice_y = atlas_tool -> slice_y;
+	area -> slice_intersect_x = atlas_tool -> slice_intersect_x;
+	area -> slice_intersect_y = atlas_tool -> slice_intersect_y;
+	map_area_repaint(GOSM_MAP_AREA(area));
+}
+
+static gboolean atlas_template_cb(GtkWidget *widget)
+{
+	GtkDialog * d = atlas_template_dialog_new();
+	gtk_window_set_transient_for(GTK_WINDOW(d), GTK_WINDOW(main_window));
+	gtk_window_set_title(GTK_WINDOW(d), "Select Template");
+	gtk_window_set_position(GTK_WINDOW(d), GTK_WIN_POS_CENTER_ON_PARENT);
+	gtk_window_set_modal(GTK_WINDOW(d), TRUE);
+	int response = gtk_dialog_run(d);
+	//printf("%d\n", response);
+	gboolean apply = FALSE;
+	AtlasImageDimension ai;
+	if(response == 0){ //TODO: use standard gtk-response-ids
+		apply = TRUE;
+		ai = atlas_template_dialog_get_info(GOSM_ATLAS_TEMPLATE_DIALOG(d));
+	}
+	gtk_widget_destroy(GTK_WIDGET(d));
+	if(apply){
+		atlas_tool_set_dimensions(atlas_tool, ai.width, ai.height, ai.intersect_x, ai.intersect_y);
+	}
+}
+
+static gboolean atlas_download_cb(GtkWidget *widget)
+{
+	WizzardDownload * wizzard = wizzard_download_new(GTK_WINDOW(main_window), cache_dir, area->selection);
+	wizzard_download_show(wizzard);
+	wizzard_download_set_active(wizzard, GPOINTER_TO_INT(area->slice_zl), TRUE);
+}
+
+static gboolean atlas_export_cb(GtkWidget *widget)
+{
+	printf("exp\n");
+	double x1_d = lon_to_x(area -> selection.lon1, atlas_tool -> slice_zoom);
+	double x2_d = lon_to_x(area -> selection.lon2, atlas_tool -> slice_zoom);
+	double y1_d = lat_to_y(area -> selection.lat1, atlas_tool -> slice_zoom);
+	double y2_d = lat_to_y(area -> selection.lat2, atlas_tool -> slice_zoom);
+	int x1 = (int) x1_d;
+	int x2 = (int) x2_d;
+	int y1 = (int) y1_d;
+	int y2 = (int) y2_d;
+	int x1_o = (x1_d - x1) * 256;
+	int x2_o = (x2_d - x2) * 256;
+	int y1_o = (y1_d - y1) * 256;
+	int y2_o = (y2_d - y2) * 256;
+	//printf("%d %d %d %d\n", x1, x2, y1, y2);
+	//printf("%d %d %d %d\n", x1_o, x2_o, y1_o, y2_o);
+	int width  = (x2-x1+1) * 256 - x1_o - 256 + x2_o;
+	int height = (y2-y1+1) * 256 - y1_o - 256 + y2_o;
+	int parts_x = 1 + ceil(((double)(width  - atlas_tool -> slice_x)) / (atlas_tool -> slice_x - atlas_tool -> slice_intersect_x));
+	int parts_y = 1 + ceil(((double)(height - atlas_tool -> slice_y)) / (atlas_tool -> slice_y - atlas_tool -> slice_intersect_y));
+	printf("%d, %d\n", parts_x, parts_y);
+	int a,b;
+	int step_x = atlas_tool -> slice_x - atlas_tool -> slice_intersect_x;
+	int step_y = atlas_tool -> slice_y - atlas_tool -> slice_intersect_y;
+	char buf[60];
+	//TODO: maybe cut the last row/col at selection end
+	for (a = 0; a < parts_x; a++){
+		int s_x = x1 + (x1_o + a * step_x) / 256;
+		int s_x_o = (x1_o + a * step_x) % 256;
+		int e_x = s_x + (s_x_o + atlas_tool -> slice_x) / 256;
+		int e_x_o = (s_x_o + atlas_tool -> slice_x) % 256;
+		//printf("%d,%d,%d,%d\n", s_x, s_x_o, e_x, e_x_o);
+		for (b = 0; b < parts_y; b++){
+			int s_y = y1 + (y1_o + b * step_y) / 256;
+			int s_y_o = (y1_o + b * step_y) % 256;
+			int e_y = s_y + (s_y_o + atlas_tool -> slice_y) / 256;
+			int e_y_o = (s_y_o + atlas_tool -> slice_y) % 256;
+			sprintf(buf, "image_%d_%d.png", a+1, b+1);
+			printf("%s\n", buf);
+			make_image_1(buf, cache_dir, atlas_tool -> slice_zoom, s_x, e_x, s_y, e_y, s_x_o, e_x_o, s_y_o, e_y_o);
+		}
+	}
 }
 
 static gboolean distance_remove_last_cb(GtkWidget *widget)

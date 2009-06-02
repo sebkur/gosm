@@ -10,6 +10,8 @@ measure.png:		 	adapted from: /usr/share/icons/gnome/24x24/stock/image/stock_nod
 navigate.png:		 	/usr/share/icons/gnome/24x24/stock/navigation/stock_navigator.png
 network-idle.png:	 	/usr/share/icons/gnome/24x24/status/network-idle.png
 network-offline.png:	 	/usr/share/icons/gnome/24x24/status/network-offline.png
+object-flip-horizontal.png:	/usr/share/icons/gnome/24x24/actions/object-flip-horizontal.png
+object-flip-vertical.png:	/usr/share/icons/gnome/24x24/actions/object-flip-vertical.png
 select.png:		 	/usr/share/icons/gnome/24x24/stock/image/stock_draw-line-45.png
 stock_bookmark.png:	 	/usr/share/icons/gnome/24x24/stock/object/stock_bookmark.png
 stock_form-navigator.png:	/usr/share/icons/gnome/24x24/stock/form/stock_form-navigator.png
@@ -18,7 +20,7 @@ stock_node-delete.png:	 	/usr/share/icons/gnome/24x24/stock/image/stock_node-del
 stock_save-template.png: 	/usr/share/icons/gnome/24x24/stock/io/stock_save-template.png
 stock_show-hidden-controls.png:	/usr/share/icons/gnome/24x24/stock/form/stock_show-hidden-controls.png
 stock_update-data.png 		/usr/share/icons/gnome/24x24/stock/data/stock_update-data.png
-
+template.png:			/usr/share/icons/gnome/24x24/mimetypes/text-x-generic-template.png
 
 This image was taken from the oxygen-iconset, delivered by debian.
 

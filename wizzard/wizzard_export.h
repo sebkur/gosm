@@ -45,7 +45,7 @@ struct _WizzardExport
 
 	Selection selection;
 	gint zoom;
-	//gboolean to_load[17];
+	//gboolean to_load[18];
 
 	char * cache_dir;
 };

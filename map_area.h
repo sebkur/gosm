@@ -53,6 +53,13 @@ struct _MapArea
 	gboolean show_selection;
 	gboolean snap_selection;
 
+	gboolean show_slice;
+	int slice_zl;
+	int slice_x;
+	int slice_y;
+	int slice_intersect_x;
+	int slice_intersect_y;
+
 	gboolean need_repaint;
 
 	TileManager *tile_manager;

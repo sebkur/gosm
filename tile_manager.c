@@ -24,6 +24,7 @@
 #include <curl/curl.h>
 
 #include <pthread.h>
+#include <sched.h>
 #include <glib.h>
 #include <glib/gthread.h>
 #include <unistd.h>
@@ -104,7 +105,15 @@ static void tile_manager_init(TileManager *tile_manager)
 	pthread_cond_init (&(tile_manager -> cond_wait_load_from_netw), NULL);
 
 	pthread_t thread_disk, thread_netw;
-	int p_disk = pthread_create(&thread_disk, NULL, (void *) function_load_from_disk, tile_manager);
+	pthread_attr_t tattr;
+	int ret;
+	int newprio = 30; 
+	struct sched_param param;
+	ret = pthread_attr_init (&tattr);
+	ret = pthread_attr_getschedparam (&tattr, &param);
+	param.sched_priority = newprio;
+	ret = pthread_attr_setschedparam (&tattr, &param);
+	int p_disk = pthread_create(&thread_disk, &tattr, (void *) function_load_from_disk, tile_manager);
 	int x = 0; for (x = 0; x < 8; x++){
 		int p_netw = pthread_create(&thread_netw, NULL, (void *) function_load_from_netw, tile_manager);
 	}
