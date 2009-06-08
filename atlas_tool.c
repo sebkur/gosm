@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include "atlas_tool.h"
+#include "page_math.h"
 
 G_DEFINE_TYPE (AtlasTool, atlas_tool, GTK_TYPE_VBOX);
 
@@ -58,44 +59,15 @@ static void atlas_tool_class_init(AtlasToolClass *class)
 		G_TYPE_NONE, 0);
 }
 
-static gboolean widget_changed_cb(GtkWidget *widget, gpointer atlasp)
-{
-	AtlasTool *atlas_tool = (AtlasTool*)atlasp;
-	int n_slice_x = atoi(gtk_entry_get_text(GTK_ENTRY(atlas_tool -> entry_slice_x)));
-	int n_slice_y = atoi(gtk_entry_get_text(GTK_ENTRY(atlas_tool -> entry_slice_y)));
-	int n_slice_intersect_x = atoi(gtk_entry_get_text(GTK_ENTRY(atlas_tool -> entry_slice_intersect_x)));
-	int n_slice_intersect_y = atoi(gtk_entry_get_text(GTK_ENTRY(atlas_tool -> entry_slice_intersect_y)));
-	int n_zoom = gtk_combo_box_get_active(GTK_COMBO_BOX(atlas_tool -> combo)) + 1;
-	gboolean n_visible = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(atlas_tool -> check_show));
-	gboolean changed = FALSE;
-	if (atlas_tool -> slice_x != n_slice_x && n_slice_x > 0){
-		atlas_tool -> slice_x = n_slice_x;
-		changed = TRUE;
-	}
-	if (atlas_tool -> slice_y != n_slice_y && n_slice_y > 0){
-		atlas_tool -> slice_y = n_slice_y;
-		changed = TRUE;
-	}
-	if (atlas_tool -> slice_intersect_x != n_slice_intersect_x && n_slice_intersect_x >= 0){
-		atlas_tool -> slice_intersect_x = n_slice_intersect_x;
-		changed = TRUE;
-	}
-	if (atlas_tool -> slice_intersect_y != n_slice_intersect_y && n_slice_intersect_y >= 0){
-		atlas_tool -> slice_intersect_y = n_slice_intersect_y;
-		changed = TRUE;
-	}
-	if (atlas_tool -> slice_zoom != n_zoom){
-		atlas_tool -> slice_zoom = n_zoom;
-		changed = TRUE;
-	}
-	if (atlas_tool -> visible != n_visible){
-		atlas_tool -> visible = n_visible;
-		changed = TRUE;
-	}
-	if(changed){
-		g_signal_emit (atlas_tool, atlas_tool_signals[VALUES_CHANGED], 0);
-	}
-}
+void set_resize_visibility(AtlasTool * atlas_tool, gboolean state);
+static gboolean mode_switched_cb(GtkWidget *widget, gpointer atlasp);
+static gboolean widget_changed_cb(GtkWidget *widget, gpointer atlasp);
+void atlas_tool_set_image_size_from_page_info(AtlasTool * atlas_tool);
+void atlas_tool_set_page_info_from_image_size(AtlasTool * atlas_tool);
+void atlas_tool_set_intersection(AtlasTool * atlas_tool, int intersect_x, int intersect_y);
+void atlas_tool_set_page_info(AtlasTool * atlas_tool, PageInformation page_info);
+void atlas_tool_set_image_dimension(AtlasTool * atlas_tool, ImageDimension image_dimension);
+void atlas_tool_set_values(AtlasTool * atlas_tool, int zoom, gboolean visible);
 
 static void atlas_tool_init(AtlasTool *atlas_tool)
 {
@@ -112,7 +84,6 @@ static void atlas_tool_init(AtlasTool *atlas_tool)
 
 	// VISIBLE
 	atlas_tool -> check_show = gtk_check_button_new_with_label("visible");
-	//gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(atlas_tool->check_show), TRUE);
 	GtkWidget *box_check_show = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_check_show), atlas_tool -> check_show, FALSE, FALSE, 0);
 
@@ -124,23 +95,28 @@ static void atlas_tool_init(AtlasTool *atlas_tool)
                 gtk_combo_box_append_text(GTK_COMBO_BOX(atlas_tool -> combo), text);
         }
 
-	GtkWidget * icon_template = gtk_image_new_from_file("icons/template.png");
+	atlas_tool -> radio_conf_page	= gtk_radio_button_new(NULL);
+	atlas_tool -> radio_conf_pixel	= gtk_radio_button_new(gtk_radio_button_get_group(GTK_RADIO_BUTTON(atlas_tool -> radio_conf_page)));
+	gtk_button_set_label(GTK_BUTTON(atlas_tool -> radio_conf_page), "by Pagesize");
+	gtk_button_set_label(GTK_BUTTON(atlas_tool -> radio_conf_pixel), "by Imagesize");
+
 	GtkWidget * icon_download = gtk_image_new_from_file("icons/document-save.png");
 	GtkWidget * icon_export = gtk_image_new_from_file("icons/stock_insert_image.png");
-	atlas_tool -> button_template = gtk_button_new();
-	atlas_tool -> button_action   = gtk_button_new();
-	atlas_tool -> button_export   = gtk_button_new();
-	gtk_button_set_image(GTK_BUTTON(atlas_tool -> button_template), icon_template);
+	GtkWidget * icon_export_pdf = gtk_image_new_from_file("icons/stock_save-pdf.png");
+	atlas_tool -> button_action		= gtk_button_new();
+	atlas_tool -> button_export		= gtk_button_new();
+	atlas_tool -> button_export_pdf		= gtk_button_new();
 	gtk_button_set_image(GTK_BUTTON(atlas_tool -> button_action), icon_download);
 	gtk_button_set_image(GTK_BUTTON(atlas_tool -> button_export), icon_export);
+	gtk_button_set_image(GTK_BUTTON(atlas_tool -> button_export_pdf), icon_export_pdf);
 	GtkWidget * box_buttons = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_buttons), atlas_tool -> combo, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(box_buttons), atlas_tool -> button_template, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_buttons), atlas_tool -> button_action, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_buttons), atlas_tool -> button_export, FALSE, FALSE, 0);
-	gtk_widget_set_tooltip_text(atlas_tool -> button_template, "template values");
+	gtk_box_pack_start(GTK_BOX(box_buttons), atlas_tool -> button_export_pdf, FALSE, FALSE, 0);
 	gtk_widget_set_tooltip_text(atlas_tool -> button_action, "load to disk");
-	gtk_widget_set_tooltip_text(atlas_tool -> button_export, "export atlas");
+	gtk_widget_set_tooltip_text(atlas_tool -> button_export, "export image sequence");
+	gtk_widget_set_tooltip_text(atlas_tool -> button_export_pdf, "export to pdf");
 
 	GtkWidget * table = gtk_table_new(5, 3, FALSE);
 	gtk_table_attach(GTK_TABLE(table), label_size,					1, 2, 0, 1, GTK_EXPAND | GTK_FILL, 0, 0, 0);
@@ -160,7 +136,17 @@ static void atlas_tool_init(AtlasTool *atlas_tool)
 	gtk_widget_set_size_request(atlas_tool -> entry_slice_intersect_x, 0 , -1);
 	gtk_widget_set_size_request(atlas_tool -> entry_slice_intersect_y, 0 , -1);
 
+	atlas_tool -> button_conf_page = gtk_button_new_with_label("Setup");
+
+	GtkWidget * hbox_page = gtk_hbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox_page), atlas_tool -> radio_conf_page, FALSE, FALSE, 0);
+	gtk_box_pack_end(GTK_BOX(hbox_page), atlas_tool -> button_conf_page, FALSE, FALSE, 0);
+
+	gtk_box_pack_start(GTK_BOX(atlas_tool), hbox_page, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(atlas_tool), atlas_tool -> radio_conf_pixel, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(atlas_tool), table, FALSE, FALSE, 0);
+
+	g_signal_connect(G_OBJECT(atlas_tool -> radio_conf_page), "toggled", G_CALLBACK(mode_switched_cb), (gpointer)atlas_tool);
 
 	g_signal_connect(G_OBJECT(atlas_tool -> combo), "changed", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
 	g_signal_connect(G_OBJECT(atlas_tool -> check_show), "toggled", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
@@ -168,33 +154,136 @@ static void atlas_tool_init(AtlasTool *atlas_tool)
 	g_signal_connect(G_OBJECT(atlas_tool -> entry_slice_y), "changed", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
 	g_signal_connect(G_OBJECT(atlas_tool -> entry_slice_intersect_x), "changed", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
 	g_signal_connect(G_OBJECT(atlas_tool -> entry_slice_intersect_y), "changed", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
+
+	set_resize_visibility(atlas_tool, FALSE);
 }
 
-//TODO: the fuction with lesser parameters should be called by the other one...
-void atlas_tool_set_dimensions(AtlasTool * atlas_tool, int slice_x, int slice_y, int slice_intersect_x, int slice_intersect_y)
+// when radio is changed between "by page" and "by imagesize"
+static gboolean mode_switched_cb(GtkWidget *widget, gpointer atlasp)
 {
-	atlas_tool_set_values(atlas_tool, slice_x, slice_y, slice_intersect_x, slice_intersect_y, atlas_tool -> slice_zoom, atlas_tool -> visible);
+	AtlasTool *atlas_tool = (AtlasTool*)atlasp;
+	gboolean by_page = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(atlas_tool -> radio_conf_page));
+	if(by_page){
+		atlas_tool -> mode = MODE_BY_PAGESIZE;
+		atlas_tool_set_image_size_from_page_info(atlas_tool);
+	}else{
+		atlas_tool -> mode = MODE_BY_IMAGESIZE;
+	}
+	if(atlas_tool -> mode == MODE_BY_PAGESIZE){
+		set_resize_visibility(atlas_tool, FALSE);
+		atlas_tool -> page_info = atlas_tool -> page_info_stored;
+	}
+	if(atlas_tool -> mode == MODE_BY_IMAGESIZE){
+		set_resize_visibility(atlas_tool, TRUE);
+		atlas_tool_set_page_info_from_image_size(atlas_tool);
+	}
 }
 
-void atlas_tool_set_values(AtlasTool * atlas_tool, int slice_x, int slice_y, int slice_intersect_x, int slice_intersect_y, int zoom, gboolean visible)
+// set, whether user can edit image size (only possible in "by imagesize" mode)
+void set_resize_visibility(AtlasTool * atlas_tool, gboolean state)
 {
-	atlas_tool -> slice_x = slice_x,
-	atlas_tool -> slice_y = slice_y,
-	atlas_tool -> slice_intersect_x = slice_intersect_x,
-	atlas_tool -> slice_intersect_y = slice_intersect_y;
+	gtk_widget_set_sensitive(atlas_tool -> entry_slice_x, state);
+	gtk_widget_set_sensitive(atlas_tool -> entry_slice_y, state);
+}
+
+// one of the configurable items has changed
+static gboolean widget_changed_cb(GtkWidget *widget, gpointer atlasp)
+{
+	AtlasTool *atlas_tool = (AtlasTool*)atlasp;
+	int n_slice_x = atoi(gtk_entry_get_text(GTK_ENTRY(atlas_tool -> entry_slice_x)));
+	int n_slice_y = atoi(gtk_entry_get_text(GTK_ENTRY(atlas_tool -> entry_slice_y)));
+	int n_slice_intersect_x = atoi(gtk_entry_get_text(GTK_ENTRY(atlas_tool -> entry_slice_intersect_x)));
+	int n_slice_intersect_y = atoi(gtk_entry_get_text(GTK_ENTRY(atlas_tool -> entry_slice_intersect_y)));
+	int n_zoom = gtk_combo_box_get_active(GTK_COMBO_BOX(atlas_tool -> combo)) + 1;
+	gboolean n_visible = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(atlas_tool -> check_show));
+	gboolean changed = FALSE;
+	if (atlas_tool -> image_dimension.width != n_slice_x && n_slice_x > 0){
+		atlas_tool -> image_dimension.width = n_slice_x;
+		changed = TRUE;
+	}
+	if (atlas_tool -> image_dimension.height != n_slice_y && n_slice_y > 0){
+		atlas_tool -> image_dimension.height = n_slice_y;
+		changed = TRUE;
+	}
+	if (atlas_tool -> intersect_x != n_slice_intersect_x && n_slice_intersect_x >= 0){
+		atlas_tool -> intersect_x = n_slice_intersect_x;
+		changed = TRUE;
+	}
+	if (atlas_tool -> intersect_y != n_slice_intersect_y && n_slice_intersect_y >= 0){
+		atlas_tool -> intersect_y = n_slice_intersect_y;
+		changed = TRUE;
+	}
+	if (atlas_tool -> slice_zoom != n_zoom){
+		atlas_tool -> slice_zoom = n_zoom;
+		changed = TRUE;
+	}
+	if (atlas_tool -> visible != n_visible){
+		atlas_tool -> visible = n_visible;
+		changed = TRUE;
+	}
+	if(changed){
+		g_signal_emit (atlas_tool, atlas_tool_signals[VALUES_CHANGED], 0);
+	}
+}
+
+// set the page information
+void atlas_tool_set_page_info(AtlasTool * atlas_tool, PageInformation page_info)
+{
+	atlas_tool -> page_info_stored = page_info;
+	if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(atlas_tool -> radio_conf_page))){
+		atlas_tool -> page_info = page_info;
+		atlas_tool_set_image_size_from_page_info(atlas_tool);
+	}
+}
+
+// adjust the imagesize to fit the selected page-layout
+void atlas_tool_set_image_size_from_page_info(AtlasTool * atlas_tool)
+{
+	ImageDimension image_dim = get_image_dimension(atlas_tool -> page_info);
+	atlas_tool -> image_dimension = image_dim;
+	char buf1[20]; char buf2[20];
+	sprintf(buf1, "%d", atlas_tool -> image_dimension.width);
+	sprintf(buf2, "%d", atlas_tool -> image_dimension.height);
+	gtk_entry_set_text(GTK_ENTRY(atlas_tool -> entry_slice_x), buf1);
+	gtk_entry_set_text(GTK_ENTRY(atlas_tool -> entry_slice_y), buf2);
+	g_signal_emit (atlas_tool, atlas_tool_signals[VALUES_CHANGED], 0);
+}
+
+// adjust the pageinfo to be exactly fitting the imagesize
+void atlas_tool_set_page_info_from_image_size(AtlasTool * atlas_tool)
+{
+	atlas_tool -> page_info.border_top = 0;
+	atlas_tool -> page_info.border_bottom = 0;
+	atlas_tool -> page_info.border_left = 0;
+	atlas_tool -> page_info.border_right = 0;
+	atlas_tool -> page_info.resolution = 72;
+	atlas_tool -> page_info.page_width = atlas_tool -> image_dimension.width * 25.4 / atlas_tool -> page_info.resolution;
+	atlas_tool -> page_info.page_height = atlas_tool -> image_dimension.height * 25.4 / atlas_tool -> page_info.resolution;
+}
+
+// set intersection values
+void atlas_tool_set_intersection(AtlasTool * atlas_tool, int intersect_x, int intersect_y)
+{
+	atlas_tool -> intersect_x = intersect_x,
+	atlas_tool -> intersect_y = intersect_y;
+	char buf1[20]; char buf2[20];
+	sprintf(buf1, "%d", atlas_tool -> intersect_x);
+	sprintf(buf2, "%d", atlas_tool -> intersect_y);
+	gtk_entry_set_text(GTK_ENTRY(atlas_tool -> entry_slice_intersect_x), buf1);
+	gtk_entry_set_text(GTK_ENTRY(atlas_tool -> entry_slice_intersect_y), buf2);
+}
+
+// set image size
+void atlas_tool_set_image_dimension(AtlasTool * atlas_tool, ImageDimension image_dimension)
+{
+	atlas_tool -> image_dimension = image_dimension;
+}
+
+// set the other values
+void atlas_tool_set_values(AtlasTool * atlas_tool, int zoom, gboolean visible)
+{
 	atlas_tool -> slice_zoom = zoom;
 	atlas_tool -> visible = visible;
-	int vals[4] = {slice_x, slice_y, slice_intersect_x, slice_intersect_y};
-	GtkWidget* widgets[4] = {
-		atlas_tool -> entry_slice_x,
-		atlas_tool -> entry_slice_y,
-		atlas_tool -> entry_slice_intersect_x,
-		atlas_tool -> entry_slice_intersect_y};
-	char buf[20]; int i;
-	for (i = 0; i < 4; i++){
-		sprintf(buf, "%d", vals[i]);
-		gtk_entry_set_text(GTK_ENTRY(widgets[i]), buf);
-	}
         gtk_combo_box_set_active(GTK_COMBO_BOX(atlas_tool -> combo), zoom - 1);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(atlas_tool -> check_show), visible);
 }

@@ -17,6 +17,7 @@ stock_bookmark.png:	 	/usr/share/icons/gnome/24x24/stock/object/stock_bookmark.p
 stock_form-navigator.png:	/usr/share/icons/gnome/24x24/stock/form/stock_form-navigator.png
 stock_insert_image.png:	 	/usr/share/icons/gnome/24x24/stock/image/stock_insert_image.png
 stock_node-delete.png:	 	/usr/share/icons/gnome/24x24/stock/image/stock_node-delete.png
+stock_save-pdf.png:		/usr/share/icons/gnome/24x24/stock/io/stock_save-pdf.png
 stock_save-template.png: 	/usr/share/icons/gnome/24x24/stock/io/stock_save-template.png
 stock_show-hidden-controls.png:	/usr/share/icons/gnome/24x24/stock/form/stock_show-hidden-controls.png
 stock_update-data.png 		/usr/share/icons/gnome/24x24/stock/data/stock_update-data.png

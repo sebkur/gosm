@@ -125,7 +125,7 @@ void select_use_window_construct(SelectUseWindow *select_use_window)
 	gtk_button_set_image(GTK_BUTTON(select_use_window -> button_load), icon_load);
 	select_use_window -> button_cancel = gtk_button_new_from_stock("gtk-cancel");
 	gtk_box_pack_start(GTK_BOX(hbox), select_use_window -> button_load, FALSE, FALSE, 0);
-	gtk_box_pack_end(GTK_BOX(hbox), select_use_window -> button_cancel, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), select_use_window -> button_cancel, FALSE, FALSE, 0);
 
 	//g_signal_connect(G_OBJECT(button_cancel), "clicked", G_CALLBACK(cancel_cb), select_use_window);
 	//g_signal_connect(G_OBJECT(button_load), "clicked", G_CALLBACK(download_cb), select_use_window);

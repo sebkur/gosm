@@ -101,7 +101,7 @@ int create_write_structs(FILE * fp, png_structp * png_ptr, png_infop * info_ptr,
 	png_write_info(*png_ptr, *info_ptr);
 	return 0;
 }
-
+/*
 int make_image(char * filename, char * cache_dir, int zoom, double lon1, double lon2, double lat1, double lat2) 
 {
 	double x1_d = lon_to_x(lon1, zoom);
@@ -210,7 +210,7 @@ int make_image_1(char * filename, char * cache_dir, int zoom,
 
 	return EXIT_SUCCESS;
 }
-
+*/
 /*int main(int argc, char *argv[])
 {
 	//imageglue <zoom> <x1> <x2> <y1> <y2> <filename>

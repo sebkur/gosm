@@ -26,6 +26,7 @@ libcairo2                               1.8.6-2+b1
 libcurl3                                7.18.2-8.1
 libpng12-0                              1.2.27-2
 libwebkit-1.0-1                         1.0.1-4+b1
+java					>=1.5		for PDF-Export
 
 for BUILDING gosm you'll need:
 

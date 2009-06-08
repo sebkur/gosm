@@ -121,7 +121,7 @@ void tile_download_window_construct(TileDownloadWindow * tile_download_window, S
 	tile_download_window -> button_cancel = gtk_button_new_from_stock("gtk-cancel");
 	GtkWidget * box_buttons = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_buttons), tile_download_window -> button_pause, FALSE, FALSE, 0);
-	gtk_box_pack_end(GTK_BOX(box_buttons),   tile_download_window -> button_cancel, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(box_buttons),   tile_download_window -> button_cancel, FALSE, FALSE, 0);
 
 	GtkWidget * table = gtk_table_new(4, 3, FALSE);
 	//gtk_table_attach(GTK_TABLE(table), box4,			0, 2, 1, 2, GTK_EXPAND | GTK_FILL, 0, 0, 0);

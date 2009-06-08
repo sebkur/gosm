@@ -21,6 +21,8 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 
+#include "atlas.h"
+
 #ifndef _ATLAS_TOOL_H_
 #define _ATLAS_TOOL_H_
 
@@ -34,26 +36,38 @@
 typedef struct _AtlasTool		AtlasTool;
 typedef struct _AtlasToolClass		AtlasToolClass;
 
+typedef enum {
+	MODE_BY_PAGESIZE,
+	MODE_BY_IMAGESIZE
+} SliceMode;
+
 struct _AtlasTool
 {
 	GtkVBox parent;
 	/* public things? */
-	int slice_x;
-	int slice_y;
-	int slice_intersect_x;
-	int slice_intersect_y;
+	int mode;
+	PageInformation page_info;
+	PageInformation page_info_stored;
+	gboolean border_alternating_horizontally;
+	gboolean border_alternating_vertically;
+	ImageDimension image_dimension;
+	int intersect_x;
+	int intersect_y;
 	int visible;
 	int slice_zoom;
 
+	GtkWidget * radio_conf_page;
+	GtkWidget * radio_conf_pixel;
 	GtkWidget * entry_slice_x;
 	GtkWidget * entry_slice_y;
 	GtkWidget * entry_slice_intersect_x;
 	GtkWidget * entry_slice_intersect_y;
 	GtkWidget * check_show;
 	GtkWidget * combo;
-	GtkWidget * button_template;
+	GtkWidget * button_conf_page;
 	GtkWidget * button_action;
 	GtkWidget * button_export;
+	GtkWidget * button_export_pdf;
 };
 
 struct _AtlasToolClass
@@ -65,8 +79,12 @@ struct _AtlasToolClass
 
 AtlasTool * atlas_tool_new();
 
-void atlas_tool_set_dimensions(AtlasTool * atlas_tool, int slice_x, int slice_y, int slice_intersect_x, int slice_intersect_y);
+void atlas_tool_set_page_info(AtlasTool * atlas_tool, PageInformation page_info);
 
-void atlas_tool_set_values(AtlasTool * atlas_tool, int slice_x, int slice_y, int slice_intersect_x, int slice_intersect_y, int zoom, gboolean visible);
+void atlas_tool_set_image_dimension(AtlasTool * atlas_tool, ImageDimension image_dimension);
+
+void atlas_tool_set_intersection(AtlasTool * atlas_tool, int intersect_x, int intersect_y);
+
+void atlas_tool_set_values(AtlasTool * atlas_tool, int zoom, gboolean visible);
 
 #endif

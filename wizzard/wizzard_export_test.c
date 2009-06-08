@@ -29,7 +29,8 @@
 #include <glib/gthread.h>
 #include <unistd.h>
 
-#include "wizzard_export.h"
+//#include "wizzard_export.h"
+#include "wizzard_atlas_sequence.h"
 
 int main(int argc, char *argv[])
 {
@@ -47,13 +48,16 @@ int main(int argc, char *argv[])
 	gtk_container_add((GtkContainer*)widget, hbox);
 	gtk_widget_show_all(widget);
 
-	Selection s;
+	/*Selection s;
 	s.lon1 = 13.336029;
 	s.lon2 = 13.492584;
 	s.lat1 = 52.557151;
 	s.lat2 = 52.485289;
 	WizzardExport * wizzard = wizzard_export_new(GTK_WINDOW(widget), s, 11);
-	wizzard_export_show(wizzard);
+	wizzard_export_show(wizzard);*/
+
+	WizzardAtlasSequence * wizzard = wizzard_atlas_sequence_new(GTK_WINDOW(widget));
+	wizzard_atlas_sequence_show(wizzard);
 
 	gtk_main();
 }

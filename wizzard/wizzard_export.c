@@ -31,7 +31,7 @@
 #include "select_export_window.h"
 #include "../tilemath.h"
 #include "../tile_loader.h"
-#include "../imageglue/imageglue.h"
+#include "../imageglue/image_glue.h"
 
 G_DEFINE_TYPE (WizzardExport, wizzard_export, G_TYPE_OBJECT);
 
@@ -77,6 +77,15 @@ void wizzard_export_show(WizzardExport * wizzard)
 	g_signal_connect(G_OBJECT(wizzard -> select_export_window -> button_export), "clicked", G_CALLBACK(wizzard_export_export_cb), wizzard);
 }
 
+static gboolean tile_cb(gpointer image_glue, int n, WizzardExport * wizzard)
+{
+	wizzard -> ready += 1;
+	//printf("%f\n", ((double) wizzard -> ready) / wizzard -> total);
+	gdk_threads_enter();
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(wizzard -> select_export_window -> progress_bar), ((double) wizzard -> ready) / wizzard -> total);
+	gdk_threads_leave();
+}
+
 static gboolean wizzard_export_cancel_cb(GtkWidget *widget, WizzardExport * wizzard)
 {
 	printf("cancel\n");
@@ -90,9 +99,14 @@ static gboolean wizzard_export_export_cb(GtkWidget *widget, WizzardExport * wizz
 	const char * filename = gtk_entry_get_text(GTK_ENTRY(wizzard -> select_export_window -> entry_filename));
 	char * filen = malloc(sizeof(char) * (1 + strlen(filename)));
 	strcpy(filen, filename);
+	select_export_window_set_inactive(wizzard -> select_export_window);
 	Selection selection = wizzard -> selection;
 	//printf("%d %s\n", wizzard -> zoom, filename, wizzard -> selection.lon1);
-	make_image(filen, wizzard -> cache_dir, wizzard -> zoom, selection.lon1, selection.lon2, selection.lat1, selection.lat2);
+	ImageGlue * image_glue = image_glue_new();
+	g_signal_connect(G_OBJECT(image_glue), "tile-completed", G_CALLBACK(tile_cb), wizzard);
+	wizzard -> total = image_glue_single_get_number_of_tiles(wizzard -> zoom, selection.lon1, selection.lon2, selection.lat1, selection.lat2);
+	image_glue_single_setup(image_glue, filen, wizzard -> cache_dir, wizzard -> zoom, selection.lon1, selection.lon2, selection.lat1, selection.lat2);
+	image_glue_single_process(image_glue);
 }
 
 gboolean wizzard_export_loaded_cb(TileLoader * tile_loader, WizzardExport * wizzard)

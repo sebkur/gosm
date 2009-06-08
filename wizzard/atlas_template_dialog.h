@@ -42,14 +42,22 @@ struct _AtlasTemplateDialog
 {
 	GtkDialog parent;
 
+	PageInformation page_info;
+
+	GtkWidget * combo_pagesize;
+
+	GtkWidget * entry_width;
+	GtkWidget * entry_height;
+
 	GtkWidget * radio_orientation_landscape;
 	GtkWidget * radio_orientation_portrait;
-	GtkWidget * radio_size_a4;
-	GtkWidget * radio_size_a5;
-	GtkWidget * radio_size_letter;
+
+	GtkWidget * entry_border_top;
+	GtkWidget * entry_border_bottom;
+	GtkWidget * entry_border_left;
+	GtkWidget * entry_border_right;
+
 	GtkWidget * entry_resolution;
-	GtkWidget * entry_border;
-	GtkWidget * entry_intersect ;
 };
 
 struct _AtlasTemplateDialogClass
@@ -59,6 +67,6 @@ struct _AtlasTemplateDialogClass
 	//void (* function_name) (AtlasTemplateDialog *atlas_template_dialog);
 };
 
-GtkDialog * atlas_template_dialog_new();
+GtkDialog * atlas_template_dialog_new(PageInformation page_info);
 
-AtlasImageDimension atlas_template_dialog_get_info(AtlasTemplateDialog * atd);
+PageInformation atlas_template_dialog_get_page_info(AtlasTemplateDialog * atd);

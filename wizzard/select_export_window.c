@@ -57,6 +57,14 @@ static void select_export_window_init(SelectExportWindow *select_export_window)
 	printf("selection export window\n");
 }
 
+void select_export_window_set_inactive(SelectExportWindow * sew)
+{
+	gtk_widget_set_sensitive(sew -> entry_filename, FALSE);
+	gtk_widget_set_sensitive(sew -> button_filename, FALSE);
+	gtk_widget_set_sensitive(sew -> combo, FALSE);
+	gtk_widget_set_sensitive(sew -> button_export, FALSE);
+}
+
 void select_export_window_construct(SelectExportWindow *select_export_window, gint zoom)
 {
 	Selection * selection = &(select_export_window -> selection);
@@ -66,7 +74,6 @@ void select_export_window_construct(SelectExportWindow *select_export_window, gi
 	GtkBox * box_height	= GTK_BOX(gtk_hbox_new(FALSE,0));
 	GtkBox * box_zoom	= GTK_BOX(gtk_hbox_new(FALSE,0));
 	GtkBox * box_buttons    = GTK_BOX(gtk_hbox_new(FALSE,0));
-	GtkTable * table 	= GTK_TABLE(gtk_table_new(3, 2, FALSE));
 
 	// fileselect
 	select_export_window -> entry_filename = gtk_entry_new();
@@ -82,6 +89,7 @@ void select_export_window_construct(SelectExportWindow *select_export_window, gi
 	select_export_window -> text_width	= gtk_label_new("0");
 	select_export_window -> text_height	= gtk_label_new("0");
 	select_export_window -> combo 		= gtk_combo_box_new_text();
+	select_export_window -> progress_bar	= gtk_progress_bar_new();
 	int i; char text[5];
 	for (i = 0; i < 18; i++){
 		sprintf(text, "%d", i+1);
@@ -118,6 +126,7 @@ void select_export_window_construct(SelectExportWindow *select_export_window, gi
 	gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(box_width), 	FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(box_height), 	FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(box_zoom), 		FALSE, FALSE, 2);
+	gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(select_export_window -> progress_bar), 		FALSE, FALSE, 2);
 	gtk_box_pack_end  (GTK_BOX(box), GTK_WIDGET(box_buttons), 	FALSE, FALSE, 2);
 
 	gtk_widget_set_size_request(select_export_window -> entry_filename, 400, -1);

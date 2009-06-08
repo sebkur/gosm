@@ -17,6 +17,10 @@ wizzard/wizzard_download.c \
 wizzard/select_export_window.c \
 wizzard/wizzard_export.c \
 wizzard/atlas_template_dialog.c \
+wizzard/wizzard_atlas_sequence.c \
+wizzard/wizzard_atlas_sequence_window.c \
+wizzard/wizzard_atlas_pdf.c \
+wizzard/wizzard_atlas_pdf_window.c \
 uri.c \
 about/about.c \
 manual/manual.c \
@@ -25,7 +29,10 @@ tile_loader.c \
 map_area.c \
 map_navigator.c \
 imageglue/imageglue.c \
+imageglue/image_glue.c \
+imageglue/pdf_generator.c \
 config.c \
 config_widget.c \
 customio.c \
+page_math.c \
 gosm.c

@@ -179,7 +179,7 @@ config_widget_construct(ConfigWidget * config_widget, Configuration * configurat
 	config_widget -> button_confirm = gtk_button_new_from_stock("gtk-apply");
 	config_widget -> button_cancel  = gtk_button_new_from_stock("gtk-cancel");
 	gtk_box_pack_start(GTK_BOX(box_buttons), config_widget -> button_confirm, FALSE, FALSE, 0);
-	gtk_box_pack_end  (GTK_BOX(box_buttons), config_widget -> button_cancel , FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(box_buttons), config_widget -> button_cancel , FALSE, FALSE, 0);
 
 	gtk_box_pack_start(GTK_BOX(box_v), scrolled, TRUE, TRUE, 0);
 	gtk_box_pack_end  (GTK_BOX(box_v), box_buttons, FALSE, FALSE, 0);

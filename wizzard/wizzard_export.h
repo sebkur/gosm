@@ -48,6 +48,7 @@ struct _WizzardExport
 	//gboolean to_load[18];
 
 	char * cache_dir;
+
 };
 
 struct _WizzardExportClass

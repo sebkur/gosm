@@ -48,6 +48,7 @@ struct _SelectExportWindow
 	GtkWidget *text_width;
 	GtkWidget *text_height;
 	GtkWidget *combo;
+	GtkWidget *progress_bar;
 };
 
 struct _SelectExportWindowClass
@@ -56,5 +57,7 @@ struct _SelectExportWindowClass
 };
 
 GtkWidget * select_export_window_new(Selection * selection, gint zoom);
+
+void select_export_window_set_inactive(SelectExportWindow * sew);
 
 #endif

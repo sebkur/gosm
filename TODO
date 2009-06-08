@@ -1,0 +1,6 @@
+This file is a more general TODO-List.
+Other topics can be found in gosm.c
+
+- Provide seperate binary packages
+- Provide Debian-packages
+- Do something with POIs on the map
