@@ -69,6 +69,7 @@ struct _MapArea
 	ColorQuadriple color_selection;
 	ColorQuadriple color_selection_out;
 	ColorQuadriple color_selection_pad;
+	ColorQuadriple color_atlas_lines;
 };
 
 struct _MapAreaClass
@@ -90,6 +91,7 @@ void map_area_set_cache_directory(MapArea *map_area, char * directory);
 
 // TODO: remove: void map_load_new_tiles();
 
+void map_area_move(MapArea *map_area, int direction);
 void map_area_zoom_in(MapArea *map_area);
 void map_area_zoom_out(MapArea *map_area);
 
@@ -105,6 +107,6 @@ void map_area_set_network_state(MapArea * map_area, gboolean state);
 void map_area_path_remove_point(MapArea *map_area);
 void map_area_path_clear(MapArea *map_area);
 
-void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad);
+void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad, ColorQuadriple c_a_lines);
 
 #endif

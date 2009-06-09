@@ -74,7 +74,7 @@ gboolean map_moved = TRUE;
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event);
 static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event);
-static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event);
+static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event);
 
 GtkWidget * map_area_new()
 {
@@ -268,9 +268,8 @@ void map_area_goto_lon_lat_zoom(MapArea *map_area, double lon, double lat, int z
 	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_BEEN_MOVED], 0);
 }
 
-void map_has_moved(GtkWidget *widget)
+void map_has_moved(MapArea *map_area)
 {
-	MapArea *map_area = GOSM_MAP_AREA(widget);
 	map_moved = TRUE;
 	if (map_area -> snap_selection){
 		map_area -> selection.x1 = map_area_lon_to_area_x(map_area, map_area -> selection.lon1);
@@ -285,7 +284,7 @@ void map_has_moved(GtkWidget *widget)
 	}
 	map_area -> map_position.lon = map_area_x_to_lon(map_area, map_area -> map_position.width / 2);
 	map_area -> map_position.lat = map_area_y_to_lat(map_area, map_area -> map_position.height / 2);
-	g_signal_emit (widget, map_area_signals[MAP_BEEN_MOVED], 0);
+	g_signal_emit (map_area, map_area_signals[MAP_BEEN_MOVED], 0);
 }
 
 void map_area_zoom_in(MapArea *map_area)
@@ -301,7 +300,7 @@ void map_area_zoom_in(MapArea *map_area)
 	map_position -> tile_offset_y = corner_y_new % 256;
 	map_position -> tile_top = corner_y_new / 256;
 
-	map_has_moved(GTK_WIDGET(map_area));
+	map_has_moved(map_area);
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 }
 
@@ -318,7 +317,7 @@ void map_area_zoom_out(MapArea *map_area)
 	map_position -> tile_offset_y = corner_y_new % 256;
 	map_position -> tile_top = corner_y_new / 256;
 	
-	map_has_moved(GTK_WIDGET(map_area));
+	map_has_moved(map_area);
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 }
 
@@ -411,7 +410,7 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 				map_position -> tile_top -= 1;
 			}
 			//printf("offset now: %d\n", map_position -> tile_offset_x);
-			map_has_moved(widget);
+			map_has_moved(map_area);
 			gtk_widget_queue_draw(widget);
 		}
 	}
@@ -539,9 +538,8 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 	}
 }
 
-static gboolean button_move_function(GtkWidget *widget, gpointer direction)
+static gboolean button_move_function(MapArea *map_area, gpointer direction)
 {
-	MapArea *map_area = GOSM_MAP_AREA(widget);
 	MapPosition * map_position = &(map_area -> map_position);
 	int dir = GPOINTER_TO_INT(direction);
 	switch(dir){
@@ -564,13 +562,13 @@ static gboolean button_move_function(GtkWidget *widget, gpointer direction)
 		case DIRECTION_DOWN_RIGHT:
 			map_position -> tile_top += 1; break;
 	}
-	map_has_moved(widget);
-	gtk_widget_queue_draw(widget);
+	map_has_moved(map_area);
+	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 }
 
-void move(GtkWidget *widget, int direction)
+void map_area_move(MapArea *map_area, int direction)
 {
-	button_move_function(widget, GINT_TO_POINTER(direction));
+	button_move_function(map_area, GINT_TO_POINTER(direction));
 }
 
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
@@ -603,7 +601,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		map_area -> pixmap = gdk_pixmap_new(widget->window,
 				widget->allocation.width,
 				widget->allocation.height, -1);
-		map_has_moved(GTK_WIDGET(map_area));
+		map_has_moved(map_area);
 	}
 	int width = map_area -> width;
 	int height = map_area -> height;
@@ -738,7 +736,9 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			//	draw grid-lines instead of rectangles
 			if (parts_x * parts_y < 1000){
 				//printf("slices: %d %d\n", parts_x, parts_y);
-				pat_sel = cairo_pattern_create_rgba(0.5,0.5,0.5,0.4);
+				ColorQuadriple * c = &(map_area -> color_atlas_lines);
+				cairo_pattern_t * pat_sel = cairo_pattern_create_rgba(c -> r, c -> g, c -> b, c -> a);
+				//pat_sel = cairo_pattern_create_rgba(0.5,0.5,0.5,0.4);
 				cairo_set_source(cr_sel, pat_sel);
 				int s_x, s_y;
 				for(s_x = 0; s_x < parts_x; s_x++){
@@ -835,23 +835,24 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	return TRUE;
 }
 
-static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event)
+static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event)
 {
 	//printf("%d\n", event->keyval); //6536x
 	switch (event->keyval){
-		case 65361: move(widget, DIRECTION_LEFT); break;
-		case 65362: move(widget, DIRECTION_TOP); break;
-		case 65363: move(widget, DIRECTION_RIGHT); break;
-		case 65364: move(widget, DIRECTION_DOWN); break;
-		case 65365: map_area_zoom_in(GOSM_MAP_AREA(widget)); break;
-		case 65366: map_area_zoom_out(GOSM_MAP_AREA(widget)); break;
+		case 65361: map_area_move(map_area, DIRECTION_LEFT); break;
+		case 65362: map_area_move(map_area, DIRECTION_TOP); break;
+		case 65363: map_area_move(map_area, DIRECTION_RIGHT); break;
+		case 65364: map_area_move(map_area, DIRECTION_DOWN); break;
+		case 65365: map_area_zoom_in(map_area); break;
+		case 65366: map_area_zoom_out(map_area); break;
 	}
 	return FALSE;
 }
 
-void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad)
+void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad, ColorQuadriple c_a_lines)
 {
 	map_area -> color_selection = c_s;
 	map_area -> color_selection_out = c_s_out;
 	map_area -> color_selection_pad = c_s_pad;
+	map_area -> color_atlas_lines = c_a_lines;
 }

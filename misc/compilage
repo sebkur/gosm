@@ -33,6 +33,8 @@ imageglue/image_glue.c \
 imageglue/pdf_generator.c \
 config.c \
 config_widget.c \
+config/color_box.c \
+config/color_button.c \
 customio.c \
 page_math.c \
 gosm.c

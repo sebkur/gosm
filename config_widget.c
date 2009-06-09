@@ -33,6 +33,7 @@
 #include "config.h"
 #include "configuration.h"
 #include "config_widget.h"
+#include "config/color_box.h"
 
 G_DEFINE_TYPE (ConfigWidget, config_widget, GTK_TYPE_VBOX);
 
@@ -70,6 +71,7 @@ static void config_widget_init(ConfigWidget *config_widget)
 {
 }
 
+// TODO: this function returns nothing???
 gboolean ** config_widget_get_new_configuration(ConfigWidget * config_widget)
 {
 	Configuration * configuration = config_widget -> configuration;
@@ -84,6 +86,15 @@ gboolean ** config_widget_get_new_configuration(ConfigWidget * config_widget)
 			}else{
 				changed[i] = config_set_entry_data(ce, "FALSE");
 			}
+			break;
+		}
+		case TYPE_COLOR:{
+			const char * text = color_box_get_current_value(GOSM_COLOR_BOX(config_widget -> entries[i]));
+			int size = strlen(text) + 1;
+	                char * buf = malloc(sizeof(char) * size);
+	                strncpy(buf, text, size);
+			changed[i] = config_set_entry_data(ce, buf);
+			free(buf);
 			break;
 		}
 		default:{
@@ -131,8 +142,8 @@ config_widget_construct(ConfigWidget * config_widget, Configuration * configurat
 			sprintdouble(buf+strlen(buf), ((ColorQuadriple*)ce.data) -> b, 2);
 			sprintf(buf+strlen(buf), "%s", ",");
 			sprintdouble(buf+strlen(buf), ((ColorQuadriple*)ce.data) -> a, 2);
-			entries[i] = gtk_entry_new();
-			gtk_entry_set_text(GTK_ENTRY(entries[i]), buf);
+			entries[i] = color_box_new();
+			color_box_set_current_value(GOSM_COLOR_BOX(entries[i]), buf);
 			break;
 		}
 		case TYPE_INT:{

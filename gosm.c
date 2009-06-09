@@ -24,6 +24,8 @@
  *		- take care of memory. use free() more often!
  *
  * 	Besides:
+ *	- PARTIALLY (only colors) update changed preferences without restart
+ *	- DONE add color selection buttons in configuration window
  *	- DONE adjust paper size on exporting pdf via imagesize
  * 	- let user set path to java-binary (for pdf export)
  *	- make color of atlas-selection configurable
@@ -136,6 +138,7 @@ static gboolean button_map_controls_cb(GtkWidget *widget);
        void	toggle_side_bar();
 static gboolean button_side_bar_cb(GtkWidget *widget);
 static gboolean button_zoom_cb(GtkWidget *widget, gpointer direction);
+static gboolean button_move_cb(GtkWidget *widget, gpointer direction);
 static gboolean menubar_fullscreen_cb(GtkWidget *widget);
 static gboolean window_event_cb(GtkWidget *window, GdkEventWindowState *event);
 static gboolean map_area_map_cb(GtkWidget *widget, GdkEventConfigure *event);
@@ -179,7 +182,9 @@ GtkWidget * menu_control_move_up;
 GtkWidget * menu_control_move_down;
 GtkWidget * menu_control_move_left;
 GtkWidget * menu_control_move_right;
-GtkWidget * menu_tiles_osm;
+GtkWidget * menu_tiles_mapnik;
+GtkWidget * menu_tiles_osmarender;
+GtkWidget * menu_tiles_openareal;
 GtkWidget * menu_tiles_google;
 GtkWidget * menu_tiles_yahoo;
 GtkWidget * menu_selection_snap;
@@ -191,6 +196,7 @@ GtkWidget * menu_help_manual;
 GtkWidget * menu_help_about_gosm;
 GtkWidget * menu_help_about_osm;
 GtkWidget * menu_help_license;
+
 /*
  * End auto-generated menu
  */
@@ -216,6 +222,7 @@ int main(int argc, char *argv[])
 	ColorQuadriple	color_selection 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection");
 	ColorQuadriple	color_selection_out 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection_out");
 	ColorQuadriple	color_selection_pad 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection_pad");
+	ColorQuadriple	color_atlas_lines	= *(ColorQuadriple*)config_get_entry_data(config, "color_atlas_lines");
 
 	// ensure, that the tmp-directory for tiles exists	
 	if (!check_for_cache_directory(cache_dir)){
@@ -245,7 +252,7 @@ int main(int argc, char *argv[])
 	printf("%d\n", network_state);
 	map_area_set_network_state(area, network_state);
 	map_area_set_cache_directory(area, cache_dir);
-	map_area_set_color_selection(area, color_selection, color_selection_out, color_selection_pad);
+	map_area_set_color_selection(area, color_selection, color_selection_out, color_selection_pad, color_atlas_lines);
 
 	// Selection-Widget in sidebar
 	select_tool = select_tool_new();
@@ -307,9 +314,11 @@ int main(int argc, char *argv[])
 	GtkWidget *item_2_2_6                  = gtk_menu_item_new_with_label("Move Right");
 	GtkWidget *item_2_3                    = gtk_menu_item_new_with_label("Tiles");
 	GtkWidget *menu_2_3                    = gtk_menu_new();
-	GtkWidget *item_2_3_1                  = gtk_radio_menu_item_new_with_label(NULL, "Osm");
-	GtkWidget *item_2_3_2                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Google");
-	GtkWidget *item_2_3_3                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Yahoo");
+	GtkWidget *item_2_3_1                  = gtk_radio_menu_item_new_with_label(NULL, "Mapnik");
+	GtkWidget *item_2_3_2                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Osmarender");
+	GtkWidget *item_2_3_3                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "OpenAreal");
+	GtkWidget *item_2_3_4                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Google");
+	GtkWidget *item_2_3_5                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Yahoo");
 	GtkWidget *item_3                      = gtk_menu_item_new_with_label("Selection");
 	GtkWidget *menu_3                      = gtk_menu_new();
 	GtkWidget *item_3_1                    = gtk_check_menu_item_new_with_label("Snap to Map");
@@ -347,6 +356,8 @@ int main(int argc, char *argv[])
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_2_3),           item_2_3_1);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_2_3),           item_2_3_2);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_2_3),           item_2_3_3);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu_2_3),           item_2_3_4);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu_2_3),           item_2_3_5);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar),            item_3);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_3),             item_3_1);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_3),             item_3_2);
@@ -367,9 +378,11 @@ int main(int argc, char *argv[])
 	menu_control_move_down         = item_2_2_4;
 	menu_control_move_left         = item_2_2_5;
 	menu_control_move_right        = item_2_2_6;
-	menu_tiles_osm                 = item_2_3_1;
-	menu_tiles_google              = item_2_3_2;
-	menu_tiles_yahoo               = item_2_3_3;
+	menu_tiles_mapnik              = item_2_3_1;
+	menu_tiles_osmarender          = item_2_3_2;
+	menu_tiles_openareal           = item_2_3_3;
+	menu_tiles_google              = item_2_3_4;
+	menu_tiles_yahoo               = item_2_3_5;
 	menu_selection_snap            = item_3_1;
 	menu_selection_show            = item_3_2;
 	menu_selection_export          = item_3_3;
@@ -388,13 +401,23 @@ int main(int argc, char *argv[])
 	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(itemx), iconx);
 	gtk_menu_shell_append((GtkMenuShell*)menu_5,             itemx);*/
 
+	gtk_widget_set_sensitive(menu_tiles_osmarender, FALSE);
+	gtk_widget_set_sensitive(menu_tiles_openareal, FALSE);
+	gtk_widget_set_sensitive(menu_tiles_google, FALSE);
+	gtk_widget_set_sensitive(menu_tiles_yahoo, FALSE);
+
 	g_signal_connect(G_OBJECT(menu_file_quit), 		"activate", G_CALLBACK(exit_cb), NULL);
 	g_signal_connect(G_OBJECT(menu_options_preferences), 	"activate", G_CALLBACK(show_preferences_cb), NULL);
 	g_signal_connect(G_OBJECT(menu_help_manual),	 	"activate", G_CALLBACK(show_manual_cb), NULL);
 	g_signal_connect(G_OBJECT(menu_help_about_gosm), 	"activate", G_CALLBACK(show_about_cb), GINT_TO_POINTER(0));
 	g_signal_connect(G_OBJECT(menu_help_about_osm), 	"activate", G_CALLBACK(show_about_cb), GINT_TO_POINTER(1));
 	g_signal_connect(G_OBJECT(menu_help_license),	 	"activate", G_CALLBACK(show_about_cb), GINT_TO_POINTER(2));
-
+	g_signal_connect(G_OBJECT(menu_control_zoom_in), 	"activate", G_CALLBACK(button_zoom_cb), GINT_TO_POINTER(0));
+	g_signal_connect(G_OBJECT(menu_control_zoom_out), 	"activate", G_CALLBACK(button_zoom_cb), GINT_TO_POINTER(1));
+	g_signal_connect(G_OBJECT(menu_control_move_up), 	"activate", G_CALLBACK(button_move_cb), GINT_TO_POINTER(2));
+	g_signal_connect(G_OBJECT(menu_control_move_down), 	"activate", G_CALLBACK(button_move_cb), GINT_TO_POINTER(7));
+	g_signal_connect(G_OBJECT(menu_control_move_left), 	"activate", G_CALLBACK(button_move_cb), GINT_TO_POINTER(4));
+	g_signal_connect(G_OBJECT(menu_control_move_right), 	"activate", G_CALLBACK(button_move_cb), GINT_TO_POINTER(5));
 	/**
 	 * Toolbar
 	 */
@@ -530,6 +553,16 @@ int main(int argc, char *argv[])
 	gdk_threads_leave();
 }
 
+void apply_new_config()
+{
+	ColorQuadriple	color_selection 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection");
+	ColorQuadriple	color_selection_out 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection_out");
+	ColorQuadriple	color_selection_pad 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection_pad");
+	ColorQuadriple	color_atlas_lines	= *(ColorQuadriple*)config_get_entry_data(config, "color_atlas_lines");
+	map_area_set_color_selection(area, color_selection, color_selection_out, color_selection_pad, color_atlas_lines);
+	map_area_repaint(area);
+}
+
 gboolean check_for_cache_directory(char * fn)
 {
         struct stat info;
@@ -661,6 +694,12 @@ static gboolean button_zoom_cb(GtkWidget *widget, gpointer direction)
 	}
 }
 
+// menu: move map
+static gboolean button_move_cb(GtkWidget *widget, gpointer direction)
+{
+	int dir = GPOINTER_TO_INT(direction);
+	map_area_move(area, dir);
+}
 
 // menubar: fullscreen
 static gboolean menubar_fullscreen_cb(GtkWidget *widget)
@@ -972,6 +1011,7 @@ static gboolean preferences_confirm_cb(GtkWidget * widget, WidgetPlusPointer * w
 	config_save_config_file(config);
 	gtk_widget_destroy(wpp -> widget);
 	free(wpp);
+	apply_new_config();
 }
 
 static gboolean preferences_cancel_cb(GtkWidget * widget, GtkWindow *window)

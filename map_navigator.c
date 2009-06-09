@@ -66,7 +66,7 @@ static void map_navigator_init(MapNavigator *map_navigator)
 // for buttons around map_area
 static gboolean navigate_cb(GtkWidget *widget, AreaDirection * area_dir)
 {
-        move(area_dir -> map_area, area_dir -> direction);
+        map_area_move(area_dir -> map_area, area_dir -> direction);
 	gtk_widget_grab_focus(GTK_WIDGET(area_dir -> map_area));
 }
 

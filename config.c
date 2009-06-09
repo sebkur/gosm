@@ -63,9 +63,11 @@ ConfEntry ConfEntries[] = {
         {"fullscreen",          TYPE_BOOLEAN,   "FALSE",        	NULL},
         {"cache_dir",           TYPE_DIR,       "/tmp/osm",     	NULL},
         {"cache_size",          TYPE_INT,       "120",          	NULL},
+        {"java_binary",         TYPE_STRING,    "/usr/bin/java",     	NULL},
         {"color_selection",     TYPE_COLOR,     "1.0,1.0,0.5,0.4",	NULL},
         {"color_selection_out", TYPE_COLOR,     "1.0,1.0,0.8,0.9",	NULL},
         {"color_selection_pad", TYPE_COLOR,     "1.0,0.8,0.3,0.4",	NULL},
+        {"color_atlas_lines",   TYPE_COLOR,     "0.5,0.0,0.5,0.7",	NULL},
         {"use_proxy",           TYPE_BOOLEAN,   "FALSE",		NULL},
         {"proxy_host",          TYPE_IP,        "proxy.ip.add",		NULL},
         {"proxy_port",          TYPE_INT,       "80",			NULL}
