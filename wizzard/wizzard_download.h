@@ -41,6 +41,7 @@ struct _WizzardDownload
 	int total;
 	int ready;
 
+	char * format_url;
 	char * download_dir;
 
 	GtkWindow * parent_window;
@@ -58,7 +59,7 @@ struct _WizzardDownloadClass
 	GObjectClass parent_class;
 };
 
-WizzardDownload * wizzard_download_new(GtkWindow * parent_window, char * download_dir, Selection selection);
+WizzardDownload * wizzard_download_new(GtkWindow * parent_window, char * format_url, char * download_dir, Selection selection);
 
 void wizzard_download_show(WizzardDownload * wizzard);
 

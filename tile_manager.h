@@ -67,6 +67,7 @@ struct _TileManager
 	gboolean network_state;
 	char * cache_dir;
 	char * cache_files_format;
+	char * format_url;
 	int cache_files_format_len;
 
 	CURL * easyhandle; // TODO: unused now, remove
@@ -87,5 +88,6 @@ gpointer tile_manager_request_tile(TileManager * tile_manager, int x, int y, int
 
 void tile_manager_set_network_state(TileManager * tile_manager, gboolean state);
 void tile_manager_set_cache_directory(TileManager * tile_manager, char * directory);
+void tile_manager_set_url_format(TileManager * tile_manager, char * format);
 
 #endif

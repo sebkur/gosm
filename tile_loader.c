@@ -41,7 +41,6 @@
 
 #define MATCHES(a,b)	(a & b) == b
 #define TILESIZE	256
-#define FORMAT_URL	"http://b.tile.openstreetmap.org/%d/%d/%d.png"
 #define FORMAT_FILES	"/%d_%d_%d.png"
 
 G_DEFINE_TYPE (TileLoader, tile_loader, G_TYPE_OBJECT);
@@ -108,6 +107,12 @@ static void tile_loader_init(TileLoader *tile_loader)
 	pthread_mutex_init(&(tile_loader -> mutex_mode), NULL);
 }
 
+void tile_loader_set_url_format(TileLoader * tile_loader, char * format)
+{
+	tile_loader -> format_url = malloc(sizeof(char) * (strlen(format) + 1));
+	strcpy(tile_loader -> format_url, format);
+}
+
 void tile_loader_set_cache_directory(TileLoader * tile_loader, char * directory)
 {
         // TODO: directory-string might contain a trailing backslash...
@@ -165,9 +170,10 @@ void tile_loader_download(TileLoader * tile_loader, const char* url, const char*
 
 void tile_loader_download_tile(TileLoader * tile_loader, int zoom, int x, int y)
 {
+	// TODO: bad constant buffer size
 	char url[100];
 	char filename[tile_loader -> cache_files_format_len + 22];
-	sprintf(url, FORMAT_URL, zoom, x, y);
+	sprintf(url, tile_loader -> format_url, zoom, x, y);
 	sprintf(filename, tile_loader -> cache_files_format, zoom, x, y);
 	printf("downloading %s to %s\n", url, filename);
 	tile_loader_download(tile_loader, url, filename);

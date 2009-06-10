@@ -37,7 +37,7 @@ G_DEFINE_TYPE (WizzardDownload, wizzard_download, G_TYPE_OBJECT);
 
 void wizzard_download_construct(WizzardDownload *wizzard_download);
 
-WizzardDownload * wizzard_download_new(GtkWindow * parent_window, char * download_dir, Selection s)
+WizzardDownload * wizzard_download_new(GtkWindow * parent_window, char * format_url, char * download_dir, Selection s)
 {
 	WizzardDownload * wizzard = g_object_new(GOSM_TYPE_WIZZARD_DOWNLOAD, NULL);
 	memcpy(&(wizzard -> selection), &s, sizeof(Selection));
@@ -46,6 +46,8 @@ WizzardDownload * wizzard_download_new(GtkWindow * parent_window, char * downloa
 	wizzard -> ready = 0;
 	wizzard -> download_dir = malloc(sizeof(char) * (strlen(download_dir) + 1));
 	strcpy(wizzard -> download_dir, download_dir);
+	wizzard -> format_url = malloc(sizeof(char) * (strlen(format_url) + 1));
+	strcpy(wizzard -> format_url, format_url);
 	return wizzard; 
 }
 
@@ -155,6 +157,7 @@ gboolean download_cb(GtkWidget *widget, WizzardDownload * wizzard)
 	// download tiles, update window
 	wizzard -> tile_loader = GOSM_TILE_LOADER(tile_loader_new());
 	tile_loader_set_cache_directory(wizzard -> tile_loader, wizzard -> download_dir);
+	tile_loader_set_url_format(wizzard -> tile_loader, wizzard -> format_url);
 
 	wizzard -> handler_id_tile_loaded = g_signal_connect(G_OBJECT(wizzard -> tile_loader), "tile-loaded-succesfully", G_CALLBACK(loaded_cb), wizzard);
 

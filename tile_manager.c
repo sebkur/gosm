@@ -44,7 +44,6 @@
 
 #define MATCHES(a,b)	(a & b) == b
 #define TILESIZE	256
-#define FORMAT_URL	"http://b.tile.openstreetmap.org/%d/%d/%d.png"
 
 // OSM 1 == G 16
 #define FORMAT_FILES	"/%d_%d_%d.png"
@@ -122,6 +121,12 @@ static void tile_manager_init(TileManager *tile_manager)
 void tile_manager_set_network_state(TileManager * tile_manager, gboolean state)
 {
 	tile_manager -> network_state = state;
+}
+
+void tile_manager_set_url_format(TileManager * tile_manager, char * format)
+{
+	tile_manager -> format_url = malloc(sizeof(char) * strlen(format));
+	strcpy(tile_manager -> format_url, format);
 }
 
 void tile_manager_set_cache_directory(TileManager * tile_manager, char * directory)
@@ -323,7 +328,7 @@ void tile_manager_download_tile(TileManager * tile_manager, CURL * easyhandle, i
 {
 	char url[100];
 	char filename[tile_manager -> cache_files_format_len + 22];
-	sprintf(url, FORMAT_URL, zoom, x, y);
+	sprintf(url, tile_manager -> format_url, zoom, x, y);
 	sprintf(filename, tile_manager -> cache_files_format, zoom, x, y);
 	printf("downloading %s to %s\n", url, filename);
 	tile_manager_download(tile_manager, easyhandle, url, filename);

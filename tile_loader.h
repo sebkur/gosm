@@ -63,6 +63,7 @@ struct _TileLoader
 
 	char * cache_dir;
 	char * cache_files_format;
+	char * format_url;
 	int cache_files_format_len;
 };
 
@@ -74,6 +75,8 @@ struct _TileLoaderClass
 };
 
 GObject * tile_loader_new();
+
+void tile_loader_set_url_format(TileLoader *tile_loader, char * format);
 
 void tile_loader_set_cache_directory(TileLoader *tile_loader, char * directory);
 

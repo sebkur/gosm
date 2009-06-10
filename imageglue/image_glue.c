@@ -278,7 +278,7 @@ int make_image_1(ImageGlue * image_glue, char * filename, char * cache_dir, int 
 	char * format = malloc(sizeof(char) * (strlen(cache_dir) + strlen(file_format) + 1));
 	strcpy(format, cache_dir);
 	strcpy(format + strlen(cache_dir), file_format);
-	int blen = 18 + 19;
+	int blen = strlen(cache_dir) + 30;
 	int cx = x2 - x1 + 1;
 	int cy = y2 - y1 + 1;
 	char namespace[cx * cy][blen];

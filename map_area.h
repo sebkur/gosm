@@ -26,6 +26,7 @@
 #include <glib.h>
 #include "map_types.h"
 #include "tile_manager.h"
+#include "tilesets.h"
 
 #define GOSM_TYPE_MAP_AREA		(map_area_get_type ())
 #define GOSM_MAP_AREA(obj)		(G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_MAP_AREA, MapArea))
@@ -62,8 +63,9 @@ struct _MapArea
 
 	gboolean need_repaint;
 
-	TileManager *tile_manager;
-	char * cache_dir;
+	Tileset tileset;
+	TileManager * tile_manager[TILESET_LAST];
+	char * cache_dir[TILESET_LAST];
 
 	int selection_mouseover;
 	ColorQuadriple color_selection;
@@ -85,7 +87,9 @@ struct _MapAreaClass
 
 GtkWidget * map_area_new();
 
-void map_area_set_cache_directory(MapArea *map_area, char * directory);
+void map_area_set_tileset(MapArea *map_area, Tileset tileset);
+
+void map_area_set_cache_directory(MapArea *map_area, Tileset tileset, char * directory);
 
 // TODO remove: void map_has_moved();
 

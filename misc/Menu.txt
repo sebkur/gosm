@@ -12,7 +12,7 @@ View;
  Tiles;
   Mapnik;		menu_tiles_mapnik;		radio; group_tiles
   Osmarender;		menu_tiles_osmarender;		radio; group_tiles
-  OpenAreal;		menu_tiles_openareal;		radio; group_tiles
+  OpenAerial;		menu_tiles_openaerial;		radio; group_tiles
   Google;		menu_tiles_google;		radio; group_tiles
   Yahoo;		menu_tiles_yahoo;		radio; group_tiles
 Selection;

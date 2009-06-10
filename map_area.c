@@ -33,6 +33,7 @@
 #include "tilemath.h"
 #include "tile_cache.h"
 #include "tile_manager.h"
+#include "tilesets.h"
 
 #define MATCHES(a,b)	((a & b) == b)
 #define TILESIZE	256
@@ -62,6 +63,16 @@ enum
 };
 
 static guint map_area_signals[LAST_SIGNAL] = { 0 };
+
+//const char * format_url_mapnik = "http://b.tile.openstreetmap.org/%d/%d/%d.png";
+//const char * format_url_osmarender = "http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png";
+
+extern char * urls[];
+/*const char * urls[TILESET_LAST] = {
+	"http://b.tile.openstreetmap.org/%d/%d/%d.png",
+	"http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png"
+};*/
+
 // TODO: put in object
 
 Point point_drag;
@@ -117,20 +128,29 @@ static void map_area_class_init(MapAreaClass *class)
 	
 }
 
-void map_area_set_cache_directory(MapArea * map_area, char * directory)
+void map_area_set_tileset(MapArea *map_area, Tileset tileset)
 {
-	if (map_area -> cache_dir != NULL){
-		free(map_area -> cache_dir);
+	map_area -> tileset = tileset;
+	map_area_repaint(map_area);
+}
+
+void map_area_set_cache_directory(MapArea * map_area, Tileset tileset, char * directory)
+{
+	if (map_area -> cache_dir[tileset] != NULL){
+		free(map_area -> cache_dir[tileset]);
 	}
-	map_area -> cache_dir = malloc(sizeof(char) * strlen(directory));
-	strcpy(map_area -> cache_dir, directory);
-	tile_manager_set_cache_directory(map_area -> tile_manager, directory);
+	map_area -> cache_dir[tileset] = malloc(sizeof(char) * strlen(directory));
+	strcpy(map_area -> cache_dir[tileset], directory);
+	tile_manager_set_cache_directory(map_area -> tile_manager[tileset], directory);
 }
 
 void map_area_set_network_state(MapArea *map_area, gboolean state)
 {
-	tile_manager_set_network_state(map_area -> tile_manager, state);
-	// TODO change state of tileloader
+	int i;
+	for (i = 0; i < TILESET_LAST; i++){
+		tile_manager_set_network_state(map_area -> tile_manager[i], state);
+		// TODO change state of tileloader
+	}
 }
 
 static void tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
@@ -144,6 +164,7 @@ static void tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
 
 static void map_area_init(MapArea *map_area)
 {
+	map_area -> tileset = TILESET_MAPNIK;
 	// TODO: this initialization is useless!
 	map_area -> map_position.width  	= 1280;
 	map_area -> map_position.height 	= 600;
@@ -193,8 +214,12 @@ static void map_area_init(MapArea *map_area)
 	// don't use GDK_KEY_PRESS, old versions of gtk don't realize motion-notifys anymore
 	gtk_widget_set_events(GTK_WIDGET(map_area), gtk_widget_get_events(GTK_WIDGET(map_area)) |
 		GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_POINTER_MOTION_MASK | GDK_EXPOSURE_MASK );
-	map_area -> tile_manager = GOSM_TILE_MANAGER(tile_manager_new());
-	g_signal_connect(G_OBJECT(map_area -> tile_manager), "tile_loaded_from_disk", G_CALLBACK(tile_loaded_cb), map_area);
+	int i;
+	for (i = 0; i < TILESET_LAST; i++){
+		map_area -> tile_manager[i] = GOSM_TILE_MANAGER(tile_manager_new());
+		tile_manager_set_url_format(map_area -> tile_manager[i], urls[i]);
+		g_signal_connect(G_OBJECT(map_area -> tile_manager[i]), "tile_loaded_from_disk", G_CALLBACK(tile_loaded_cb), map_area);
+	}
 }
 
 int map_area_position_get_center_x(MapArea *map_area)
@@ -640,7 +665,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			gboolean in_cache = FALSE;
 
 			//gpointer pointer = cache_find_tile(tile_cache, map_position -> zoom, t_x, t_y);
-			gpointer pointer = tile_manager_request_tile(map_area -> tile_manager, t_x, t_y, map_position -> zoom); 
+			gpointer pointer = tile_manager_request_tile(map_area -> tile_manager[map_area -> tileset], t_x, t_y, map_position -> zoom); 
 			if (pointer != NULL){
 				in_cache = TRUE;
 				pixmap = GDK_PIXMAP(pointer);

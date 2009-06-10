@@ -84,6 +84,7 @@
 #include "about/about.h"
 #include "manual/manual.h"
 #include "tilemath.h"
+#include "tilesets.h"
 
 #include "imageglue/imageglue.h"
 #include "imageglue/pdf_generator.h"
@@ -95,14 +96,25 @@
 #define CURSOR_SELECT		1
 #define CURSOR_TARGET		2
 
+char * urls[TILESET_LAST] = {
+        "http://b.tile.openstreetmap.org/%d/%d/%d.png",
+        "http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png"
+};
+
+char * cache_dirs[TILESET_LAST];
+
 Configuration * config;
 char * cache_dir;
+char * cache_dir_mapnik;
+char * cache_dir_osmarender;
+char * format_url;
 gboolean network_state;
 gboolean show_map_controls = TRUE;
 gboolean show_side_pane = TRUE;
 gboolean show_status_bar = TRUE;
 gboolean show_tool_bar = TRUE;
 gboolean show_menu_bar = TRUE;
+Tileset tileset = TILESET_MAPNIK;
 
 GtkWidget * main_window;
 MapArea * area;
@@ -121,6 +133,7 @@ GtkWidget ** toolbar_buttons; // first 3 buttons; CURSOR_* is used as index
 GtkWidget * button_network;
 GtkWidget * button_map_controls;
 GtkWidget * button_side_bar;
+GtkWidget * combo_tiles;
 
 typedef struct WidgetPlusPointer{
 	GtkWidget * widget;
@@ -139,6 +152,7 @@ static gboolean button_map_controls_cb(GtkWidget *widget);
 static gboolean button_side_bar_cb(GtkWidget *widget);
 static gboolean button_zoom_cb(GtkWidget *widget, gpointer direction);
 static gboolean button_move_cb(GtkWidget *widget, gpointer direction);
+static gboolean combo_tiles_cb(GtkWidget *widget);
 static gboolean menubar_fullscreen_cb(GtkWidget *widget);
 static gboolean window_event_cb(GtkWidget *window, GdkEventWindowState *event);
 static gboolean map_area_map_cb(GtkWidget *widget, GdkEventConfigure *event);
@@ -173,7 +187,6 @@ void chdir_to_bin(char * arg0);
  * Start auto-generated menu
  * :r !./misc/menu_gen.py 1 misc/Menu.txt
  */
-
 GtkWidget * menu_file_quit;
 GtkWidget * menu_view_fullscreen;
 GtkWidget * menu_control_zoom_in;
@@ -184,7 +197,7 @@ GtkWidget * menu_control_move_left;
 GtkWidget * menu_control_move_right;
 GtkWidget * menu_tiles_mapnik;
 GtkWidget * menu_tiles_osmarender;
-GtkWidget * menu_tiles_openareal;
+GtkWidget * menu_tiles_openaerial;
 GtkWidget * menu_tiles_google;
 GtkWidget * menu_tiles_yahoo;
 GtkWidget * menu_selection_snap;
@@ -196,7 +209,6 @@ GtkWidget * menu_help_manual;
 GtkWidget * menu_help_about_gosm;
 GtkWidget * menu_help_about_osm;
 GtkWidget * menu_help_license;
-
 /*
  * End auto-generated menu
  */
@@ -206,6 +218,11 @@ int main(int argc, char *argv[])
 	// ensure, that we are in the dir, where the executable is
 	// i.e. set cwd to the executable's dir
 	chdir_to_bin(argv[0]);
+
+	/*urls[TILESET_MAPNIK] = malloc(sizeof(char) * 1000);
+	sprintf(urls[TILESET_MAPNIK], "%s", "http://b.tile.openstreetmap.org/%d/%d/%d.png");
+	urls[TILESET_OSMARENDER] = malloc(sizeof(char) * 1000); 
+	sprintf(urls[TILESET_OSMARENDER], "%s", "http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png");*/
 
 	// load config struct from config file
 	// TODO: use homedir-file first
@@ -218,14 +235,21 @@ int main(int argc, char *argv[])
 	double		lattitude		= *(double*)config_get_entry_data(config, "lattitude");
 	int		zoom			= *(int*)config_get_entry_data(config, "zoom");
 			network_state		= *(gboolean*)config_get_entry_data(config, "online_on_startup");
-	 		cache_dir		= config_get_entry_data(config, "cache_dir");
+	 		cache_dir		= config_get_entry_data(config, "cache_dir_mapnik");
+	 		cache_dir_mapnik	= config_get_entry_data(config, "cache_dir_mapnik");
+	 		cache_dir_osmarender	= config_get_entry_data(config, "cache_dir_osmarender");
 	ColorQuadriple	color_selection 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection");
 	ColorQuadriple	color_selection_out 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection_out");
 	ColorQuadriple	color_selection_pad 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection_pad");
 	ColorQuadriple	color_atlas_lines	= *(ColorQuadriple*)config_get_entry_data(config, "color_atlas_lines");
 
-	// ensure, that the tmp-directory for tiles exists	
-	if (!check_for_cache_directory(cache_dir)){
+	format_url = urls[TILESET_MAPNIK];
+	cache_dirs[TILESET_MAPNIK] = cache_dir_mapnik;
+	cache_dirs[TILESET_OSMARENDER] = cache_dir_osmarender;
+
+	// ensure, that the tmp-directory for tiles exists
+	if (!check_for_cache_directory(cache_dir_mapnik)
+		|| !check_for_cache_directory(cache_dir_osmarender) ){
 		return EXIT_FAILURE;
 	}
 
@@ -251,7 +275,8 @@ int main(int argc, char *argv[])
 	area -> map_position.zoom = zoom;
 	printf("%d\n", network_state);
 	map_area_set_network_state(area, network_state);
-	map_area_set_cache_directory(area, cache_dir);
+	map_area_set_cache_directory(area, TILESET_MAPNIK, cache_dir_mapnik);
+	map_area_set_cache_directory(area, TILESET_OSMARENDER, cache_dir_osmarender);
 	map_area_set_color_selection(area, color_selection, color_selection_out, color_selection_pad, color_atlas_lines);
 
 	// Selection-Widget in sidebar
@@ -316,7 +341,7 @@ int main(int argc, char *argv[])
 	GtkWidget *menu_2_3                    = gtk_menu_new();
 	GtkWidget *item_2_3_1                  = gtk_radio_menu_item_new_with_label(NULL, "Mapnik");
 	GtkWidget *item_2_3_2                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Osmarender");
-	GtkWidget *item_2_3_3                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "OpenAreal");
+	GtkWidget *item_2_3_3                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "OpenAerial");
 	GtkWidget *item_2_3_4                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Google");
 	GtkWidget *item_2_3_5                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Yahoo");
 	GtkWidget *item_3                      = gtk_menu_item_new_with_label("Selection");
@@ -380,7 +405,7 @@ int main(int argc, char *argv[])
 	menu_control_move_right        = item_2_2_6;
 	menu_tiles_mapnik              = item_2_3_1;
 	menu_tiles_osmarender          = item_2_3_2;
-	menu_tiles_openareal           = item_2_3_3;
+	menu_tiles_openaerial          = item_2_3_3;
 	menu_tiles_google              = item_2_3_4;
 	menu_tiles_yahoo               = item_2_3_5;
 	menu_selection_snap            = item_3_1;
@@ -402,7 +427,7 @@ int main(int argc, char *argv[])
 	gtk_menu_shell_append((GtkMenuShell*)menu_5,             itemx);*/
 
 	gtk_widget_set_sensitive(menu_tiles_osmarender, FALSE);
-	gtk_widget_set_sensitive(menu_tiles_openareal, FALSE);
+	gtk_widget_set_sensitive(menu_tiles_openaerial, FALSE);
 	gtk_widget_set_sensitive(menu_tiles_google, FALSE);
 	gtk_widget_set_sensitive(menu_tiles_yahoo, FALSE);
 
@@ -418,6 +443,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(menu_control_move_down), 	"activate", G_CALLBACK(button_move_cb), GINT_TO_POINTER(7));
 	g_signal_connect(G_OBJECT(menu_control_move_left), 	"activate", G_CALLBACK(button_move_cb), GINT_TO_POINTER(4));
 	g_signal_connect(G_OBJECT(menu_control_move_right), 	"activate", G_CALLBACK(button_move_cb), GINT_TO_POINTER(5));
+
 	/**
 	 * Toolbar
 	 */
@@ -459,6 +485,12 @@ int main(int argc, char *argv[])
 	button_network = gtk_button_new();
 	set_button_network();
 
+	combo_tiles = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(combo_tiles), "Mapnik");
+	gtk_combo_box_append_text(GTK_COMBO_BOX(combo_tiles), "Osmarender");
+	//gtk_combo_box_append_text(GTK_COMBO_BOX(combo_tiles), "OpenAerial");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combo_tiles), 0);
+
 	int tc = 0;
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_network, NULL, NULL, tc++);
 	gtk_toolbar_insert_space( GTK_TOOLBAR(toolbar), tc++);
@@ -474,6 +506,8 @@ int main(int argc, char *argv[])
 	gtk_toolbar_insert_space( GTK_TOOLBAR(toolbar), tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_map_controls, NULL, NULL, tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_side_bar, NULL, NULL, tc++);
+	gtk_toolbar_insert_space( GTK_TOOLBAR(toolbar), tc++);
+	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), combo_tiles, NULL, NULL, tc++);
 
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_map_controls), show_map_controls);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_side_bar), show_side_pane);
@@ -500,6 +534,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(button_network), 	"clicked", G_CALLBACK(button_network_cb), NULL);
 	g_signal_connect(G_OBJECT(menu_view_fullscreen),"toggled", G_CALLBACK(menubar_fullscreen_cb), NULL);
 	g_signal_connect(G_OBJECT(main_window),		"window-state-event", G_CALLBACK(window_event_cb), NULL);
+	g_signal_connect(G_OBJECT(combo_tiles), 	"changed", G_CALLBACK(combo_tiles_cb), NULL);
 
 	/**
 	 * Statusbar
@@ -563,6 +598,7 @@ void apply_new_config()
 	map_area_repaint(area);
 }
 
+// TODO: this method fails, if the parent dir doesn't exist
 gboolean check_for_cache_directory(char * fn)
 {
         struct stat info;
@@ -701,6 +737,15 @@ static gboolean button_move_cb(GtkWidget *widget, gpointer direction)
 	map_area_move(area, dir);
 }
 
+// toolbar: tile selection
+static gboolean combo_tiles_cb(GtkWidget *widget)
+{
+	gint active = gtk_combo_box_get_active(GTK_COMBO_BOX(widget));
+	map_area_set_tileset(area, active);
+	format_url = urls[active];
+	cache_dir = cache_dirs[active];
+}
+
 // menubar: fullscreen
 static gboolean menubar_fullscreen_cb(GtkWidget *widget)
 {
@@ -786,7 +831,7 @@ static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event)
 static gboolean selection_use_cb(GtkWidget *widget)
 {
 	printf("use...\n");
-	WizzardDownload * wizzard = wizzard_download_new(GTK_WINDOW(main_window), cache_dir, area->selection);
+	WizzardDownload * wizzard = wizzard_download_new(GTK_WINDOW(main_window), format_url, cache_dir, area->selection);
 	wizzard_download_show(wizzard);
 }
 
@@ -868,7 +913,7 @@ static gboolean atlas_template_cb(GtkWidget *widget)
 
 static gboolean atlas_download_cb(GtkWidget *widget)
 {
-	WizzardDownload * wizzard = wizzard_download_new(GTK_WINDOW(main_window), cache_dir, area->selection);
+	WizzardDownload * wizzard = wizzard_download_new(GTK_WINDOW(main_window), format_url, cache_dir, area->selection);
 	wizzard_download_show(wizzard);
 	wizzard_download_set_active(wizzard, GPOINTER_TO_INT(area->slice_zl), TRUE);
 }
