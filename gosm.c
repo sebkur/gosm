@@ -24,11 +24,12 @@
  *		- take care of memory. use free() more often!
  *
  * 	Besides:
+ *	- use makefile for building
  *	- PARTIALLY (only colors) update changed preferences without restart
  *	- DONE add color selection buttons in configuration window
  *	- DONE adjust paper size on exporting pdf via imagesize
- * 	- let user set path to java-binary (for pdf export)
- *	- make color of atlas-selection configurable
+ * 	- DONE let user set path to java-binary (for pdf export)
+ *	- DONE make color of atlas-selection configurable
  * 	- DONE sum atlas picture up into a single pdf optionally
  * 	- DONE template selection for atlas export
  *	- DONE progress monitor for image export / atlas export
@@ -39,7 +40,7 @@
  *		fluid visuals. 3-level-cache should be represented in threading
  *	- DONE make config-dialog:
  *	- DONE config-dialog should save settings on apply
- *	- config should be accessible from everywhere somehow USE EXTERN
+ *	- PARTIALLY (learned about extern) config should be accessible from (nearly) everywhere somehow USE EXTERN
  * 	- DONE function 'load_new_tiles' is called on every position change
  * 		it handles checking for new tile-downloading quite inefficent
  * 		since it check existance of every single file on the tmp-dir
@@ -104,36 +105,36 @@ char * urls[TILESET_LAST] = {
 char * cache_dirs[TILESET_LAST];
 
 Configuration * config;
-char * cache_dir;
-char * cache_dir_mapnik;
-char * cache_dir_osmarender;
-char * format_url;
-gboolean network_state;
-gboolean show_map_controls = TRUE;
-gboolean show_side_pane = TRUE;
-gboolean show_status_bar = TRUE;
-gboolean show_tool_bar = TRUE;
-gboolean show_menu_bar = TRUE;
-Tileset tileset = TILESET_MAPNIK;
+char * 		cache_dir;
+char * 		cache_dir_mapnik;
+char * 		cache_dir_osmarender;
+char * 		format_url;
+gboolean 	network_state;
+gboolean 	show_map_controls 	= TRUE;
+gboolean 	show_side_pane 		= TRUE;
+gboolean 	show_status_bar 	= TRUE;
+gboolean 	show_tool_bar 		= TRUE;
+gboolean 	show_menu_bar 		= TRUE;
+Tileset 	tileset 		= TILESET_MAPNIK;
 
-GtkWidget * main_window;
-MapArea * area;
-MapNavigator * navigator;
-GtkWidget * side;
-GtkWidget * menubar;
-GtkWidget * toolbar;
-GtkWidget * statusbar;
-char status_bar_buffer[50];
+GtkWidget * 	main_window;
+MapArea * 	area;
+MapNavigator * 	navigator;
+GtkWidget * 	side;
+GtkWidget * 	menubar;
+GtkWidget * 	toolbar;
+GtkWidget * 	statusbar;
+char 		status_bar_buffer[50];
 
-SelectTool * select_tool;
-DistanceTool * distance_tool;
-AtlasTool * atlas_tool;
+SelectTool * 	select_tool;
+DistanceTool * 	distance_tool;
+AtlasTool * 	atlas_tool;
 
-GtkWidget ** toolbar_buttons; // first 3 buttons; CURSOR_* is used as index
-GtkWidget * button_network;
-GtkWidget * button_map_controls;
-GtkWidget * button_side_bar;
-GtkWidget * combo_tiles;
+GtkWidget ** 	toolbar_buttons; // first 3 buttons; CURSOR_* is used as index
+GtkWidget * 	button_network;
+GtkWidget * 	button_map_controls;
+GtkWidget * 	button_side_bar;
+GtkWidget * 	combo_tiles;
 
 typedef struct WidgetPlusPointer{
 	GtkWidget * widget;
@@ -146,9 +147,13 @@ void		area_set_cursor(int id);
 static gboolean action_select_cb(GtkWidget *widget, gpointer cursor_id_p);
 static gboolean button_font_cb(GtkWidget *widget);
 static gboolean button_grid_cb(GtkWidget *widget);
-       void 	toggle_map_controls();
 static gboolean button_map_controls_cb(GtkWidget *widget);
-       void	toggle_side_bar();
+       void 	toggle_side_bar();
+       void 	toggle_menu_bar();
+       void 	toggle_tool_bar();
+       void 	toggle_status_bar();
+       void 	toggle_map_controls();
+       void 	toggle_side_bar();
 static gboolean button_side_bar_cb(GtkWidget *widget);
 static gboolean button_zoom_cb(GtkWidget *widget, gpointer direction);
 static gboolean button_move_cb(GtkWidget *widget, gpointer direction);
@@ -181,7 +186,7 @@ static gboolean preferences_cancel_cb(GtkWidget * widget, GtkWindow *window);
 static gboolean show_preferences_cb(GtkWidget *widget);
 static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean exit_cb(GtkWidget *widget);
-void chdir_to_bin(char * arg0);
+void   chdir_to_bin(char * arg0);
 
 /*
  * Start auto-generated menu
@@ -219,29 +224,41 @@ int main(int argc, char *argv[])
 	// i.e. set cwd to the executable's dir
 	chdir_to_bin(argv[0]);
 
-	/*urls[TILESET_MAPNIK] = malloc(sizeof(char) * 1000);
-	sprintf(urls[TILESET_MAPNIK], "%s", "http://b.tile.openstreetmap.org/%d/%d/%d.png");
-	urls[TILESET_OSMARENDER] = malloc(sizeof(char) * 1000); 
-	sprintf(urls[TILESET_OSMARENDER], "%s", "http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png");*/
-
-	// load config struct from config file
-	// TODO: use homedir-file first
+	// create config struct
 	config = config_new();
+	// fill config struct from config file
 	config_load_config_file(config);
 
-	int		width 			= *(int*)config_get_entry_data(config, "size_width");
-	int		height			= *(int*)config_get_entry_data(config, "size_height");
-	double		longitude		= *(double*)config_get_entry_data(config, "longitude");
-	double		lattitude		= *(double*)config_get_entry_data(config, "lattitude");
-	int		zoom			= *(int*)config_get_entry_data(config, "zoom");
-			network_state		= *(gboolean*)config_get_entry_data(config, "online_on_startup");
-	 		cache_dir		= config_get_entry_data(config, "cache_dir_mapnik");
-	 		cache_dir_mapnik	= config_get_entry_data(config, "cache_dir_mapnik");
-	 		cache_dir_osmarender	= config_get_entry_data(config, "cache_dir_osmarender");
-	ColorQuadriple	color_selection 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection");
-	ColorQuadriple	color_selection_out 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection_out");
-	ColorQuadriple	color_selection_pad 	= *(ColorQuadriple*)config_get_entry_data(config, "color_selection_pad");
-	ColorQuadriple	color_atlas_lines	= *(ColorQuadriple*)config_get_entry_data(config, "color_atlas_lines");
+	// use the configured values
+	gboolean	set_position		= *(gboolean*)		config_get_entry_data(config, "set_position");
+	int		pos_x			= *(int*)		config_get_entry_data(config, "position_x");
+	int		pos_y			= *(int*)		config_get_entry_data(config, "position_y");
+	gboolean	set_size		= *(gboolean*)		config_get_entry_data(config, "set_size");
+	int		width 			= *(int*)		config_get_entry_data(config, "size_width");
+	int		height			= *(int*)		config_get_entry_data(config, "size_height");
+	gboolean	show_grid		= *(gboolean*)		config_get_entry_data(config, "show_grid");
+	gboolean	show_tilenumbers	= *(gboolean*)		config_get_entry_data(config, "show_tilenumbers");
+	gboolean	show_menubar		= *(gboolean*)		config_get_entry_data(config, "show_menubar");
+	gboolean	show_toolbar		= *(gboolean*)		config_get_entry_data(config, "show_toolbar");
+	gboolean	show_statusbar		= *(gboolean*)		config_get_entry_data(config, "show_statusbar");
+	gboolean	show_controls		= *(gboolean*)		config_get_entry_data(config, "show_controls");
+	gboolean	show_sidebar		= *(gboolean*)		config_get_entry_data(config, "show_sidebar");
+	double		longitude		= *(double*)		config_get_entry_data(config, "longitude");
+	double		lattitude		= *(double*)		config_get_entry_data(config, "lattitude");
+	int		zoom			= *(int*)		config_get_entry_data(config, "zoom");
+			network_state		= *(gboolean*)		config_get_entry_data(config, "online_on_startup");
+	 		cache_dir		= 			config_get_entry_data(config, "cache_dir_mapnik");
+	 		cache_dir_mapnik	= 			config_get_entry_data(config, "cache_dir_mapnik");
+	 		cache_dir_osmarender	= 			config_get_entry_data(config, "cache_dir_osmarender");
+	ColorQuadriple	color_selection 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection");
+	ColorQuadriple	color_selection_out 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection_out");
+	ColorQuadriple	color_selection_pad 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection_pad");
+	ColorQuadriple	color_atlas_lines	= *(ColorQuadriple*)	config_get_entry_data(config, "color_atlas_lines");
+
+	if(!set_size){
+		width 	= 800;
+		height	= 600;
+	}
 
 	format_url = urls[TILESET_MAPNIK];
 	cache_dirs[TILESET_MAPNIK] = cache_dir_mapnik;
@@ -258,25 +275,29 @@ int main(int argc, char *argv[])
 	gdk_threads_init();
 	gtk_init(&argc, &argv);
 
-	// GTK WIDGETS AND LAYOUT, CALLBACKS
-	GtkWidget *widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(widget), "GOsmView");
-	gtk_window_set_icon_from_file(GTK_WINDOW(widget), "icons/gosm.png", NULL);
-	main_window = widget;
-	gtk_window_set_default_size(GTK_WINDOW(widget), width, height);
-	g_signal_connect(G_OBJECT(widget), "hide", G_CALLBACK(close_cb), NULL);
+	/**
+	 * GTK WIDGETS AND LAYOUT, CALLBACKS
+	 */
+	// main window
+	main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title(GTK_WINDOW(main_window), "GOsmView");
+	gtk_window_set_icon_from_file(GTK_WINDOW(main_window), "icons/gosm.png", NULL);
+	gtk_window_set_default_size(GTK_WINDOW(main_window), width, height);
+	g_signal_connect(G_OBJECT(main_window), "hide", G_CALLBACK(close_cb), NULL);
 
+	// widget, that displays the map
 	area = GOSM_MAP_AREA(map_area_new());
+	// container for the area, showing the controls around it
 	navigator = GOSM_MAP_NAVIGATOR(map_navigator_new(GTK_WIDGET(area)));
 
 	// apply config to map_area
 	area -> map_position.lon = longitude;
 	area -> map_position.lat = lattitude;
 	area -> map_position.zoom = zoom;
-	printf("%d\n", network_state);
+	//printf("network state: %d\n", network_state);
 	map_area_set_network_state(area, network_state);
-	map_area_set_cache_directory(area, TILESET_MAPNIK, cache_dir_mapnik);
-	map_area_set_cache_directory(area, TILESET_OSMARENDER, cache_dir_osmarender);
+	map_area_set_cache_directory(area, TILESET_MAPNIK,	cache_dir_mapnik);
+	map_area_set_cache_directory(area, TILESET_OSMARENDER,	cache_dir_osmarender);
 	map_area_set_color_selection(area, color_selection, color_selection_out, color_selection_pad, color_atlas_lines);
 
 	// Selection-Widget in sidebar
@@ -421,11 +442,6 @@ int main(int argc, char *argv[])
 	 * End auto-generated menu
 	 */
 
-	/*GtkWidget * iconx = gtk_image_new_from_file("icons/font.png");
-	GtkWidget * itemx = gtk_image_menu_item_new_with_label("blubbbb");
-	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(itemx), iconx);
-	gtk_menu_shell_append((GtkMenuShell*)menu_5,             itemx);*/
-
 	gtk_widget_set_sensitive(menu_tiles_osmarender, FALSE);
 	gtk_widget_set_sensitive(menu_tiles_openaerial, FALSE);
 	gtk_widget_set_sensitive(menu_tiles_google, FALSE);
@@ -512,9 +528,9 @@ int main(int argc, char *argv[])
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_map_controls), show_map_controls);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_side_bar), show_side_pane);
 
-	gtk_widget_set_tooltip_text(toolbar_buttons[0],	"Navigation mode");
-	gtk_widget_set_tooltip_text(toolbar_buttons[1],	"Selection mode");
-	gtk_widget_set_tooltip_text(toolbar_buttons[2],	"Measure mode");
+	gtk_widget_set_tooltip_text(toolbar_buttons[0],		"Navigation mode");
+	gtk_widget_set_tooltip_text(toolbar_buttons[1],		"Selection mode");
+	gtk_widget_set_tooltip_text(toolbar_buttons[2],		"Measure mode");
 	gtk_widget_set_tooltip_text(button_zoom_in,		"zoom in");
 	gtk_widget_set_tooltip_text(button_zoom_out,		"zoom out");
 	gtk_widget_set_tooltip_text(button_grid,		"grid");
@@ -568,8 +584,8 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(area), "map-selection-changed", G_CALLBACK(map_selection_changed_cb), NULL);
 	g_signal_connect(G_OBJECT(area), "map-path-changed", G_CALLBACK(map_path_cb), NULL);
 
-	gtk_container_add(GTK_CONTAINER(widget), vbox);
-	gtk_widget_show_all(widget);
+	gtk_container_add(GTK_CONTAINER(main_window), vbox);
+	gtk_widget_show_all(main_window);
 	gtk_widget_grab_focus(GTK_WIDGET(area));
 
 	g_signal_connect(G_OBJECT(button_network), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
@@ -582,6 +598,15 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(toolbar_buttons[0]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(toolbar_buttons[1]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(toolbar_buttons[2]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
+
+	// config
+	if (!show_controls) toggle_map_controls();
+	if (show_grid) area -> show_grid = TRUE;;
+	if (show_tilenumbers) area -> show_font = TRUE;
+	if (!show_menubar) toggle_menu_bar();
+	if (!show_toolbar) toggle_tool_bar();
+	if (!show_statusbar) toggle_status_bar();
+	if (!show_sidebar) toggle_side_bar();
 
 	gdk_threads_enter();	
 	gtk_main();
@@ -598,14 +623,19 @@ void apply_new_config()
 	map_area_repaint(area);
 }
 
-// TODO: this method fails, if the parent dir doesn't exist
+/**
+ * check if directory 'fn' exists
+ * if not, try to create it, including parent directories
+ * returns:	TRUE  => directory exists
+ *		FALSE => directory does not exist and could not be created
+ */
 gboolean check_for_cache_directory(char * fn)
 {
         struct stat info;
         int r_stat = stat(fn, &info);
         if (r_stat){
                 printf("creating directory: %s\n", fn);
-                int r_mkdir = mkdir(fn, 0777);
+                int r_mkdir = g_mkdir_with_parents(fn, 0777);
         }
         r_stat = stat(fn, &info);
         if (r_stat || !S_ISDIR(info.st_mode)){
@@ -618,7 +648,7 @@ gboolean check_for_cache_directory(char * fn)
 // called when close button is hit
 static gboolean close_cb(GtkWidget *widget)
 {
-	printf("close realized\n");
+	printf("main window has been closed\n");
 	gtk_main_quit();
 }
 

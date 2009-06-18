@@ -43,6 +43,8 @@ struct _PdfGenerator
 {
 	GObject parent;
 
+	char * java_binary;
+
 	PageInformation page_info;
 	char * file_prefix;
 	int parts_x;
@@ -57,6 +59,8 @@ struct _PdfGeneratorClass
 };
 
 PdfGenerator * pdf_generator_new();
+
+void pdf_generator_set_java_binary(PdfGenerator * pdf_generator, char * path);
 
 void pdf_generator_setup(PdfGenerator * pdf_generator, PageInformation page_info, char * file_prefix, int parts_x, int parts_y);
 

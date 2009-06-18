@@ -71,6 +71,13 @@ static void pdf_generator_init(PdfGenerator *pdf_generator)
 {
 }
 
+void pdf_generator_set_java_binary(PdfGenerator * pdf_generator, char * path)
+{
+	if (pdf_generator -> java_binary != NULL) free (pdf_generator -> java_binary);
+	pdf_generator -> java_binary = malloc(sizeof(char) * (strlen(path) + 1));
+	strcpy(pdf_generator -> java_binary, path);
+}
+
 void pdf_generator_setup(PdfGenerator * pdf_generator, PageInformation page_info, char * file_prefix, int parts_x, int parts_y)
 {
 	pdf_generator -> page_info = page_info;
@@ -105,8 +112,8 @@ void pdf_generator_thread_function(PdfGenerator * pdf_generator)
 		}
 	}
 	// java -cp imageglue/pdf_creator/iText-2.1.5.jar:imageglue/pdf_creator/ test.Exporter 210 297 150 15 20 a.pdf image_1_1.png image_2_1.png
-	args[0] = malloc(30 * sizeof(char));
-	sprintf(args[0], "%s", "/usr/bin/java");
+	args[0] = malloc(sizeof(char) * (strlen(pdf_generator -> java_binary) + 1));
+	sprintf(args[0], "%s", pdf_generator -> java_binary);
 	args[1] = malloc(30 * sizeof(char));
 	sprintf(args[1], "%s", "-cp");
 	args[2] = malloc(80 * sizeof(char));
@@ -141,7 +148,7 @@ void pdf_generator_thread_function(PdfGenerator * pdf_generator)
 	if (pid == 0){
 		dup2(pipefd[1], 1);
 		close(pipefd[0]);
-		execv("/usr/bin/java", args);
+		execv(pdf_generator -> java_binary, args);
 	}
 	close(pipefd[1]);
 	char buffer[1];

@@ -33,6 +33,7 @@
 #include "../imageglue/pdf_generator.h"
 #include "../map_types.h"
 #include "../atlas.h"
+#include "../config.h"
 
 G_DEFINE_TYPE (WizzardAtlasPdf, wizzard_atlas_pdf, G_TYPE_OBJECT);
 
@@ -45,6 +46,8 @@ G_DEFINE_TYPE (WizzardAtlasPdf, wizzard_atlas_pdf, G_TYPE_OBJECT);
 
 //static guint wizzard_atlas_pdf_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, wizzard_atlas_pdf_signals[SIGNAL_NAME_n], 0);
+
+extern Configuration * config;
 
 static gboolean wizzard_atlas_pdf_export_cb(GtkWidget * button, WizzardAtlasPdf * wap);
 static gboolean wizzard_atlas_pdf_cancel_cb(GtkWidget * button, WizzardAtlasPdf * wap);
@@ -111,6 +114,8 @@ static void tile_cb(ImageGlue * image_glue, int n, WizzardAtlasPdf * wap)
 	if (n == 2 && wap -> ready_tiles == wap -> total_tiles){
 		PdfGenerator * pdf_generator = pdf_generator_new();
 		g_signal_connect(G_OBJECT(pdf_generator), "page-progress", G_CALLBACK(page_cb), wap);
+		char * java_binary = config_get_entry_data(config, "java_binary");
+		pdf_generator_set_java_binary(pdf_generator, java_binary);
 		pdf_generator_setup(pdf_generator, wap -> page_info, wap -> filename_prefix, wap -> parts_x, wap -> parts_y);
 		pdf_generator_process(pdf_generator);
 	}

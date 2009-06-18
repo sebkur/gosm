@@ -270,6 +270,7 @@ gboolean config_set_entry_data(ConfEntry * ce, char * data_str)
 		((ColorQuadriple*)ce -> data) -> a = strtodouble(split[3]);
 		return TRUE;
 	}
+	case TYPE_STRING:
 	case TYPE_DIR:
 	case TYPE_IP:{
 		int size_new = strlen(data_str) + 1;
