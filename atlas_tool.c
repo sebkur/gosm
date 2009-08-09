@@ -31,6 +31,7 @@
 
 #include "atlas_tool.h"
 #include "page_math.h"
+#include "paths.h"
 
 G_DEFINE_TYPE (AtlasTool, atlas_tool, GTK_TYPE_VBOX);
 
@@ -79,8 +80,8 @@ static void atlas_tool_init(AtlasTool *atlas_tool)
 	atlas_tool -> entry_slice_intersect_x = gtk_entry_new();
 	atlas_tool -> entry_slice_intersect_y = gtk_entry_new();
 
-	GtkWidget *icon1 = gtk_image_new_from_file("icons/object-flip-horizontal.png");
-	GtkWidget *icon2 = gtk_image_new_from_file("icons/object-flip-vertical.png");
+	GtkWidget *icon1 = gtk_image_new_from_file(GOSM_ICON_DIR "object-flip-horizontal.png");
+	GtkWidget *icon2 = gtk_image_new_from_file(GOSM_ICON_DIR "object-flip-vertical.png");
 
 	// VISIBLE
 	atlas_tool -> check_show = gtk_check_button_new_with_label("visible");
@@ -100,9 +101,9 @@ static void atlas_tool_init(AtlasTool *atlas_tool)
 	gtk_button_set_label(GTK_BUTTON(atlas_tool -> radio_conf_page), "by Pagesize");
 	gtk_button_set_label(GTK_BUTTON(atlas_tool -> radio_conf_pixel), "by Imagesize");
 
-	GtkWidget * icon_download = gtk_image_new_from_file("icons/document-save.png");
-	GtkWidget * icon_export = gtk_image_new_from_file("icons/stock_insert_image.png");
-	GtkWidget * icon_export_pdf = gtk_image_new_from_file("icons/stock_save-pdf.png");
+	GtkWidget * icon_download = gtk_image_new_from_file(GOSM_ICON_DIR "document-save.png");
+	GtkWidget * icon_export = gtk_image_new_from_file(GOSM_ICON_DIR "stock_insert_image.png");
+	GtkWidget * icon_export_pdf = gtk_image_new_from_file(GOSM_ICON_DIR "stock_save-pdf.png");
 	atlas_tool -> button_action		= gtk_button_new();
 	atlas_tool -> button_export		= gtk_button_new();
 	atlas_tool -> button_export_pdf		= gtk_button_new();

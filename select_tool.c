@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include "select_tool.h"
+#include "paths.h"
 
 G_DEFINE_TYPE (SelectTool, select_tool, GTK_TYPE_VBOX);
 
@@ -70,8 +71,8 @@ static void select_tool_init(SelectTool *select_tool)
 	select_tool -> lat1 = gtk_entry_new();
 	select_tool -> lat2 = gtk_entry_new();
 
-	GtkWidget *icon1 = gtk_image_new_from_file("icons/square_top_left.png");
-	GtkWidget *icon2 = gtk_image_new_from_file("icons/square_bottom_right.png");
+	GtkWidget *icon1 = gtk_image_new_from_file(GOSM_ICON_DIR "square_top_left.png");
+	GtkWidget *icon2 = gtk_image_new_from_file(GOSM_ICON_DIR "square_bottom_right.png");
 
 	// VISIBLE
 	select_tool -> check_show = gtk_check_button_new_with_label("visible");
@@ -85,11 +86,11 @@ static void select_tool_init(SelectTool *select_tool)
 	GtkWidget *box_check_snap = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_check_snap), select_tool -> check_snap, FALSE, FALSE, 0);
 
-	GtkWidget * icon_download = gtk_image_new_from_file("icons/document-save.png");
-	GtkWidget * icon_export = gtk_image_new_from_file("icons/stock_insert_image.png");
-	GtkWidget * icon_data = gtk_image_new_from_file("icons/stock_update-data.png");
-	GtkWidget * icon_clipboard = gtk_image_new_from_file("icons/edit-copy.png");
-	GtkWidget * icon_bookmark= gtk_image_new_from_file("icons/stock_bookmark.png");
+	GtkWidget * icon_download = gtk_image_new_from_file(GOSM_ICON_DIR "document-save.png");
+	GtkWidget * icon_export = gtk_image_new_from_file(GOSM_ICON_DIR "stock_insert_image.png");
+	GtkWidget * icon_data = gtk_image_new_from_file(GOSM_ICON_DIR "stock_update-data.png");
+	GtkWidget * icon_clipboard = gtk_image_new_from_file(GOSM_ICON_DIR "edit-copy.png");
+	GtkWidget * icon_bookmark= gtk_image_new_from_file(GOSM_ICON_DIR "stock_bookmark.png");
 	select_tool -> button_action = gtk_button_new();
 	select_tool -> button_export = gtk_button_new();
 	select_tool -> button_data   = gtk_button_new();

@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "select_export_window.h"
+#include "../paths.h"
 #include "../tilemath.h"
 
 G_DEFINE_TYPE (SelectExportWindow, select_export_window, GTK_TYPE_WINDOW);
@@ -79,7 +80,7 @@ void select_export_window_construct(SelectExportWindow *select_export_window, gi
 	select_export_window -> entry_filename = gtk_entry_new();
 	gtk_entry_set_text(GTK_ENTRY(select_export_window -> entry_filename), "export.png");
 	select_export_window -> button_filename = gtk_button_new();
-	GtkWidget * icon_filename = gtk_image_new_from_file("icons/stock_save-template.png");
+	GtkWidget * icon_filename = gtk_image_new_from_file(GOSM_ICON_DIR "stock_save-template.png");
         gtk_button_set_image(GTK_BUTTON(select_export_window -> button_filename), icon_filename);
 
 	// table
@@ -102,7 +103,7 @@ void select_export_window_construct(SelectExportWindow *select_export_window, gi
 	select_export_window -> button_cancel = gtk_button_new_from_stock("gtk-cancel");
 
 	//GtkWidget * icon_load = gtk_image_new_from_stock("gtk-harddisk", GTK_ICON_SIZE_BUTTON);
-	GtkWidget * icon_image = gtk_image_new_from_file("icons/stock_insert_image.png");
+	GtkWidget * icon_image = gtk_image_new_from_file(GOSM_ICON_DIR "stock_insert_image.png");
         gtk_button_set_image(GTK_BUTTON(select_export_window -> button_export), icon_image);
 
 	// layout

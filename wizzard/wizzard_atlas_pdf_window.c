@@ -27,6 +27,7 @@
 #include <gdk/gdk.h>
 
 #include "wizzard_atlas_pdf_window.h"
+#include "../paths.h"
 
 G_DEFINE_TYPE (WizzardAtlasPdfWindow, wizzard_atlas_pdf_window, GTK_TYPE_WINDOW);
 
@@ -65,13 +66,13 @@ static void wizzard_atlas_pdf_window_init(WizzardAtlasPdfWindow *wapw)
 	wapw -> entry_filename = gtk_entry_new();
 	gtk_entry_set_text(GTK_ENTRY(wapw -> entry_filename), "export");
 	wapw -> button_filename = gtk_button_new();
-	GtkWidget * icon_filename = gtk_image_new_from_file("icons/stock_save-template.png");
+	GtkWidget * icon_filename = gtk_image_new_from_file(GOSM_ICON_DIR "stock_save-template.png");
 	gtk_button_set_image(GTK_BUTTON(wapw -> button_filename), icon_filename);
 	wapw -> progress_bar_images  = gtk_progress_bar_new();
 	wapw -> progress_bar_pdf  = gtk_progress_bar_new();
 	wapw -> button_export = gtk_button_new_with_label("Export");
 	wapw -> button_cancel = gtk_button_new_from_stock("gtk-cancel");
-	GtkWidget * icon_image = gtk_image_new_from_file("icons/stock_insert_image.png");
+	GtkWidget * icon_image = gtk_image_new_from_file(GOSM_ICON_DIR "stock_insert_image.png");
 	gtk_button_set_image(GTK_BUTTON(wapw -> button_export), icon_image);
 
 	GtkWidget * box = gtk_vbox_new(FALSE, 2);

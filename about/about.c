@@ -30,6 +30,7 @@
 #include "about.h"
 #include "uri.h"
 #include "../map_area.h"
+#include "../paths.h"
 
 // this is bad; VERY BAD
 static MapArea * map_area;
@@ -100,9 +101,9 @@ GtkWidget * about_widget_new(AboutDialog * about_dialog)
 
 	about_dialog -> notebook = gtk_notebook_new();
 
-	char * uri_cr = get_abs_uri("about/copyright.html");
-	char * uri_osm = get_abs_uri("about/aboutosm.html");
-	char * uri_gpl = get_abs_uri("about/gpl.html");
+	char * uri_cr = get_abs_uri(GOSM_ABOUT_DIR "copyright.html");
+	char * uri_osm = get_abs_uri(GOSM_ABOUT_DIR "aboutosm.html");
+	char * uri_gpl = get_abs_uri(GOSM_ABOUT_DIR "gpl.html");
 	
 	GtkWidget * web1 = webkit_web_view_new();
 	webkit_web_view_open(WEBKIT_WEB_VIEW(web1), uri_cr);

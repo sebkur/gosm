@@ -29,6 +29,7 @@
 
 #include "manual.h"
 #include "uri.h"
+#include "../paths.h"
 
 G_DEFINE_TYPE (ManualDialog, manual_dialog, GTK_TYPE_WINDOW);
 
@@ -62,7 +63,7 @@ GtkWidget * manual_dialog_new(GtkWindow * parent_window)
 
 GtkWidget * manual_widget_new(ManualDialog * manual_dialog)
 {
-	char * uri = get_abs_uri("manual/index.html");
+	char * uri = get_abs_uri(GOSM_MANUAL_DIR "index.html");
 
 	GtkWidget * web = webkit_web_view_new();
 	webkit_web_view_open(WEBKIT_WEB_VIEW(web), uri);

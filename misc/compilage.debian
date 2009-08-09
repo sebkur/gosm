@@ -1,5 +1,5 @@
 gcc \
--D BUILD=0\
+-D BUILD=1\
 `pkg-config --cflags --libs gtk+-2.0 gdk-2.0 cairo glib-2.0 gthread-2.0 libpng webkit-1.0` \
 `curl-config --cflags --libs` \
 -pthread \

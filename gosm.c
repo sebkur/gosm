@@ -68,6 +68,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
+#include "paths.h"
 #include "config.h"
 #include "config_widget.h"
 #include "configuration.h"
@@ -281,7 +282,7 @@ int main(int argc, char *argv[])
 	// main window
 	main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(main_window), "GOsmView");
-	gtk_window_set_icon_from_file(GTK_WINDOW(main_window), "icons/gosm.png", NULL);
+	gtk_window_set_icon_from_file(GTK_WINDOW(main_window), GOSM_ICON_DIR "gosm.png", NULL);
 	gtk_window_set_default_size(GTK_WINDOW(main_window), width, height);
 	g_signal_connect(G_OBJECT(main_window), "hide", G_CALLBACK(close_cb), NULL);
 
@@ -466,9 +467,9 @@ int main(int argc, char *argv[])
 
 	toolbar = gtk_toolbar_new();
 	gtk_toolbar_set_style(GTK_TOOLBAR(toolbar), GTK_TOOLBAR_ICONS);
-	GtkWidget * icon1 = gtk_image_new_from_file("icons/navigate.png");
-	GtkWidget * icon2 = gtk_image_new_from_file("icons/select.png");
-	GtkWidget * icon3 = gtk_image_new_from_file("icons/measure.png");
+	GtkWidget * icon1 = gtk_image_new_from_file(GOSM_ICON_DIR "navigate.png");
+	GtkWidget * icon2 = gtk_image_new_from_file(GOSM_ICON_DIR "select.png");
+	GtkWidget * icon3 = gtk_image_new_from_file(GOSM_ICON_DIR "measure.png");
 	toolbar_buttons = malloc(3 * sizeof(GtkButton*));
 	toolbar_buttons[0] = gtk_toggle_button_new();
 	toolbar_buttons[1] = gtk_toggle_button_new();
@@ -479,12 +480,12 @@ int main(int argc, char *argv[])
 	
 	GtkWidget * separator1 = gtk_hseparator_new();
 
-	GtkWidget * icon4 = gtk_image_new_from_file("icons/grid.png");
+	GtkWidget * icon4 = gtk_image_new_from_file(GOSM_ICON_DIR "grid.png");
 	GtkWidget * icon5 = gtk_image_new_from_stock("gtk-zoom-in", GTK_ICON_SIZE_BUTTON);
 	GtkWidget * icon6 = gtk_image_new_from_stock("gtk-zoom-out", GTK_ICON_SIZE_BUTTON);
-	GtkWidget * icon7 = gtk_image_new_from_file("icons/font.png");
-	GtkWidget * icon8 = gtk_image_new_from_file("icons/stock_form-navigator.png");
-	GtkWidget * icon9 = gtk_image_new_from_file("icons/stock_show-hidden-controls.png");
+	GtkWidget * icon7 = gtk_image_new_from_file(GOSM_ICON_DIR "font.png");
+	GtkWidget * icon8 = gtk_image_new_from_file(GOSM_ICON_DIR "stock_form-navigator.png");
+	GtkWidget * icon9 = gtk_image_new_from_file(GOSM_ICON_DIR "stock_show-hidden-controls.png");
 	GtkWidget * button_grid = gtk_toggle_button_new();
 	GtkWidget * button_zoom_in = gtk_button_new();
 	GtkWidget * button_zoom_out = gtk_button_new();
@@ -1063,10 +1064,10 @@ static void set_button_network()
 	GtkWidget * icon;
 	printf("%d\n", network_state);
 	if (network_state){
-		icon = gtk_image_new_from_file("icons/network-idle.png");
+		icon = gtk_image_new_from_file(GOSM_ICON_DIR "network-idle.png");
 		gtk_widget_set_tooltip_text(button_network, "set offline");
 	}else{
-		icon = gtk_image_new_from_file("icons/network-offline.png");
+		icon = gtk_image_new_from_file(GOSM_ICON_DIR "network-offline.png");
 		gtk_widget_set_tooltip_text(button_network, "set online");
 	}
 	gtk_button_set_image(GTK_BUTTON(button_network), icon);

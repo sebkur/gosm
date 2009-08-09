@@ -27,6 +27,7 @@
 #include <glib.h>
 #include <unistd.h>
 
+#include "paths.h"
 #include "distance_tool.h"
 
 G_DEFINE_TYPE (DistanceTool, distance_tool, GTK_TYPE_VBOX);
@@ -49,9 +50,9 @@ static void distance_tool_init(DistanceTool *distance_tool)
 	distance_tool -> button_clear = gtk_button_new();
 	distance_tool -> button_bookmark = gtk_button_new();
 
-	GtkWidget *icon_remove_last = gtk_image_new_from_file("icons/stock_node-delete.png");
-	GtkWidget *icon_clear = gtk_image_new_from_file("icons/edit-clear.png");
-	GtkWidget *icon_bookmark = gtk_image_new_from_file("icons/stock_bookmark.png");
+	GtkWidget *icon_remove_last = gtk_image_new_from_file(GOSM_ICON_DIR "stock_node-delete.png");
+	GtkWidget *icon_clear = gtk_image_new_from_file(GOSM_ICON_DIR "edit-clear.png");
+	GtkWidget *icon_bookmark = gtk_image_new_from_file(GOSM_ICON_DIR "stock_bookmark.png");
 
 	gtk_button_set_image(GTK_BUTTON(distance_tool -> button_remove_last), icon_remove_last); 
 	gtk_button_set_image(GTK_BUTTON(distance_tool -> button_clear), icon_clear); 
