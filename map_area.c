@@ -86,6 +86,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event);
 static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event);
 static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event);
+static gboolean scroll_cb(MapArea *map_area, GdkEventScroll *event);
 
 GtkWidget * map_area_new()
 {
@@ -210,10 +211,12 @@ static void map_area_init(MapArea *map_area)
 	g_signal_connect(G_OBJECT(map_area), "button_press_event", 	G_CALLBACK(mouse_button_cb),	NULL);
 	g_signal_connect(G_OBJECT(map_area), "button_release_event",	G_CALLBACK(mouse_button_cb),	NULL);
 	g_signal_connect(G_OBJECT(map_area), "key_press_event",		G_CALLBACK(key_press_cb),	NULL);
+	g_signal_connect(G_OBJECT(map_area), "scroll_event",		G_CALLBACK(scroll_cb),		NULL);
 
 	// don't use GDK_KEY_PRESS, old versions of gtk don't realize motion-notifys anymore
 	gtk_widget_set_events(GTK_WIDGET(map_area), gtk_widget_get_events(GTK_WIDGET(map_area)) |
 		GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_POINTER_MOTION_MASK | GDK_EXPOSURE_MASK );
+	// GDK_SCROLL_MASK should be there since we are using it
 	int i;
 	for (i = 0; i < TILESET_LAST; i++){
 		map_area -> tile_manager[i] = GOSM_TILE_MANAGER(tile_manager_new());
@@ -872,6 +875,14 @@ static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event)
 		case 65366: map_area_zoom_out(map_area); break;
 	}
 	return FALSE;
+}
+
+static gboolean scroll_cb(MapArea *map_area, GdkEventScroll *event)
+{
+	switch (event -> direction){
+		case GDK_SCROLL_UP: map_area_zoom_in(map_area); break;
+		case GDK_SCROLL_DOWN: map_area_zoom_out(map_area); break;
+	}
 }
 
 void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad, ColorQuadriple c_a_lines)
