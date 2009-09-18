@@ -30,6 +30,9 @@
 
 Configuration * config_new();
 
+char * config_get_config_dir();
+char * config_get_config_file();
+
 gpointer config_get_entry_data(Configuration * configuration, char * name);
 
 gboolean config_load_config_file(Configuration * configuration);

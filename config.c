@@ -57,12 +57,14 @@ ConfEntry ConfEntries[] = {
         {"set_position",        TYPE_BOOLEAN,   "FALSE",        	NULL},
         {"position_x",          TYPE_INT,       "0",            	NULL},
         {"position_y",          TYPE_INT,       "0",            	NULL},
+        {"tileset",				TYPE_INT,       "0",            	NULL},
         {"set_size",            TYPE_BOOLEAN,   "TRUE",         	NULL},
         {"size_width",          TYPE_INT,       "800",          	NULL},
         {"size_height",         TYPE_INT,       "600",          	NULL},
         {"fullscreen",          TYPE_BOOLEAN,   "FALSE",        	NULL},
         {"cache_dir_mapnik",    TYPE_DIR,       "/tmp/osm_mapnik",     	NULL},
         {"cache_dir_osmarender",TYPE_DIR,       "/tmp/osm_osmarender",	NULL},
+        {"cache_dir_cycle",		TYPE_DIR,       "/tmp/osm_cycle",	NULL},
         {"cache_size",          TYPE_INT,       "120",          	NULL},
         {"java_binary",         TYPE_STRING,    "/usr/bin/java",     	NULL},
         {"color_selection",     TYPE_COLOR,     "1.0,1.0,0.5,0.4",	NULL},
@@ -105,22 +107,29 @@ gpointer config_get_entry_data(Configuration * configuration, char * name)
 	}	
 	return NULL;
 }
-
-gboolean config_load_config_file(Configuration * configuration)
+char * config_get_config_dir()
 {
-	char * filename = "configuration";
 	char * dir = getenv("HOME");
 	if (dir == NULL){
 		return FALSE;
 	}
-	char * gosmdir = malloc(sizeof(char) * strlen(dir) + 6);
-	sprintf(gosmdir, "%s", dir);
-	sprintf(gosmdir+strlen(gosmdir), "%s", "/.gosm");
-	char * filepath = malloc(sizeof(char) * strlen(gosmdir) + 15);
-	sprintf(filepath, "%s", gosmdir);
-	sprintf(filepath+strlen(filepath), "%s", "/");
-	sprintf(filepath+strlen(filepath), "%s", filename);
+	char * afterhomedir = "/.config/gosm";
+	char * gosmdir = malloc(sizeof(char) * (strlen(dir) + strlen(afterhomedir) + 1 ));
+	sprintf(gosmdir, "%s%s", dir,afterhomedir);
+	return gosmdir;
+}
+char * config_get_config_file()
+{
+	char * filename = "configuration";
+	char * gosmdir = config_get_config_dir();
+	char * filepath = malloc(sizeof(char) * (strlen(gosmdir) + strlen(filename)+ 2 ));
+	sprintf(filepath, "%s/%s", gosmdir,filename);
 	printf("%s\n", filepath);
+	return filepath;
+}
+gboolean config_load_config_file(Configuration * configuration)
+{
+	char * filepath = config_get_config_file();
 
         struct stat sb;
         int s = stat(filepath, &sb);
@@ -160,18 +169,8 @@ gboolean config_load_config_file(Configuration * configuration)
 gboolean config_save_config_file(Configuration * configuration)
 {
 	char * filename = "configuration";
-	char * dir = getenv("HOME");
-	if (dir == NULL){
-		return FALSE;
-	}
-	char * gosmdir = malloc(sizeof(char) * strlen(dir) + 6);
-	sprintf(gosmdir, "%s", dir);
-	sprintf(gosmdir+strlen(gosmdir), "%s", "/.gosm");
-	char * filepath = malloc(sizeof(char) * strlen(gosmdir) + 15);
-	sprintf(filepath, "%s", gosmdir);
-	sprintf(filepath+strlen(filepath), "%s", "/");
-	sprintf(filepath+strlen(filepath), "%s", filename);
-	printf("%s\n", filepath);
+	char * gosmdir = config_get_config_dir();
+	char * filepath = config_get_config_file();
 
         struct stat sb;
         int s = stat(gosmdir, &sb);

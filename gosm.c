@@ -100,7 +100,8 @@
 
 char * urls[TILESET_LAST] = {
         "http://b.tile.openstreetmap.org/%d/%d/%d.png",
-        "http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png"
+        "http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png",
+		"http://a.andy.sandbox.cloudmade.com/tiles/cycle/%d/%d/%d.png"
 };
 
 char * cache_dirs[TILESET_LAST];
@@ -109,6 +110,7 @@ Configuration * config;
 char * 		cache_dir;
 char * 		cache_dir_mapnik;
 char * 		cache_dir_osmarender;
+char * 		cache_dir_cycle;
 char * 		format_url;
 gboolean 	network_state;
 gboolean 	show_map_controls 	= TRUE;
@@ -155,6 +157,7 @@ static gboolean button_map_controls_cb(GtkWidget *widget);
        void 	toggle_status_bar();
        void 	toggle_map_controls();
        void 	toggle_side_bar();
+static void 	button_savemaptype_cb();
 static gboolean button_side_bar_cb(GtkWidget *widget);
 static gboolean button_zoom_cb(GtkWidget *widget, gpointer direction);
 static gboolean button_move_cb(GtkWidget *widget, gpointer direction);
@@ -251,23 +254,28 @@ int main(int argc, char *argv[])
 	 		cache_dir		= 			config_get_entry_data(config, "cache_dir_mapnik");
 	 		cache_dir_mapnik	= 			config_get_entry_data(config, "cache_dir_mapnik");
 	 		cache_dir_osmarender	= 			config_get_entry_data(config, "cache_dir_osmarender");
+	 		cache_dir_cycle	= 			config_get_entry_data(config, "cache_dir_cycle");
 	ColorQuadriple	color_selection 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection");
 	ColorQuadriple	color_selection_out 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection_out");
 	ColorQuadriple	color_selection_pad 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection_pad");
 	ColorQuadriple	color_atlas_lines	= *(ColorQuadriple*)	config_get_entry_data(config, "color_atlas_lines");
+	tileset	= *(Tileset*)	config_get_entry_data(config, "tileset");
 
 	if(!set_size){
 		width 	= 800;
 		height	= 600;
 	}
 
-	format_url = urls[TILESET_MAPNIK];
+	printf("tileset: %i\n", tileset);
+	format_url = urls[tileset];
 	cache_dirs[TILESET_MAPNIK] = cache_dir_mapnik;
 	cache_dirs[TILESET_OSMARENDER] = cache_dir_osmarender;
+	cache_dirs[TILESET_CYCLE] = cache_dir_cycle;
 
 	// ensure, that the tmp-directory for tiles exists
 	if (!check_for_cache_directory(cache_dir_mapnik)
-		|| !check_for_cache_directory(cache_dir_osmarender) ){
+		|| !check_for_cache_directory(cache_dir_osmarender) 
+		|| !check_for_cache_directory(cache_dir_cycle) ){
 		return EXIT_FAILURE;
 	}
 
@@ -299,6 +307,7 @@ int main(int argc, char *argv[])
 	map_area_set_network_state(area, network_state);
 	map_area_set_cache_directory(area, TILESET_MAPNIK,	cache_dir_mapnik);
 	map_area_set_cache_directory(area, TILESET_OSMARENDER,	cache_dir_osmarender);
+	map_area_set_cache_directory(area, TILESET_CYCLE,	cache_dir_cycle);
 	map_area_set_color_selection(area, color_selection, color_selection_out, color_selection_pad, color_atlas_lines);
 
 	// Selection-Widget in sidebar
@@ -486,10 +495,12 @@ int main(int argc, char *argv[])
 	GtkWidget * icon7 = gtk_image_new_from_file(GOSM_ICON_DIR "font.png");
 	GtkWidget * icon8 = gtk_image_new_from_file(GOSM_ICON_DIR "stock_form-navigator.png");
 	GtkWidget * icon9 = gtk_image_new_from_file(GOSM_ICON_DIR "stock_show-hidden-controls.png");
+	GtkWidget * icon10 = gtk_image_new_from_file(GOSM_ICON_DIR "cross.png");
 	GtkWidget * button_grid = gtk_toggle_button_new();
 	GtkWidget * button_zoom_in = gtk_button_new();
 	GtkWidget * button_zoom_out = gtk_button_new();
 	GtkWidget * button_font = gtk_toggle_button_new();
+	GtkWidget * button_savemaptype = gtk_button_new();
 		    button_map_controls = gtk_toggle_button_new();
 		    button_side_bar = gtk_toggle_button_new();
 	gtk_button_set_image(GTK_BUTTON(button_grid), icon4);
@@ -498,6 +509,7 @@ int main(int argc, char *argv[])
 	gtk_button_set_image(GTK_BUTTON(button_font), icon7);
 	gtk_button_set_image(GTK_BUTTON(button_map_controls), icon8);
 	gtk_button_set_image(GTK_BUTTON(button_side_bar), icon9);
+	gtk_button_set_image(GTK_BUTTON(button_savemaptype), icon10);
 
 	button_network = gtk_button_new();
 	set_button_network();
@@ -505,8 +517,10 @@ int main(int argc, char *argv[])
 	combo_tiles = gtk_combo_box_new_text();
 	gtk_combo_box_append_text(GTK_COMBO_BOX(combo_tiles), "Mapnik");
 	gtk_combo_box_append_text(GTK_COMBO_BOX(combo_tiles), "Osmarender");
+	gtk_combo_box_append_text(GTK_COMBO_BOX(combo_tiles), "Cycle");
 	//gtk_combo_box_append_text(GTK_COMBO_BOX(combo_tiles), "OpenAerial");
-	gtk_combo_box_set_active(GTK_COMBO_BOX(combo_tiles), 0);
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combo_tiles), tileset);
+	combo_tiles_cb(combo_tiles);
 
 	int tc = 0;
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_network, NULL, NULL, tc++);
@@ -525,6 +539,7 @@ int main(int argc, char *argv[])
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_side_bar, NULL, NULL, tc++);
 	gtk_toolbar_insert_space( GTK_TOOLBAR(toolbar), tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), combo_tiles, NULL, NULL, tc++);
+	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_savemaptype, NULL, NULL, tc++);
 
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_map_controls), show_map_controls);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_side_bar), show_side_pane);
@@ -538,6 +553,7 @@ int main(int argc, char *argv[])
 	gtk_widget_set_tooltip_text(button_font,		"tilenames");
 	gtk_widget_set_tooltip_text(button_map_controls,	"navigation buttons");
 	gtk_widget_set_tooltip_text(button_side_bar,		"sidebar");
+	gtk_widget_set_tooltip_text(button_savemaptype,		"Save map and position");
 
 	g_signal_connect(G_OBJECT(toolbar_buttons[0]), 	"toggled", G_CALLBACK(action_select_cb), GINT_TO_POINTER(CURSOR_HAND));
 	g_signal_connect(G_OBJECT(toolbar_buttons[1]), 	"toggled", G_CALLBACK(action_select_cb), GINT_TO_POINTER(CURSOR_SELECT));
@@ -549,6 +565,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(button_map_controls),	"clicked", G_CALLBACK(button_map_controls_cb), NULL);
 	g_signal_connect(G_OBJECT(button_side_bar),	"toggled", G_CALLBACK(button_side_bar_cb), NULL);
 	g_signal_connect(G_OBJECT(button_network), 	"clicked", G_CALLBACK(button_network_cb), NULL);
+	g_signal_connect(G_OBJECT(button_savemaptype), 	"clicked", G_CALLBACK(button_savemaptype_cb), NULL);
 	g_signal_connect(G_OBJECT(menu_view_fullscreen),"toggled", G_CALLBACK(menubar_fullscreen_cb), NULL);
 	g_signal_connect(G_OBJECT(main_window),		"window-state-event", G_CALLBACK(window_event_cb), NULL);
 	g_signal_connect(G_OBJECT(combo_tiles), 	"changed", G_CALLBACK(combo_tiles_cb), NULL);
@@ -775,6 +792,8 @@ static gboolean combo_tiles_cb(GtkWidget *widget)
 	map_area_set_tileset(area, active);
 	format_url = urls[active];
 	cache_dir = cache_dirs[active];
+	tileset = active;
+	printf("tileset: %i\n", active);
 }
 
 // menubar: fullscreen
@@ -1078,6 +1097,20 @@ static gboolean button_network_cb(GtkWidget *widget)
 	network_state = !network_state;
 	map_area_set_network_state(area, network_state);
 	set_button_network();
+}
+
+static void button_savemaptype_cb()
+{
+	char tmp[20]; 
+	sprintf(tmp,"%d",tileset);
+	config_set_entry(config, "tileset", tmp);
+	sprintdouble(tmp,map_area_position_get_center_lon(area),6);
+	config_set_entry(config, "longitude", tmp);
+	sprintdouble(tmp,map_area_position_get_center_lat(area),6);
+	config_set_entry(config, "lattitude", tmp);
+	sprintf(tmp,"%d",area -> map_position.zoom);
+	config_set_entry(config, "zoom", tmp);
+	config_save_config_file(config);
 }
 
 static gboolean preferences_confirm_cb(GtkWidget * widget, WidgetPlusPointer * wpp)
