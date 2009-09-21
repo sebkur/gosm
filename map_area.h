@@ -80,6 +80,10 @@ struct _MapAreaClass
 
 	void (* map_been_moved) (MapArea *map_area);
 
+	void (* map_zoom_changed) (MapArea *map_area);
+
+	void (* map_tileset_changed) (MapArea *map_area);
+
 	void (* map_selection_changed) (MapArea *map_area);
 	
 	void (* map_path_changed) (MapArea *map_area);
@@ -88,6 +92,7 @@ struct _MapAreaClass
 GtkWidget * map_area_new();
 
 void map_area_set_tileset(MapArea *map_area, Tileset tileset);
+Tileset map_area_get_tileset(MapArea *map_area);
 
 void map_area_set_cache_directory(MapArea *map_area, Tileset tileset, char * directory);
 
@@ -103,6 +108,8 @@ void map_area_repaint(MapArea *map_area);
 
 double map_area_position_get_center_lon(MapArea *map_area);
 double map_area_position_get_center_lat(MapArea *map_area);
+
+int map_area_get_zoom(MapArea *map_area);
 
 void map_area_goto_lon_lat_zoom(MapArea *map_area, double lon, double lat, int zoom);
 

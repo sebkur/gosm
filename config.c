@@ -54,6 +54,7 @@ ConfEntry ConfEntries[] = {
 	{"show_statusbar",	TYPE_BOOLEAN,	"TRUE",			NULL},
 	{"show_controls",	TYPE_BOOLEAN,	"TRUE",			NULL},
 	{"show_sidebar",	TYPE_BOOLEAN,	"TRUE",			NULL},
+	{"show_left_sidebar",	TYPE_BOOLEAN,	"TRUE",			NULL},
         {"set_position",        TYPE_BOOLEAN,   "FALSE",        	NULL},
         {"position_x",          TYPE_INT,       "0",            	NULL},
         {"position_y",          TYPE_INT,       "0",            	NULL},

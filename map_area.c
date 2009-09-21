@@ -57,6 +57,8 @@ G_DEFINE_TYPE (MapArea, map_area, GTK_TYPE_DRAWING_AREA);
 enum
 {
 	MAP_BEEN_MOVED,
+	MAP_ZOOM_CHANGED,
+	MAP_TILESET_CHANGED,
 	MAP_SELECTION_CHANGED,
 	MAP_PATH_CHANGED,
 	LAST_SIGNAL
@@ -108,6 +110,24 @@ static void map_area_class_init(MapAreaClass *class)
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0);
 
+	map_area_signals[MAP_ZOOM_CHANGED] = g_signal_new(
+		"map-zoom-changed",
+		G_OBJECT_CLASS_TYPE (class),
+		G_SIGNAL_RUN_FIRST,
+		G_STRUCT_OFFSET (MapAreaClass, map_zoom_changed),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0);
+
+	map_area_signals[MAP_TILESET_CHANGED] = g_signal_new(
+		"map-tileset-changed",
+		G_OBJECT_CLASS_TYPE (class),
+		G_SIGNAL_RUN_FIRST,
+		G_STRUCT_OFFSET (MapAreaClass, map_tileset_changed),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0);
+
 	map_area_signals[MAP_SELECTION_CHANGED] = g_signal_new(
 		"map-selection-changed",
 		G_OBJECT_CLASS_TYPE (class),
@@ -133,6 +153,12 @@ void map_area_set_tileset(MapArea *map_area, Tileset tileset)
 {
 	map_area -> tileset = tileset;
 	map_area_repaint(map_area);
+	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_TILESET_CHANGED], 0);
+}
+
+Tileset map_area_get_tileset(MapArea *map_area)
+{
+	return map_area -> tileset;
 }
 
 void map_area_set_cache_directory(MapArea * map_area, Tileset tileset, char * directory)
@@ -247,6 +273,11 @@ double map_area_position_get_center_lat(MapArea *map_area)
 	return y_to_lat(map_area_position_get_center_y(map_area) / 256.0, map_area -> map_position.zoom);
 }
 
+int map_area_get_zoom(MapArea *map_area)
+{
+	return map_area -> map_position.zoom;
+}
+
 int map_area_lon_to_area_x(MapArea *map_area, double lon)
 {
 	MapPosition *map_position = &(map_area -> map_position);
@@ -294,6 +325,7 @@ void map_area_goto_lon_lat_zoom(MapArea *map_area, double lon, double lat, int z
 	map_area -> map_position.tile_offset_y  = ((int)(y * 256.0)) % 256;
 	map_area -> map_position.tile_offset_x  = ((int)(x * 256.0)) % 256;
 	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_BEEN_MOVED], 0);
+	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_ZOOM_CHANGED], 0);
 }
 
 void map_has_moved(MapArea *map_area)
@@ -329,6 +361,7 @@ void map_area_zoom_in(MapArea *map_area)
 	map_position -> tile_top = corner_y_new / 256;
 
 	map_has_moved(map_area);
+	g_signal_emit (map_area, map_area_signals[MAP_ZOOM_CHANGED], 0);
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 }
 
@@ -346,6 +379,7 @@ void map_area_zoom_out(MapArea *map_area)
 	map_position -> tile_top = corner_y_new / 256;
 	
 	map_has_moved(map_area);
+	g_signal_emit (map_area, map_area_signals[MAP_ZOOM_CHANGED], 0);
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 }
 

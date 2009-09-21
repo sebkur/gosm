@@ -66,6 +66,7 @@ int create_read_structs(FILE * fp, png_structp * png_ptr, png_infop * info_ptr)
 	if (color == PNG_COLOR_TYPE_PALETTE){
 		png_set_palette_to_rgb(*png_ptr);
 	}
+	png_set_strip_alpha(*png_ptr); // Cycle map is RGBA, alpha needs to be stripped
 	//png_read_png(*png_ptr, *info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
 	return 0;
 }

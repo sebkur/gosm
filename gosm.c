@@ -68,6 +68,9 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
+#include "uri.h"
+#include <webkit/webkit.h>
+
 #include "paths.h"
 #include "config.h"
 #include "config_widget.h"
@@ -115,6 +118,7 @@ char * 		format_url;
 gboolean 	network_state;
 gboolean 	show_map_controls 	= TRUE;
 gboolean 	show_side_pane 		= TRUE;
+gboolean	show_side_pane_left	= TRUE;
 gboolean 	show_status_bar 	= TRUE;
 gboolean 	show_tool_bar 		= TRUE;
 gboolean 	show_menu_bar 		= TRUE;
@@ -124,6 +128,7 @@ GtkWidget * 	main_window;
 MapArea * 	area;
 MapNavigator * 	navigator;
 GtkWidget * 	side;
+GtkWidget *	side_left;
 GtkWidget * 	menubar;
 GtkWidget * 	toolbar;
 GtkWidget * 	statusbar;
@@ -133,10 +138,13 @@ SelectTool * 	select_tool;
 DistanceTool * 	distance_tool;
 AtlasTool * 	atlas_tool;
 
+GtkWidget * 	web_legend;
+
 GtkWidget ** 	toolbar_buttons; // first 3 buttons; CURSOR_* is used as index
 GtkWidget * 	button_network;
 GtkWidget * 	button_map_controls;
 GtkWidget * 	button_side_bar;
+GtkWidget * 	button_side_bar_left;
 GtkWidget * 	combo_tiles;
 
 typedef struct WidgetPlusPointer{
@@ -157,8 +165,10 @@ static gboolean button_map_controls_cb(GtkWidget *widget);
        void 	toggle_status_bar();
        void 	toggle_map_controls();
        void 	toggle_side_bar();
+       void 	toggle_side_bar_left();
 static void 	button_savemaptype_cb();
 static gboolean button_side_bar_cb(GtkWidget *widget);
+static gboolean button_side_bar_left_cb(GtkWidget *widget);
 static gboolean button_zoom_cb(GtkWidget *widget, gpointer direction);
 static gboolean button_move_cb(GtkWidget *widget, gpointer direction);
 static gboolean combo_tiles_cb(GtkWidget *widget);
@@ -179,6 +189,9 @@ static gboolean atlas_export_pdf_cb(GtkWidget *widget);
 static gboolean distance_remove_last_cb(GtkWidget *widget);
 static gboolean distance_clear_cb(GtkWidget *widget);
 static gboolean map_moved_cb(GtkWidget *widget);
+static gboolean map_zoom_cb(GtkWidget *widget);
+static gboolean map_tileset_cb(GtkWidget *widget);
+static void	set_legend(Tileset tileset, int zoom);
 static gboolean map_selection_changed_cb(GtkWidget *widget);
 static gboolean map_path_cb(GtkWidget *widget);
 static gboolean show_manual_cb(GtkWidget *widget);
@@ -247,6 +260,7 @@ int main(int argc, char *argv[])
 	gboolean	show_statusbar		= *(gboolean*)		config_get_entry_data(config, "show_statusbar");
 	gboolean	show_controls		= *(gboolean*)		config_get_entry_data(config, "show_controls");
 	gboolean	show_sidebar		= *(gboolean*)		config_get_entry_data(config, "show_sidebar");
+	gboolean	show_sidebar_left	= *(gboolean*)		config_get_entry_data(config, "show_left_sidebar");
 	double		longitude		= *(double*)		config_get_entry_data(config, "longitude");
 	double		lattitude		= *(double*)		config_get_entry_data(config, "lattitude");
 	int		zoom			= *(int*)		config_get_entry_data(config, "zoom");
@@ -262,7 +276,7 @@ int main(int argc, char *argv[])
 	tileset	= *(Tileset*)	config_get_entry_data(config, "tileset");
 
 	if(!set_size){
-		width 	= 800;
+		width 	= 900;
 		height	= 600;
 	}
 
@@ -496,6 +510,7 @@ int main(int argc, char *argv[])
 	GtkWidget * icon8 = gtk_image_new_from_file(GOSM_ICON_DIR "stock_form-navigator.png");
 	GtkWidget * icon9 = gtk_image_new_from_file(GOSM_ICON_DIR "stock_show-hidden-controls.png");
 	GtkWidget * icon10 = gtk_image_new_from_file(GOSM_ICON_DIR "cross.png");
+	GtkWidget * icon11 = gtk_image_new_from_file(GOSM_ICON_DIR "stock_show-hidden-controls2.png");
 	GtkWidget * button_grid = gtk_toggle_button_new();
 	GtkWidget * button_zoom_in = gtk_button_new();
 	GtkWidget * button_zoom_out = gtk_button_new();
@@ -503,12 +518,14 @@ int main(int argc, char *argv[])
 	GtkWidget * button_savemaptype = gtk_button_new();
 		    button_map_controls = gtk_toggle_button_new();
 		    button_side_bar = gtk_toggle_button_new();
+		    button_side_bar_left = gtk_toggle_button_new();
 	gtk_button_set_image(GTK_BUTTON(button_grid), icon4);
 	gtk_button_set_image(GTK_BUTTON(button_zoom_in), icon5);
 	gtk_button_set_image(GTK_BUTTON(button_zoom_out), icon6);
 	gtk_button_set_image(GTK_BUTTON(button_font), icon7);
 	gtk_button_set_image(GTK_BUTTON(button_map_controls), icon8);
 	gtk_button_set_image(GTK_BUTTON(button_side_bar), icon9);
+	gtk_button_set_image(GTK_BUTTON(button_side_bar_left), icon11);
 	gtk_button_set_image(GTK_BUTTON(button_savemaptype), icon10);
 
 	button_network = gtk_button_new();
@@ -535,6 +552,7 @@ int main(int argc, char *argv[])
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_grid, NULL, NULL, tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_font, NULL, NULL, tc++);
 	gtk_toolbar_insert_space( GTK_TOOLBAR(toolbar), tc++);
+	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_side_bar_left, NULL, NULL, tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_map_controls, NULL, NULL, tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_side_bar, NULL, NULL, tc++);
 	gtk_toolbar_insert_space( GTK_TOOLBAR(toolbar), tc++);
@@ -543,6 +561,7 @@ int main(int argc, char *argv[])
 
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_map_controls), show_map_controls);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_side_bar), show_side_pane);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_side_bar_left), show_side_pane_left);
 
 	gtk_widget_set_tooltip_text(toolbar_buttons[0],		"Navigation mode");
 	gtk_widget_set_tooltip_text(toolbar_buttons[1],		"Selection mode");
@@ -551,6 +570,7 @@ int main(int argc, char *argv[])
 	gtk_widget_set_tooltip_text(button_zoom_out,		"zoom out");
 	gtk_widget_set_tooltip_text(button_grid,		"grid");
 	gtk_widget_set_tooltip_text(button_font,		"tilenames");
+	gtk_widget_set_tooltip_text(button_side_bar_left,	"legend");
 	gtk_widget_set_tooltip_text(button_map_controls,	"navigation buttons");
 	gtk_widget_set_tooltip_text(button_side_bar,		"sidebar");
 	gtk_widget_set_tooltip_text(button_savemaptype,		"Save map and position");
@@ -562,6 +582,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(button_font), 	"toggled", G_CALLBACK(button_font_cb), NULL);
 	g_signal_connect(G_OBJECT(button_zoom_in), 	"clicked", G_CALLBACK(button_zoom_cb), GINT_TO_POINTER(0));
 	g_signal_connect(G_OBJECT(button_zoom_out), 	"clicked", G_CALLBACK(button_zoom_cb), GINT_TO_POINTER(1));
+	g_signal_connect(G_OBJECT(button_side_bar_left),"toggled", G_CALLBACK(button_side_bar_left_cb), NULL);
 	g_signal_connect(G_OBJECT(button_map_controls),	"clicked", G_CALLBACK(button_map_controls_cb), NULL);
 	g_signal_connect(G_OBJECT(button_side_bar),	"toggled", G_CALLBACK(button_side_bar_cb), NULL);
 	g_signal_connect(G_OBJECT(button_network), 	"clicked", G_CALLBACK(button_network_cb), NULL);
@@ -576,6 +597,11 @@ int main(int argc, char *argv[])
 
 	statusbar = gtk_statusbar_new();
 
+	/**
+	 * Sidebar on the right
+	 * (tools)
+	 */
+
 	side = gtk_vbox_new(FALSE, 0);
 	gtk_widget_set_size_request(side, 180, 0);
 	gtk_box_pack_start(GTK_BOX(side), frame_select_tool, FALSE, FALSE, 0);
@@ -583,10 +609,30 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start(GTK_BOX(side), frame_distance_tool, FALSE, FALSE, 0);
 
 	/**
+	 * Sidebar on the left
+	 * (legend)
+	 */
+
+	side_left = gtk_vbox_new(FALSE, 0);
+	web_legend = webkit_web_view_new();
+	set_legend(
+		map_area_get_tileset(area),
+		map_area_get_zoom(area)
+	);
+        GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
+        gtk_container_add(GTK_CONTAINER(scrolled), web_legend);
+        gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+                                        GTK_POLICY_AUTOMATIC,
+                                        GTK_POLICY_AUTOMATIC);
+        gtk_widget_set_size_request(scrolled, 180, -1);
+	gtk_box_pack_start(GTK_BOX(side_left), scrolled, TRUE, TRUE, 0);
+
+	/**
 	 * Other widgets
 	 */
 
 	GtkWidget *hbox = gtk_hbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), side_left, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), GTK_WIDGET(navigator), TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), side, FALSE, FALSE, 0);
 
@@ -599,6 +645,8 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(area), "map", G_CALLBACK(map_area_map_cb), NULL);
 	g_signal_connect(G_OBJECT(navigator), "key_press_event", G_CALLBACK(key_press_cb), NULL);
 	g_signal_connect(G_OBJECT(area), "map-been-moved", G_CALLBACK(map_moved_cb), NULL);
+	g_signal_connect(G_OBJECT(area), "map-zoom-changed", G_CALLBACK(map_zoom_cb), NULL);
+	g_signal_connect(G_OBJECT(area), "map-tileset-changed", G_CALLBACK(map_tileset_cb), NULL);
 	g_signal_connect(G_OBJECT(area), "map-selection-changed", G_CALLBACK(map_selection_changed_cb), NULL);
 	g_signal_connect(G_OBJECT(area), "map-path-changed", G_CALLBACK(map_path_cb), NULL);
 
@@ -613,6 +661,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(button_font), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(button_map_controls), "button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(button_side_bar), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
+	g_signal_connect(G_OBJECT(button_side_bar_left),"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(toolbar_buttons[0]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(toolbar_buttons[1]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(toolbar_buttons[2]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
@@ -625,6 +674,7 @@ int main(int argc, char *argv[])
 	if (!show_toolbar) toggle_tool_bar();
 	if (!show_statusbar) toggle_status_bar();
 	if (!show_sidebar) toggle_side_bar();
+	if (!show_sidebar_left) toggle_side_bar_left();
 
 	gdk_threads_enter();	
 	gtk_main();
@@ -752,6 +802,17 @@ void toggle_side_bar()
 	}
 }
 
+void toggle_side_bar_left()
+{
+	show_side_pane_left = !show_side_pane_left;
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_side_bar_left), show_side_pane_left);
+	if (show_side_pane_left){
+		gtk_widget_show(side_left);
+	}else{
+		gtk_widget_hide(side_left);
+	}
+}
+
 // toolbar: show map_controls
 static gboolean button_map_controls_cb(GtkWidget *widget)
 {
@@ -764,6 +825,13 @@ static gboolean button_side_bar_cb(GtkWidget *widget)
 {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_side_bar)) != show_side_pane)
 		toggle_side_bar();
+}
+
+// toolbar: show side_bar
+static gboolean button_side_bar_left_cb(GtkWidget *widget)
+{
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_side_bar_left)) != show_side_pane_left)
+		toggle_side_bar_left();
 }
 
 // toolbar: zoom in/out
@@ -831,6 +899,10 @@ static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event)
 	//65470 - 65478 = F1 - F9
 	//printf("signal %d\n", event->keyval);
 	switch (event -> keyval){
+	case 65473:{ // F4 - toggle left sidebar
+		toggle_side_bar_left();
+		break;
+	}
 	case 65474:{ // F5 - toggle controls
 		toggle_map_controls();
 		break;
@@ -1006,6 +1078,37 @@ static gboolean map_moved_cb(GtkWidget *widget)
 		area -> selection.lon2,
 		area -> selection.lat1,
 		area -> selection.lat2);
+}
+
+static gboolean map_zoom_cb(GtkWidget *widget)
+{
+	set_legend(
+		map_area_get_tileset(area),
+		map_area_get_zoom(area)
+	);
+}
+
+static gboolean map_tileset_cb(GtkWidget *widget)
+{
+	set_legend(
+		map_area_get_tileset(area),
+		map_area_get_zoom(area)
+	);
+}
+
+static void set_legend(Tileset tileset, int zoom)
+{
+	if (tileset == TILESET_MAPNIK){
+		char path[100];
+		sprintf(path, "legend/mapnik_%d.html", zoom);
+		char * uri_legend = get_abs_uri(path);
+		webkit_web_view_open(WEBKIT_WEB_VIEW(web_legend), uri_legend);
+		free(uri_legend);
+	}else{
+		char * uri_legend = get_abs_uri("legend/no_legend.html");
+		webkit_web_view_open(WEBKIT_WEB_VIEW(web_legend), uri_legend);
+		free(uri_legend);
+	}
 }
 
 static gboolean map_selection_changed_cb(GtkWidget *widget)
