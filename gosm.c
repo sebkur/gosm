@@ -129,6 +129,7 @@ MapArea * 	area;
 MapNavigator * 	navigator;
 GtkWidget * 	side;
 GtkWidget *	side_left;
+GtkWidget *	notebook_side_left;
 GtkWidget * 	menubar;
 GtkWidget * 	toolbar;
 GtkWidget * 	statusbar;
@@ -614,6 +615,7 @@ int main(int argc, char *argv[])
 	 */
 
 	side_left = gtk_vbox_new(FALSE, 0);
+	notebook_side_left = gtk_notebook_new();
 	web_legend = webkit_web_view_new();
 	set_legend(
 		map_area_get_tileset(area),
@@ -625,7 +627,14 @@ int main(int argc, char *argv[])
                                         GTK_POLICY_AUTOMATIC,
                                         GTK_POLICY_AUTOMATIC);
         gtk_widget_set_size_request(scrolled, 180, -1);
-	gtk_box_pack_start(GTK_BOX(side_left), scrolled, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(side_left), notebook_side_left, TRUE, TRUE, 0);
+
+	GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
+
+	GtkWidget * image_legend = gtk_image_new_from_file(GOSM_ICON_DIR "stock_chart-toggle-legend.png");
+	GtkWidget * image_bookmarks = gtk_image_new_from_file(GOSM_ICON_DIR "stock_bookmark.png");
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), scrolled, image_legend);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks, image_bookmarks);
 
 	/**
 	 * Other widgets

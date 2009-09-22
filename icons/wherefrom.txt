@@ -1,6 +1,7 @@
 The following images where taken from the standard icon-set delivered with gnome by the Debian-project.
 The full path is given from where it's been taken.
 
+cross.png:			own creation
 document-save.png:	 	/usr/share/icons/gnome/24x24/actions/document-save.png
 edit-clear.png:		 	/usr/share/icons/gnome/24x24/actions/edit-clear.png
 edit-copy.png: 			/usr/share/icons/gnome/24x24/actions/edit-copy.png
@@ -14,6 +15,7 @@ object-flip-horizontal.png:	/usr/share/icons/gnome/24x24/actions/object-flip-hor
 object-flip-vertical.png:	/usr/share/icons/gnome/24x24/actions/object-flip-vertical.png
 select.png:		 	/usr/share/icons/gnome/24x24/stock/image/stock_draw-line-45.png
 stock_bookmark.png:	 	/usr/share/icons/gnome/24x24/stock/object/stock_bookmark.png
+stock_chart-toggle-legend.png:	/usr/share/icons/gnome/24x24/stock/chart/stock_chart-toggle-legend.png
 stock_form-navigator.png:	/usr/share/icons/gnome/24x24/stock/form/stock_form-navigator.png
 stock_insert_image.png:	 	/usr/share/icons/gnome/24x24/stock/image/stock_insert_image.png
 stock_node-delete.png:	 	/usr/share/icons/gnome/24x24/stock/image/stock_node-delete.png
