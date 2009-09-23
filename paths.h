@@ -31,6 +31,7 @@
 #define GOSM_ABOUT_DIR "about/"
 #define GOSM_NAMEFINDER_DIR "namefinder/"
 #define GOSM_LEGEND_DIR "legend/"
+#define GOSM_IMAGEGLUE_DIR "imageglue/"
 
 #else
 
@@ -39,6 +40,7 @@
 #define GOSM_ABOUT_DIR "/usr/share/gosm/about/"
 #define GOSM_NAMEFINDER_DIR "/usr/share/gosm/namefinder/"
 #define GOSM_LEGEND_DIR "/usr/share/gosm/legend/"
+#define GOSM_IMAGEGLUE_DIR "/usr/lib/gosm/imageglue/"
 
 #endif
 

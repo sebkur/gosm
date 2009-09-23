@@ -35,6 +35,7 @@
 #include "../atlas.h" 
 #include "../map_types.h"
 #include "../tilemath.h"
+#include "../paths.h"
 #include "image_glue.h"
 
 G_DEFINE_TYPE (PdfGenerator, pdf_generator, G_TYPE_OBJECT);
@@ -117,7 +118,7 @@ void pdf_generator_thread_function(PdfGenerator * pdf_generator)
 	args[1] = malloc(30 * sizeof(char));
 	sprintf(args[1], "%s", "-cp");
 	args[2] = malloc(80 * sizeof(char));
-	sprintf(args[2], "%s", "imageglue/pdf_creator/iText-2.1.5.jar:imageglue/pdf_creator/");
+	sprintf(args[2], "%s", GOSM_IMAGEGLUE_DIR "pdf_creator/iText-2.1.5.jar:" GOSM_IMAGEGLUE_DIR "pdf_creator/");
 	args[3] = malloc(30 * sizeof(char));
 	sprintf(args[3], "%s", "pdf.Exporter");
 	args[4] = malloc(10 * sizeof(char));
