@@ -166,7 +166,7 @@ void map_area_set_cache_directory(MapArea * map_area, Tileset tileset, char * di
 	if (map_area -> cache_dir[tileset] != NULL){
 		free(map_area -> cache_dir[tileset]);
 	}
-	map_area -> cache_dir[tileset] = malloc(sizeof(char) * strlen(directory));
+	map_area -> cache_dir[tileset] = malloc(sizeof(char) * (strlen(directory) + 1));
 	strcpy(map_area -> cache_dir[tileset], directory);
 	tile_manager_set_cache_directory(map_area -> tile_manager[tileset], directory);
 }

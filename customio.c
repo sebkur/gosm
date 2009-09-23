@@ -39,12 +39,22 @@ void sprintdouble(char * buf, double d, int precision)
 
 double strtodouble(char * buf)
 {
+	int pos = 0;
+	int negative = 0;
 	double result = 0.0;
 	int dot = 0;
 	int factor = 10;
 	char * ptr = buf;
 	while(*ptr != '\0'){
 		char c = *ptr;
+		pos++;
+		if (pos == 1){
+			if (c == '-'){
+				negative = 1; 
+				ptr++;
+				continue;
+			}
+		}
 		if (!dot){
 			switch(c){
 				case '.': dot = 1; break;
@@ -58,11 +68,11 @@ double strtodouble(char * buf)
 				case '7': result *= 10; result += 7; break;
 				case '8': result *= 10; result += 8; break;
 				case '9': result *= 10; result += 9; break;
-				default: return result;
+				default: return negative ? -result : result;
 			}
 		}else{
 			switch(c){
-				case '.': return result; 
+				case '.': return negative ? -result : result; 
 				case '0': result += 0.0 / factor; factor *= 10; break;
 				case '1': result += 1.0 / factor; factor *= 10; break;
 				case '2': result += 2.0 / factor; factor *= 10; break;
@@ -73,12 +83,12 @@ double strtodouble(char * buf)
 				case '7': result += 7.0 / factor; factor *= 10; break;
 				case '8': result += 8.0 / factor; factor *= 10; break;
 				case '9': result += 9.0 / factor; factor *= 10; break;
-				default: return result;
+				default: return negative ? -result : result;
 			}
 		}
 		ptr++;
 	}
-	return result;
+	return negative ? -result : result;
 }
 /*
 int main(int argc, char *argv[])

@@ -1,5 +1,4 @@
 gcc \
--g \
 -D BUILD=0\
 `pkg-config --cflags --libs gtk+-2.0 gdk-2.0 cairo glib-2.0 gthread-2.0 libpng webkit-1.0` \
 `curl-config --cflags --libs` \
@@ -39,4 +38,5 @@ config/color_box.c \
 config/color_button.c \
 customio.c \
 page_math.c \
+namefinder/namefinder_cities.c \
 gosm.c

@@ -81,6 +81,7 @@
 #include "distance_tool.h"
 #include "atlas.h"
 #include "atlas_tool.h"
+#include "namefinder/namefinder_cities.h"
 #include "wizzard/wizzard_download.h"
 #include "wizzard/wizzard_export.h"
 #include "wizzard/atlas_template_dialog.h"
@@ -104,7 +105,7 @@
 char * urls[TILESET_LAST] = {
         "http://b.tile.openstreetmap.org/%d/%d/%d.png",
         "http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png",
-		"http://a.andy.sandbox.cloudmade.com/tiles/cycle/%d/%d/%d.png"
+	"http://a.andy.sandbox.cloudmade.com/tiles/cycle/%d/%d/%d.png"
 };
 
 char * cache_dirs[TILESET_LAST];
@@ -140,6 +141,7 @@ DistanceTool * 	distance_tool;
 AtlasTool * 	atlas_tool;
 
 GtkWidget * 	web_legend;
+GtkWidget *	namefinder;
 
 GtkWidget ** 	toolbar_buttons; // first 3 buttons; CURSOR_* is used as index
 GtkWidget * 	button_network;
@@ -203,6 +205,7 @@ static gboolean preferences_confirm_cb(GtkWidget * widget, WidgetPlusPointer * w
 static gboolean preferences_cancel_cb(GtkWidget * widget, GtkWindow *window);
 static gboolean show_preferences_cb(GtkWidget *widget);
 static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton *event);
+static gboolean namefinder_city_cb(GtkWidget *widget);
 static gboolean exit_cb(GtkWidget *widget);
 void   chdir_to_bin(char * arg0);
 
@@ -616,6 +619,7 @@ int main(int argc, char *argv[])
 
 	side_left = gtk_vbox_new(FALSE, 0);
 	notebook_side_left = gtk_notebook_new();
+	// legend
 	web_legend = webkit_web_view_new();
 	set_legend(
 		map_area_get_tileset(area),
@@ -628,13 +632,18 @@ int main(int argc, char *argv[])
                                         GTK_POLICY_AUTOMATIC);
         gtk_widget_set_size_request(scrolled, 180, -1);
 	gtk_box_pack_start(GTK_BOX(side_left), notebook_side_left, TRUE, TRUE, 0);
-
+	// bookmarks
 	GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
-
+	// namefinder
+	namefinder = namefinder_cities_new();
+	g_signal_connect(G_OBJECT(namefinder), "city-activated", G_CALLBACK(namefinder_city_cb), NULL);
+	// --
 	GtkWidget * image_legend = gtk_image_new_from_file(GOSM_ICON_DIR "stock_chart-toggle-legend.png");
 	GtkWidget * image_bookmarks = gtk_image_new_from_file(GOSM_ICON_DIR "stock_bookmark.png");
+	GtkWidget * image_namefinder = gtk_image_new_from_file(GOSM_ICON_DIR "stock_internet.png");
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), scrolled, image_legend);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks, image_bookmarks);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), namefinder, image_namefinder);
 
 	/**
 	 * Other widgets
@@ -1266,6 +1275,16 @@ static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton * event)
 {
 	gtk_widget_grab_focus(GTK_WIDGET(area));
 	return FALSE;
+}
+
+static gboolean namefinder_city_cb(GtkWidget *widget)
+{
+	int idx = namefinder_cities_get_activated_id(GOSM_NAMEFINDER_CITIES(namefinder));
+	city * cities = namefinder_cities_get_cities(GOSM_NAMEFINDER_CITIES(namefinder));
+	city thiscity = cities[idx];
+	printf("Hopping to: %s, lon: %f, lat: %f\n", thiscity.name, thiscity.lon, thiscity.lat);
+	map_area_goto_lon_lat_zoom(area, thiscity.lon, thiscity.lat, map_area_get_zoom(area));
+	map_area_repaint(area);
 }
 
 static gboolean exit_cb(GtkWidget *widget)

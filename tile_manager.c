@@ -125,7 +125,7 @@ void tile_manager_set_network_state(TileManager * tile_manager, gboolean state)
 
 void tile_manager_set_url_format(TileManager * tile_manager, char * format)
 {
-	tile_manager -> format_url = malloc(sizeof(char) * strlen(format));
+	tile_manager -> format_url = malloc(sizeof(char) * (strlen(format) + 1));
 	strcpy(tile_manager -> format_url, format);
 }
 
