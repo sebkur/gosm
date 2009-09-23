@@ -29,12 +29,16 @@
 #define GOSM_ICON_DIR "icons/"
 #define GOSM_MANUAL_DIR "manual/"
 #define GOSM_ABOUT_DIR "about/"
+#define GOSM_NAMEFINDER_DIR "namefinder/"
+#define GOSM_LEGEND_DIR "legend/"
 
 #else
 
 #define GOSM_ICON_DIR "/usr/share/gosm/icons/"
 #define GOSM_MANUAL_DIR "/usr/share/gosm/manual/"
 #define GOSM_ABOUT_DIR "/usr/share/gosm/about/"
+#define GOSM_NAMEFINDER_DIR "/usr/share/gosm/namefinder/"
+#define GOSM_LEGEND_DIR "/usr/share/gosm/legend/"
 
 #endif
 

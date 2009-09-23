@@ -38,4 +38,5 @@ config/color_box.c \
 config/color_button.c \
 customio.c \
 page_math.c \
+namefinder/namefinder_cities.c \
 gosm.c

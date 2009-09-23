@@ -32,6 +32,7 @@
 #include <glib.h>
 #include <string.h>
 
+#include "../paths.h"
 #include "../customio.h"
 
 #include "namefinder_cities.h"
@@ -80,7 +81,7 @@ static void namefinder_cities_class_init(NamefinderCitiesClass *class)
 
 static void namefinder_cities_init(NamefinderCities *namefinder_cities)
 {
-	char * filename = "namefinder/cities15000.crop.txt";
+	char * filename = GOSM_NAMEFINDER_DIR "cities15000.crop.txt";
 	
 	struct stat sb;
 	int s = stat(filename, &sb);
