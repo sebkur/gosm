@@ -205,6 +205,7 @@ static gboolean preferences_confirm_cb(GtkWidget * widget, WidgetPlusPointer * w
 static gboolean preferences_cancel_cb(GtkWidget * widget, GtkWindow *window);
 static gboolean show_preferences_cb(GtkWidget *widget);
 static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton *event);
+static gboolean legend_click_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean namefinder_city_cb(GtkWidget *widget);
 static gboolean exit_cb(GtkWidget *widget);
 void   chdir_to_bin(char * arg0);
@@ -632,6 +633,8 @@ int main(int argc, char *argv[])
                                         GTK_POLICY_AUTOMATIC);
         gtk_widget_set_size_request(scrolled, 180, -1);
 	gtk_box_pack_start(GTK_BOX(side_left), notebook_side_left, TRUE, TRUE, 0);
+	// this is a dummy to prevent the context-menu to appear
+	g_signal_connect(G_OBJECT(web_legend), 	"button-press-event", G_CALLBACK(legend_click_cb), NULL);
 	// bookmarks
 	GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
 	// namefinder
@@ -1275,6 +1278,11 @@ static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton * event)
 {
 	gtk_widget_grab_focus(GTK_WIDGET(area));
 	return FALSE;
+}
+
+static gboolean legend_click_cb(GtkWidget *widget, GdkEventButton *event)
+{
+	return TRUE;
 }
 
 static gboolean namefinder_city_cb(GtkWidget *widget)

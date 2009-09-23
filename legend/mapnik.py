@@ -39,6 +39,16 @@ def get_legend_mapnik(zoom):
 		# rename images in html
 		content = sub(escape(suffix), newimgname, content)
 	content = sub("<h3>.*</h3>", "", content)
+	content = "<html>\
+<head>\
+<style type=\"text/css\">\
+body {-webkit-user-select: none}\
+</style>\
+</head>\
+<body>\
+" + content
+	content = content + "</body>\
+</html>"
 	html = open(htmlname, "w")
 	html.write(content)
 	html.close()
