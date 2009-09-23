@@ -1,0 +1,88 @@
+tool.o: tool.c
+ringbuffer.o: ringbuffer.c ringbuffer.h
+tile_cache.o: tile_cache.c tile_cache.h ringbuffer.h
+tilemath.o: tilemath.c tilemath.h
+select_tool.o: select_tool.c select_tool.h paths.h
+distance_tool.o: distance_tool.c paths.h distance_tool.h
+atlas_tool.o: atlas_tool.c atlas_tool.h atlas.h page_math.h paths.h
+select_use_window.o: wizzard/select_use_window.c \
+  wizzard/select_use_window.h wizzard/../map_types.h \
+  wizzard/../tilemath.h
+tile_download_window.o: wizzard/tile_download_window.c \
+  wizzard/tile_download_window.h wizzard/../map_types.h \
+  wizzard/../tilemath.h
+wizzard_download.o: wizzard/wizzard_download.c wizzard/wizzard_download.h \
+  wizzard/select_use_window.h wizzard/../map_types.h \
+  wizzard/tile_download_window.h wizzard/../tile_loader.h \
+  wizzard/../map_types.h wizzard/../tilemath.h
+select_export_window.o: wizzard/select_export_window.c \
+  wizzard/select_export_window.h wizzard/../map_types.h \
+  wizzard/../paths.h wizzard/../tilemath.h
+wizzard_export.o: wizzard/wizzard_export.c wizzard/wizzard_export.h \
+  wizzard/select_export_window.h wizzard/../map_types.h \
+  wizzard/../tilemath.h wizzard/../tile_loader.h wizzard/../map_types.h \
+  wizzard/../imageglue/image_glue.h wizzard/../imageglue/../map_types.h \
+  wizzard/../imageglue/../atlas.h
+atlas_template_dialog.o: wizzard/atlas_template_dialog.c \
+  wizzard/../atlas.h wizzard/atlas_template_dialog.h
+wizzard_atlas_sequence.o: wizzard/wizzard_atlas_sequence.c \
+  wizzard/wizzard_atlas_sequence.h \
+  wizzard/wizzard_atlas_sequence_window.h \
+  wizzard/../imageglue/image_glue.h wizzard/../imageglue/../map_types.h \
+  wizzard/../imageglue/../atlas.h wizzard/../map_types.h \
+  wizzard/../atlas.h
+wizzard_atlas_sequence_window.o: wizzard/wizzard_atlas_sequence_window.c \
+  wizzard/wizzard_atlas_sequence_window.h wizzard/../paths.h
+wizzard_atlas_pdf.o: wizzard/wizzard_atlas_pdf.c \
+  wizzard/wizzard_atlas_pdf.h wizzard/wizzard_atlas_pdf_window.h \
+  wizzard/../imageglue/image_glue.h wizzard/../imageglue/../map_types.h \
+  wizzard/../imageglue/../atlas.h wizzard/../map_types.h \
+  wizzard/../atlas.h wizzard/../imageglue/pdf_generator.h \
+  wizzard/../config.h wizzard/../configuration.h
+wizzard_atlas_pdf_window.o: wizzard/wizzard_atlas_pdf_window.c \
+  wizzard/wizzard_atlas_pdf_window.h wizzard/../paths.h
+uri.o: uri.c uri.h
+about.o: about/about.c about/about.h about/../map_area.h \
+  about/../map_types.h about/../tile_manager.h about/../tile_cache.h \
+  about/../ringbuffer.h about/../tilesets.h about/uri.h about/../paths.h
+manual.o: manual/manual.c manual/manual.h manual/uri.h manual/../paths.h
+tile_manager.o: tile_manager.c tile_manager.h tile_cache.h ringbuffer.h \
+  map_types.h tool.h tilemath.h
+tile_loader.o: tile_loader.c tile_loader.h map_types.h tool.h tilemath.h \
+  tile_cache.h ringbuffer.h
+map_area.o: map_area.c map_area.h map_types.h tile_manager.h tile_cache.h \
+  ringbuffer.h tilesets.h tool.h tilemath.h
+map_navigator.o: map_navigator.c map_area.h map_types.h tile_manager.h \
+  tile_cache.h ringbuffer.h tilesets.h map_navigator.h
+imageglue.o: imageglue/imageglue.c imageglue/../tilemath.h
+image_glue.o: imageglue/image_glue.c imageglue/imageglue.h \
+  imageglue/image_glue.h imageglue/../map_types.h imageglue/../atlas.h \
+  imageglue/../tilemath.h
+pdf_generator.o: imageglue/pdf_generator.c imageglue/pdf_generator.h \
+  imageglue/../atlas.h imageglue/../map_types.h imageglue/../tilemath.h \
+  imageglue/image_glue.h
+config.o: config.c customio.h config.h configuration.h map_types.h
+config_widget.o: config_widget.c map_types.h customio.h config.h \
+  configuration.h config_widget.h config/color_box.h
+color_box.o: config/color_box.c config/color_box.h config/color_button.h \
+  config/../map_types.h config/../customio.h
+color_button.o: config/color_button.c config/color_button.h
+customio.o: customio.c
+page_math.o: page_math.c page_math.h atlas.h
+namefinder_cities.o: namefinder/namefinder_cities.c namefinder/../paths.h \
+  namefinder/../customio.h namefinder/namefinder_cities.h
+gosm.o: gosm.c uri.h paths.h config.h configuration.h config_widget.h \
+  map_area.h map_types.h tile_manager.h tile_cache.h ringbuffer.h \
+  tilesets.h map_navigator.h select_tool.h distance_tool.h atlas.h \
+  atlas_tool.h namefinder/namefinder_cities.h wizzard/wizzard_download.h \
+  wizzard/select_use_window.h wizzard/../map_types.h \
+  wizzard/tile_download_window.h wizzard/../tile_loader.h \
+  wizzard/../map_types.h wizzard/wizzard_export.h \
+  wizzard/select_export_window.h wizzard/atlas_template_dialog.h \
+  wizzard/../atlas.h wizzard/wizzard_atlas_sequence.h \
+  wizzard/wizzard_atlas_sequence_window.h \
+  wizzard/../imageglue/image_glue.h wizzard/../imageglue/../map_types.h \
+  wizzard/../imageglue/../atlas.h wizzard/wizzard_atlas_pdf.h \
+  wizzard/wizzard_atlas_pdf_window.h about/about.h about/../map_area.h \
+  manual/manual.h tilemath.h imageglue/imageglue.h \
+  imageglue/pdf_generator.h imageglue/../atlas.h imageglue/../map_types.h
