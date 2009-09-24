@@ -26,4 +26,5 @@ Help;
  Manual;		menu_help_manual
  About GOsmView;	menu_help_about_gosm
  About OpenStreetMap;	menu_help_about_osm
+ About Namefinder;	menu_help_about_nf
  License;		menu_help_license

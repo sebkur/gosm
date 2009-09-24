@@ -235,6 +235,7 @@ GtkWidget * menu_options_preferences;
 GtkWidget * menu_help_manual;
 GtkWidget * menu_help_about_gosm;
 GtkWidget * menu_help_about_osm;
+GtkWidget * menu_help_about_nf;
 GtkWidget * menu_help_license;
 /*
  * End auto-generated menu
@@ -408,7 +409,8 @@ int main(int argc, char *argv[])
 	GtkWidget *item_5_1                    = gtk_menu_item_new_with_label("Manual");
 	GtkWidget *item_5_2                    = gtk_menu_item_new_with_label("About GOsmView");
 	GtkWidget *item_5_3                    = gtk_menu_item_new_with_label("About OpenStreetMap");
-	GtkWidget *item_5_4                    = gtk_menu_item_new_with_label("License");
+	GtkWidget *item_5_4                    = gtk_menu_item_new_with_label("About Namefinder");
+	GtkWidget *item_5_5                    = gtk_menu_item_new_with_label("License");
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(item_1),              menu_1);
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(item_2),              menu_2);
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(item_2_2),            menu_2_2);
@@ -445,6 +447,7 @@ int main(int argc, char *argv[])
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_5),             item_5_2);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_5),             item_5_3);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_5),             item_5_4);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu_5),             item_5_5);
 	menu_file_quit                 = item_1_1;
 	menu_view_fullscreen           = item_2_1;
 	menu_control_zoom_in           = item_2_2_1;
@@ -466,7 +469,8 @@ int main(int argc, char *argv[])
 	menu_help_manual               = item_5_1;
 	menu_help_about_gosm           = item_5_2;
 	menu_help_about_osm            = item_5_3;
-	menu_help_license              = item_5_4;
+	menu_help_about_nf             = item_5_4;
+	menu_help_license              = item_5_5;
 	/*
 	 * End auto-generated menu
 	 */
@@ -481,7 +485,8 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(menu_help_manual),	 	"activate", G_CALLBACK(show_manual_cb), NULL);
 	g_signal_connect(G_OBJECT(menu_help_about_gosm), 	"activate", G_CALLBACK(show_about_cb), GINT_TO_POINTER(0));
 	g_signal_connect(G_OBJECT(menu_help_about_osm), 	"activate", G_CALLBACK(show_about_cb), GINT_TO_POINTER(1));
-	g_signal_connect(G_OBJECT(menu_help_license),	 	"activate", G_CALLBACK(show_about_cb), GINT_TO_POINTER(2));
+	g_signal_connect(G_OBJECT(menu_help_about_nf), 		"activate", G_CALLBACK(show_about_cb), GINT_TO_POINTER(2));
+	g_signal_connect(G_OBJECT(menu_help_license),	 	"activate", G_CALLBACK(show_about_cb), GINT_TO_POINTER(3));
 	g_signal_connect(G_OBJECT(menu_control_zoom_in), 	"activate", G_CALLBACK(button_zoom_cb), GINT_TO_POINTER(0));
 	g_signal_connect(G_OBJECT(menu_control_zoom_out), 	"activate", G_CALLBACK(button_zoom_cb), GINT_TO_POINTER(1));
 	g_signal_connect(G_OBJECT(menu_control_move_up), 	"activate", G_CALLBACK(button_move_cb), GINT_TO_POINTER(2));

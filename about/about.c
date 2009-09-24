@@ -103,6 +103,7 @@ GtkWidget * about_widget_new(AboutDialog * about_dialog)
 
 	char * uri_cr = get_abs_uri(GOSM_ABOUT_DIR "copyright.html");
 	char * uri_osm = get_abs_uri(GOSM_ABOUT_DIR "aboutosm.html");
+	char * uri_nf = get_abs_uri(GOSM_ABOUT_DIR "namefinder.html");
 	char * uri_gpl = get_abs_uri(GOSM_ABOUT_DIR "gpl.html");
 	
 	GtkWidget * web1 = webkit_web_view_new();
@@ -134,6 +135,16 @@ GtkWidget * about_widget_new(AboutDialog * about_dialog)
                                         GTK_POLICY_AUTOMATIC);
 	gtk_widget_set_size_request(scrolled2, 400, 300);
 
+	GtkWidget * web4 = webkit_web_view_new();
+	webkit_web_view_open(WEBKIT_WEB_VIEW(web4), uri_nf);
+	free(uri_nf);
+	GtkWidget * scrolled4 = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(scrolled4), web4);
+        gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled4),
+                                        GTK_POLICY_AUTOMATIC,
+                                        GTK_POLICY_AUTOMATIC);
+	gtk_widget_set_size_request(scrolled4, 400, 300);
+
 	GtkWidget * web3 = webkit_web_view_new();
 	webkit_web_view_open(WEBKIT_WEB_VIEW(web3), uri_gpl);
 	free(uri_gpl);
@@ -146,9 +157,11 @@ GtkWidget * about_widget_new(AboutDialog * about_dialog)
 
 	GtkWidget *label_copyright= gtk_label_new("GOSM");
 	GtkWidget *label_aboutosm = gtk_label_new("OpenStreetMap");
+	GtkWidget *label_namefinder = gtk_label_new("Namefinder");
 	GtkWidget *label_license = gtk_label_new("License");
 	gtk_notebook_append_page(GTK_NOTEBOOK(about_dialog -> notebook), scrolled1, label_copyright);
 	gtk_notebook_append_page(GTK_NOTEBOOK(about_dialog -> notebook), scrolled2, label_aboutosm);
+	gtk_notebook_append_page(GTK_NOTEBOOK(about_dialog -> notebook), scrolled4, label_namefinder);
 	gtk_notebook_append_page(GTK_NOTEBOOK(about_dialog -> notebook), scrolled3, label_license);
 	return about_dialog -> notebook;
 }
