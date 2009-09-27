@@ -184,6 +184,7 @@ static gboolean selection_use_cb(GtkWidget *widget);
 static gboolean selection_trash_cb(GtkWidget *widget);
 static gboolean selection_trash_adv_cb(GtkWidget *widget);
 static gboolean selection_export_cb(GtkWidget *widget);
+static gboolean selection_xml_cb(GtkWidget *widget);
 static gboolean selection_clipboard_cb(GtkWidget *widget);
 static gboolean selection_check_snap_cb(GtkWidget *widget);
 static gboolean selection_check_visible_cb(GtkWidget *widget);
@@ -343,6 +344,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(select_tool -> button_trash), "clicked", G_CALLBACK(selection_trash_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> button_trash_adv), "clicked", G_CALLBACK(selection_trash_adv_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> button_export), "clicked", G_CALLBACK(selection_export_cb), NULL);
+	g_signal_connect(G_OBJECT(select_tool -> button_data), "clicked", G_CALLBACK(selection_xml_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> button_clipboard), "clicked", G_CALLBACK(selection_clipboard_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> check_snap), "toggled", G_CALLBACK(selection_check_snap_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> check_show), "toggled", G_CALLBACK(selection_check_visible_cb), NULL);
@@ -1026,6 +1028,33 @@ static gboolean selection_export_cb(GtkWidget *widget)
 	wizzard_export_show(wizzard);
 }
 
+static gboolean selection_xml_cb(GtkWidget *widget)
+{
+	char * api_prefix = "http://api.openstreetmap.org/api/0.6/map?bbox=";
+	int len = 60 + strlen(api_prefix);
+
+	Selection s = area -> selection;
+	double lon1, lon2, lat1, lat2;
+	lon1 = s.lon1 < s.lon2 ? s.lon1 : s.lon2;
+	lon2 = s.lon1 > s.lon2 ? s.lon1 : s.lon2;
+	lat1 = s.lat1 < s.lat2 ? s.lat1 : s.lat2;
+	lat2 = s.lat1 > s.lat2 ? s.lat1 : s.lat2;
+
+	char buf[len];
+	sprintf(buf, "%s", api_prefix);
+	sprintdouble(buf+strlen(buf), lon1, 7);
+	sprintf(buf+strlen(buf), "%s", ",");
+	sprintdouble(buf+strlen(buf), lat1, 7); 
+	sprintf(buf+strlen(buf), "%s", ",");
+	sprintdouble(buf+strlen(buf), lon2, 7); 
+	sprintf(buf+strlen(buf), "%s", ",");
+	sprintdouble(buf+strlen(buf), lat2, 7); 
+
+	GtkClipboard * cb = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+	gtk_clipboard_set_text(cb, buf, strlen(buf));
+	printf("%s\n", buf);
+}
+
 static gboolean selection_clipboard_cb(GtkWidget *widget)
 {
 	Selection s = area -> selection;
@@ -1048,7 +1077,6 @@ static gboolean selection_clipboard_cb(GtkWidget *widget)
 
 	GtkClipboard * cb = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
 	gtk_clipboard_set_text(cb, buf, strlen(buf));
-
 }
 
 static gboolean selection_check_snap_cb(GtkWidget *widget)

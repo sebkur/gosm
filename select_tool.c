@@ -120,7 +120,7 @@ static void select_tool_init(SelectTool *select_tool)
 	gtk_widget_set_tooltip_text(select_tool -> button_trash, "remove from disk (single layer)");
 	gtk_widget_set_tooltip_text(select_tool -> button_trash_adv, "remove from disk (multiple layers)");
 	gtk_widget_set_tooltip_text(select_tool -> button_export, "export image");
-	gtk_widget_set_tooltip_text(select_tool -> button_data, "load xml data(not implemented)");
+	gtk_widget_set_tooltip_text(select_tool -> button_data, "load xml data\n(copy api-url to clipboard)");
 	gtk_widget_set_tooltip_text(select_tool -> button_clipboard, "copy to clipboard");
 	gtk_widget_set_tooltip_text(select_tool -> button_bookmark, "bookmark(not implemented)");
 
