@@ -1037,7 +1037,7 @@ static gboolean selection_clipboard_cb(GtkWidget *widget)
 	lat1 = s.lat1 < s.lat2 ? s.lat1 : s.lat2;
 	lat2 = s.lat1 > s.lat2 ? s.lat1 : s.lat2;
 
-	char buf[40];
+	char buf[60];
 	sprintdouble(buf, lon1, 7);
 	sprintf(buf+strlen(buf), "%s", ",");
 	sprintdouble(buf+strlen(buf), lat1, 7); 
