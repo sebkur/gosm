@@ -90,6 +90,8 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event);
 static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event);
 static gboolean scroll_cb(MapArea *map_area, GdkEventScroll *event);
 
+void map_has_moved(MapArea *map_area);
+
 GtkWidget * map_area_new()
 {
 	return g_object_new(GOSM_TYPE_MAP_AREA, NULL);
@@ -326,6 +328,7 @@ void map_area_goto_lon_lat_zoom(MapArea *map_area, double lon, double lat, int z
 	map_area -> map_position.tile_offset_x  = ((int)(x * 256.0)) % 256;
 	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_BEEN_MOVED], 0);
 	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_ZOOM_CHANGED], 0);
+	map_has_moved(map_area);
 }
 
 void map_has_moved(MapArea *map_area)

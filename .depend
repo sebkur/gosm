@@ -41,6 +41,11 @@ wizzard_atlas_pdf.o: wizzard/wizzard_atlas_pdf.c \
   wizzard/../config.h wizzard/../configuration.h
 wizzard_atlas_pdf_window.o: wizzard/wizzard_atlas_pdf_window.c \
   wizzard/wizzard_atlas_pdf_window.h wizzard/../paths.h
+wizzard_delete_tiles.o: wizzard/wizzard_delete_tiles.c \
+  wizzard/wizzard_delete_tiles.h wizzard/../tilesets.h \
+  wizzard/../map_types.h
+wizzard_delete_tiles_window.o: wizzard/wizzard_delete_tiles_window.c \
+  wizzard/wizzard_delete_tiles_window.h
 uri.o: uri.c uri.h
 about.o: about/about.c about/about.h about/../map_area.h \
   about/../map_types.h about/../tile_manager.h about/../tile_cache.h \
@@ -60,7 +65,7 @@ image_glue.o: imageglue/image_glue.c imageglue/imageglue.h \
   imageglue/../tilemath.h
 pdf_generator.o: imageglue/pdf_generator.c imageglue/pdf_generator.h \
   imageglue/../atlas.h imageglue/../map_types.h imageglue/../tilemath.h \
-  imageglue/image_glue.h
+  imageglue/../paths.h imageglue/image_glue.h
 config.o: config.c customio.h config.h configuration.h map_types.h
 config_widget.o: config_widget.c map_types.h customio.h config.h \
   configuration.h config_widget.h config/color_box.h

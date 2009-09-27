@@ -87,6 +87,7 @@
 #include "wizzard/atlas_template_dialog.h"
 #include "wizzard/wizzard_atlas_sequence.h"
 #include "wizzard/wizzard_atlas_pdf.h"
+#include "wizzard/wizzard_delete_tiles.h"
 #include "about/about.h"
 #include "manual/manual.h"
 #include "tilemath.h"
@@ -181,6 +182,7 @@ static gboolean map_area_map_cb(GtkWidget *widget, GdkEventConfigure *event);
 static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event);
 static gboolean selection_use_cb(GtkWidget *widget);
 static gboolean selection_trash_cb(GtkWidget *widget);
+static gboolean selection_trash_adv_cb(GtkWidget *widget);
 static gboolean selection_export_cb(GtkWidget *widget);
 static gboolean selection_clipboard_cb(GtkWidget *widget);
 static gboolean selection_check_snap_cb(GtkWidget *widget);
@@ -339,6 +341,7 @@ int main(int argc, char *argv[])
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(select_tool -> check_show), area -> show_selection);
 	g_signal_connect(G_OBJECT(select_tool -> button_action), "clicked", G_CALLBACK(selection_use_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> button_trash), "clicked", G_CALLBACK(selection_trash_cb), NULL);
+	g_signal_connect(G_OBJECT(select_tool -> button_trash_adv), "clicked", G_CALLBACK(selection_trash_adv_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> button_export), "clicked", G_CALLBACK(selection_export_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> button_clipboard), "clicked", G_CALLBACK(selection_clipboard_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> check_snap), "toggled", G_CALLBACK(selection_check_snap_cb), NULL);
@@ -1008,6 +1011,12 @@ static gboolean selection_trash_cb(GtkWidget *widget)
 		}
 	}
 	map_area_repaint(area);
+}
+
+static gboolean selection_trash_adv_cb(GtkWidget *widget)
+{
+	WizzardDeleteTiles * wizzard = wizzard_delete_tiles_new(area, tileset, area -> selection);
+	wizzard_delete_tiles_show(wizzard, GTK_WINDOW(main_window));
 }
 
 static gboolean selection_export_cb(GtkWidget *widget)

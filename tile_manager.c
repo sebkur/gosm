@@ -202,7 +202,7 @@ void tile_manager_delete_tile(TileManager * tile_manager, int x, int y, int zoom
 		//gdk_threads_enter();
 		//g_object_unref(tile);
 		//gdk_threads_leave();
-		printf("%p\n", tile);
+		//printf("%p\n", tile);
 	}else{
 		pthread_mutex_unlock(&(tile_manager -> mutex_tile_cache));
 	}
