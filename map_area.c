@@ -926,3 +926,8 @@ void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQu
 	map_area -> color_selection_pad = c_s_pad;
 	map_area -> color_atlas_lines = c_a_lines;
 }
+
+TileManager * map_area_get_tile_manager(MapArea *map_area, Tileset tileset)
+{
+	return map_area -> tile_manager[tileset];
+}

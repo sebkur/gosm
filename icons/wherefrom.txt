@@ -5,6 +5,7 @@ cross.png:			own creation
 document-save.png:	 	/usr/share/icons/gnome/24x24/actions/document-save.png
 edit-clear.png:		 	/usr/share/icons/gnome/24x24/actions/edit-clear.png
 edit-copy.png: 			/usr/share/icons/gnome/24x24/actions/edit-copy.png
+edit-delete.png:		/usr/share/icons/gnome/24x24/actions/edit-delete.png
 font.png:		 	/usr/share/icons/gnome/24x24/stock/text/stock_fontwork.png
 grid.png:		 	/usr/share/icons/gnome/24x24/stock/image/stock_guides.png
 measure.png:		 	adapted from: /usr/share/icons/gnome/24x24/stock/image/stock_node-add.png

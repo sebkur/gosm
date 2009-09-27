@@ -164,6 +164,26 @@ gboolean cache_add_tile(TileCache * cache, int zoom, int x, int y, gpointer pixb
 	return replace;
 }
 
+// this function not only removes from the
+// 3-dimensional cache-list, but also from
+// the ringbuffer (it sets zoomlevel to 0 in the CachedMapTile)
+// -> when this removed tile is 'overwritten' by 'cache_add_tile'
+// (since it resides in the ringbuffer), the function 'cache_remove_tile'
+// will not be called on this tile again.
+void cache_purge_tile(TileCache * cache, int zoom, int x, int y)
+{
+	cache_remove_tile(cache, zoom, x, y);
+	int len = cache -> ring_buffer -> len;
+	int i;
+	for (i = 0; i < len; i++){
+		CachedMapTile * cmt = ringbuffer_index(cache -> ring_buffer, i);
+		MapTile * map_tile = &(cmt -> map_tile_info);
+		if (map_tile -> x == x && map_tile -> y == y && map_tile -> zoom == zoom){
+			map_tile -> zoom = 0;
+		}
+	}
+}
+
 void cache_remove_tile(TileCache * cache, int zoom, int x, int y)
 {
 	printf("removing\n");

@@ -45,6 +45,8 @@ struct _SelectTool
 	GtkWidget * check_show;
 	GtkWidget * check_snap;
 	GtkWidget * button_action;
+	GtkWidget * button_trash;
+	GtkWidget * button_trash_adv;
 	GtkWidget * button_export;
 	GtkWidget * button_data;
 	GtkWidget * button_clipboard;

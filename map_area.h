@@ -120,4 +120,5 @@ void map_area_path_clear(MapArea *map_area);
 
 void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad, ColorQuadriple c_a_lines);
 
+TileManager * map_area_get_tile_manager(MapArea *map_area, Tileset tileset);
 #endif

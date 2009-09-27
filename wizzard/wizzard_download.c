@@ -184,7 +184,7 @@ void wizzard_download_show(WizzardDownload * wizzard)
 {
 	GtkWidget * win = select_use_window_new(&(wizzard -> selection));
 	gtk_window_set_transient_for(GTK_WINDOW(win), GTK_WINDOW(wizzard -> parent_window));
-	gtk_window_set_title(GTK_WINDOW(win), "Use Selection...");
+	gtk_window_set_title(GTK_WINDOW(win), "Download Selection...");
 	gtk_window_set_position(GTK_WINDOW(win), GTK_WIN_POS_CENTER_ON_PARENT);
 	gtk_window_set_modal(GTK_WINDOW(win), TRUE);
 	gtk_widget_show_all(win);

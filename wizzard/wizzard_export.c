@@ -67,7 +67,7 @@ void wizzard_export_show(WizzardExport * wizzard)
 	GtkWidget * win = select_export_window_new(&(wizzard -> selection), wizzard -> zoom);
 	wizzard -> select_export_window = GOSM_SELECT_EXPORT_WINDOW(win);
 	gtk_window_set_transient_for(GTK_WINDOW(win), GTK_WINDOW(wizzard -> parent_window));
-	gtk_window_set_title(GTK_WINDOW(win), "Export Selection...");
+	gtk_window_set_title(GTK_WINDOW(win), "Export Selection as Image...");
 	gtk_window_set_position(GTK_WINDOW(win), GTK_WIN_POS_CENTER_ON_PARENT);
 	gtk_window_set_modal(GTK_WINDOW(win), TRUE);
 	gtk_widget_show_all(win);

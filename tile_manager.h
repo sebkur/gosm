@@ -85,6 +85,7 @@ struct _TileManagerClass
 GObject * tile_manager_new();
 
 gpointer tile_manager_request_tile(TileManager * tile_manager, int x, int y, int zoom);
+void tile_manager_delete_tile(TileManager * tile_manager, int x, int y, int zoom);
 
 void tile_manager_set_network_state(TileManager * tile_manager, gboolean state);
 void tile_manager_set_cache_directory(TileManager * tile_manager, char * directory);

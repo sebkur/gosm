@@ -184,6 +184,30 @@ gpointer tile_manager_request_tile(TileManager * tile_manager, int x, int y, int
 	return NULL;
 }
 
+void tile_manager_delete_tile(TileManager * tile_manager, int x, int y, int zoom)
+{
+	// delete from harddisk
+	char path[tile_manager -> cache_files_format_len + 22];
+	sprintf(path, tile_manager -> cache_files_format, zoom, x, y);
+	unlink(path);
+	// remove from memory
+	pthread_mutex_lock(&(tile_manager -> mutex_tile_cache));
+	TileCache * cache = tile_manager -> tile_cache;
+	gpointer tile = cache_find_tile(cache, zoom, x, y);
+	if (tile != NULL){
+		cache_purge_tile(cache, zoom, x, y);
+		//CachedMapTile * cmt = (CachedMapTile*) tile;
+		//GdkPixmap * pm_old = cmt -> pixbuf;
+		pthread_mutex_unlock(&(tile_manager -> mutex_tile_cache));
+		//gdk_threads_enter();
+		//g_object_unref(tile);
+		//gdk_threads_leave();
+		printf("%p\n", tile);
+	}else{
+		pthread_mutex_unlock(&(tile_manager -> mutex_tile_cache));
+	}
+}
+
 void get_tile_from_harddisk(TileManager * tile_manager, int x, int y, int zoom)
 {
 	printf("get tile from hd: %d %d %d\n", x, y, zoom);

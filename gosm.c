@@ -180,6 +180,7 @@ static gboolean window_event_cb(GtkWidget *window, GdkEventWindowState *event);
 static gboolean map_area_map_cb(GtkWidget *widget, GdkEventConfigure *event);
 static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event);
 static gboolean selection_use_cb(GtkWidget *widget);
+static gboolean selection_trash_cb(GtkWidget *widget);
 static gboolean selection_export_cb(GtkWidget *widget);
 static gboolean selection_clipboard_cb(GtkWidget *widget);
 static gboolean selection_check_snap_cb(GtkWidget *widget);
@@ -337,6 +338,7 @@ int main(int argc, char *argv[])
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(select_tool -> check_snap), area -> snap_selection);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(select_tool -> check_show), area -> show_selection);
 	g_signal_connect(G_OBJECT(select_tool -> button_action), "clicked", G_CALLBACK(selection_use_cb), NULL);
+	g_signal_connect(G_OBJECT(select_tool -> button_trash), "clicked", G_CALLBACK(selection_trash_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> button_export), "clicked", G_CALLBACK(selection_export_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> button_clipboard), "clicked", G_CALLBACK(selection_clipboard_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> check_snap), "toggled", G_CALLBACK(selection_check_snap_cb), NULL);
@@ -983,6 +985,31 @@ static gboolean selection_use_cb(GtkWidget *widget)
 	wizzard_download_show(wizzard);
 }
 
+static gboolean selection_trash_cb(GtkWidget *widget)
+{
+	printf("trash...\n");
+	Selection * selection = &(area -> selection);
+	int i = map_area_get_zoom(area);
+	double x1 = lon_to_x(selection->lon1, i);
+	double x2 = lon_to_x(selection->lon2, i);
+	double y1 = lat_to_y(selection->lat1, i);
+	double y2 = lat_to_y(selection->lat2, i);
+	int count_x = ((int) x2) - ((int)x1) + 1;
+	int count_y = ((int) y2) - ((int)y1) + 1;
+	int xs = (int) x1;
+	int ys = (int) y1;
+	printf("%d %d %d %d\n", xs, ys, count_x, count_y);
+	int cx, cy;
+	TileManager * tile_manager = map_area_get_tile_manager(area, tileset);
+	for (cx = xs; cx < xs + count_x; cx++){
+		for (cy = ys; cy < ys + count_y; cy++){
+			printf("%d %d\n", cx, cy); 
+			tile_manager_delete_tile(tile_manager, cx, cy, i);
+		}
+	}
+	map_area_repaint(area);
+}
+
 static gboolean selection_export_cb(GtkWidget *widget)
 {
 	printf("export...\n");
@@ -1126,7 +1153,7 @@ static void set_legend(Tileset tileset, int zoom)
 {
 	if (tileset == TILESET_MAPNIK){
 		char path[100];
-		sprintf(path, GOSM_LEGEND_DIR "mapnik_%d.html", zoom);
+		sprintf(path, GOSM_LEGEND_DIR "mapnik/mapnik_%d.html", zoom);
 		char * uri_legend = get_abs_uri(path);
 		webkit_web_view_open(WEBKIT_WEB_VIEW(web_legend), uri_legend);
 		free(uri_legend);

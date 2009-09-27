@@ -70,4 +70,6 @@ gboolean cache_add_tile(TileCache * cache, int zoom, int x, int y, gpointer pixb
 
 void cache_remove_tile(TileCache * cache, int zoom, int x, int y);
 
+void cache_purge_tile(TileCache * cache, int zoom, int x, int y);
+
 #endif
