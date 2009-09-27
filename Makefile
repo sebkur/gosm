@@ -57,8 +57,8 @@ wizzard/wizzard_atlas_sequence.o \
 wizzard/wizzard_atlas_sequence_window.o \
 wizzard/wizzard_atlas_pdf.o \
 wizzard/wizzard_atlas_pdf_window.o \
-wizzard/wizzard_delete_tiles.c \
-wizzard/wizzard_delete_tiles_window.c \
+wizzard/wizzard_delete_tiles.o \
+wizzard/wizzard_delete_tiles_window.o \
 uri.o \
 about/about.o \
 manual/manual.o \

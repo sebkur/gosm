@@ -3,7 +3,7 @@ INSTALLATION
 Currently, you can just compile everything and use the software.
 To compile, enter:
 
-. misc/compilage
+make
 
 gcc will then build a binary named 'gosm' in the src-directory
 This file can be executed from this dir by launching 

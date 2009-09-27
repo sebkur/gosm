@@ -43,7 +43,10 @@ wizzard_atlas_pdf_window.o: wizzard/wizzard_atlas_pdf_window.c \
   wizzard/wizzard_atlas_pdf_window.h wizzard/../paths.h
 wizzard_delete_tiles.o: wizzard/wizzard_delete_tiles.c \
   wizzard/wizzard_delete_tiles.h wizzard/../tilesets.h \
-  wizzard/../map_types.h
+  wizzard/../map_types.h wizzard/../tile_manager.h \
+  wizzard/../tile_cache.h wizzard/../ringbuffer.h wizzard/../map_types.h \
+  wizzard/../map_area.h wizzard/../tile_manager.h wizzard/../tilesets.h \
+  wizzard/wizzard_delete_tiles_window.h wizzard/../tilemath.h
 wizzard_delete_tiles_window.o: wizzard/wizzard_delete_tiles_window.c \
   wizzard/wizzard_delete_tiles_window.h
 uri.o: uri.c uri.h
@@ -88,6 +91,9 @@ gosm.o: gosm.c uri.h paths.h config.h configuration.h config_widget.h \
   wizzard/wizzard_atlas_sequence_window.h \
   wizzard/../imageglue/image_glue.h wizzard/../imageglue/../map_types.h \
   wizzard/../imageglue/../atlas.h wizzard/wizzard_atlas_pdf.h \
-  wizzard/wizzard_atlas_pdf_window.h about/about.h about/../map_area.h \
+  wizzard/wizzard_atlas_pdf_window.h wizzard/wizzard_delete_tiles.h \
+  wizzard/../tilesets.h wizzard/../tile_manager.h wizzard/../tile_cache.h \
+  wizzard/../ringbuffer.h wizzard/../map_area.h \
+  wizzard/wizzard_delete_tiles_window.h about/about.h about/../map_area.h \
   manual/manual.h tilemath.h imageglue/imageglue.h \
   imageglue/pdf_generator.h imageglue/../atlas.h imageglue/../map_types.h
