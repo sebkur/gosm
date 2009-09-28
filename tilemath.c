@@ -79,6 +79,20 @@ double y_to_lat(double y, int zoom)
 	return mercator_to_lat(M_PI * (1 - 2 * (y / (double)num_tiles(zoom))));
 }
 
+double middle_lon(double lon1, double lon2)
+{
+	double lon1_off = 180 + lon1;
+	double lon2_off = 180 + lon2;
+	double lon_mid_off = (lon1_off + lon2_off) / 2;
+	double lon_mid = lon1_off < lon2_off ? lon_mid_off - 180 : lon_mid_off;
+	return lon_mid;
+}
+
+double middle_lat(double lat1, double lat2)
+{
+	return (lat1 + lat2) / 2;
+}
+
 /*int main(int argc, char *argv[])
 {
 	double x = x_to_lon(1100, 11);

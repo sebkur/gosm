@@ -1386,7 +1386,8 @@ static gboolean namefinder_country_cb(GtkWidget *widget)
 	country * countries = namefinder_countries_get_countries(GOSM_NAMEFINDER_COUNTRIES(namefinder_countries));
 	country thiscountry = countries[idx];
 	printf("Hopping to: %s, lon: %f, lat: %f\n", thiscountry.name, thiscountry.lon, thiscountry.lat);
-	map_area_goto_lon_lat_zoom(area, thiscountry.lon, thiscountry.lat, map_area_get_zoom(area));
+	//map_area_goto_lon_lat_zoom(area, thiscountry.lon, thiscountry.lat, map_area_get_zoom(area));
+	map_area_goto_bbox(area, thiscountry.lon1, thiscountry.lat1, thiscountry.lon2, thiscountry.lat2);
 	map_area_repaint(area);
 }
 

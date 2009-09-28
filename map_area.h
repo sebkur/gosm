@@ -112,6 +112,7 @@ double map_area_position_get_center_lat(MapArea *map_area);
 int map_area_get_zoom(MapArea *map_area);
 
 void map_area_goto_lon_lat_zoom(MapArea *map_area, double lon, double lat, int zoom);
+void map_area_goto_bbox(MapArea *map_area, double lon1, double lat1, double lon2, double lat2);
 
 void map_area_set_network_state(MapArea * map_area, gboolean state);
 

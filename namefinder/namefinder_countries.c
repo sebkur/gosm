@@ -117,6 +117,10 @@ static void namefinder_countries_init(NamefinderCountries *namefinder_countries)
 		strcpy(namefinder_countries -> countries[c].name, split2[0]);
 		countries[c].lon = lon_mid;
 		countries[c].lat = (lat_1 + lat_2) / 2;
+		countries[c].lon1 = lon_1;
+		countries[c].lon2 = lon_2;
+		countries[c].lat1 = lat_1;
+		countries[c].lat2 = lat_2;
 	}
 	qsort(namefinder_countries -> countries, l-1, sizeof(country), cmpstringp);
 	//for (c = 0; c < l-1; c++){

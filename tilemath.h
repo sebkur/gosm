@@ -41,3 +41,7 @@ double mercator_to_lat(double merc_y);
 double x_to_lon(double x, int zoom);
 
 double y_to_lat(double y, int zoom);
+
+double middle_lon(double lon1, double lon2);
+
+double middle_lat(double lat1, double lat2);

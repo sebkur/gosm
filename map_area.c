@@ -331,6 +331,50 @@ void map_area_goto_lon_lat_zoom(MapArea *map_area, double lon, double lat, int z
 	map_has_moved(map_area);
 }
 
+gboolean map_area_check_if_fits(double lon1, double lat1, double lon2, double lat2, int zoom, int width, int height)
+{
+	double width_half = ((double) width) / 2;
+	double height_half = ((double) height) / 2;
+
+	double lon_m = middle_lon(lon1, lon2);
+	double lat_m = middle_lat(lat1, lat2);
+	double x = lon_to_x(lon_m, zoom);
+	double x_le = x - width_half / 256;
+	double x_ri = x + width_half / 256;
+	double lon_le = x_to_lon(x_le, zoom);
+	double lon_ri = x_to_lon(x_ri, zoom);
+	double y = lat_to_y(lat_m, zoom);
+	double y_to = y - height_half / 256;
+	double y_bo = y + height_half / 256;
+	double lat_to = y_to_lat(y_to, zoom);
+	double lat_bo = y_to_lat(y_bo, zoom);
+	printf("x = %f, left = %f, right = %f\n", x, lon_le, lon_ri);
+	return lon_le <= lon1 && lon_ri >= lon2 && lat_to >= lat1 && lat_bo <= lat2;
+}
+
+int map_area_get_max_bbox_zoomlevel(double lon1, double lat1, double lon2, double lat2, int width, int height)
+{
+	int zoom = 1;
+	int zoom_test;
+	for (zoom_test = 2; zoom_test <= 18; zoom_test++){
+		if (map_area_check_if_fits(lon1, lat1, lon2, lat2, zoom_test, width, height)){
+			zoom = zoom_test;
+		}else{
+			break;
+		}
+	}
+	return zoom;
+}
+
+void map_area_goto_bbox(MapArea *map_area, double lon1, double lat1, double lon2, double lat2)
+{
+	int width = map_area -> map_position.width;
+	int height = map_area -> map_position.height;
+	int zoom = map_area_get_max_bbox_zoomlevel(lon1, lat1, lon2, lat2, width, height);
+	printf("proposed zoomlevel: %d\n", zoom);
+	map_area_goto_lon_lat_zoom(map_area, middle_lon(lon1, lon2), middle_lat(lat1, lat2), zoom);
+}
+
 void map_has_moved(MapArea *map_area)
 {
 	map_moved = TRUE;
