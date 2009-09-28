@@ -109,9 +109,13 @@ static void namefinder_countries_init(NamefinderCountries *namefinder_countries)
 		double lat_1 = strtodouble(split2[2]);
 		double lon_2 = strtodouble(split2[3]);
 		double lat_2 = strtodouble(split2[4]);
+		double lon1_off = 180 + lon_1;
+		double lon2_off = 180 + lon_2;
+		double lon_mid_off = (lon1_off + lon2_off) / 2;
+		double lon_mid = lon1_off < lon2_off ? lon_mid_off - 180 : lon_mid_off;
 		namefinder_countries -> countries[c].name = malloc(sizeof(char) * (strlen(split2[0]) + 1));
 		strcpy(namefinder_countries -> countries[c].name, split2[0]);
-		countries[c].lon = (lon_1 + lon_2) / 2;
+		countries[c].lon = lon_mid;
 		countries[c].lat = (lat_1 + lat_2) / 2;
 	}
 	qsort(namefinder_countries -> countries, l-1, sizeof(country), cmpstringp);

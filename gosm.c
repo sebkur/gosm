@@ -659,7 +659,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(namefinder_cities), "city-activated", G_CALLBACK(namefinder_city_cb), NULL);
 	g_signal_connect(G_OBJECT(namefinder_countries), "country-activated", G_CALLBACK(namefinder_country_cb), NULL);
 	GtkWidget * label_namefinder_city = gtk_label_new("Cities");
-	GtkWidget * label_namefinder_country = gtk_label_new("Country");
+	GtkWidget * label_namefinder_country = gtk_label_new("Countries");
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_namefinder), namefinder_cities, label_namefinder_city);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_namefinder), namefinder_countries, label_namefinder_country);
 	// --
