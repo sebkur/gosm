@@ -82,6 +82,7 @@
 #include "atlas.h"
 #include "atlas_tool.h"
 #include "namefinder/namefinder_cities.h"
+#include "namefinder/namefinder_countries.h"
 #include "wizzard/wizzard_download.h"
 #include "wizzard/wizzard_export.h"
 #include "wizzard/atlas_template_dialog.h"
@@ -142,7 +143,8 @@ DistanceTool * 	distance_tool;
 AtlasTool * 	atlas_tool;
 
 GtkWidget * 	web_legend;
-GtkWidget *	namefinder;
+GtkWidget *	namefinder_cities;
+GtkWidget *	namefinder_countries;
 
 GtkWidget ** 	toolbar_buttons; // first 3 buttons; CURSOR_* is used as index
 GtkWidget * 	button_network;
@@ -211,6 +213,7 @@ static gboolean show_preferences_cb(GtkWidget *widget);
 static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean legend_click_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean namefinder_city_cb(GtkWidget *widget);
+static gboolean namefinder_country_cb(GtkWidget *widget);
 static gboolean exit_cb(GtkWidget *widget);
 void   chdir_to_bin(char * arg0);
 
@@ -650,15 +653,22 @@ int main(int argc, char *argv[])
 	// bookmarks
 	GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
 	// namefinder
-	namefinder = namefinder_cities_new();
-	g_signal_connect(G_OBJECT(namefinder), "city-activated", G_CALLBACK(namefinder_city_cb), NULL);
+	GtkWidget * notebook_namefinder = gtk_notebook_new();
+	namefinder_cities = namefinder_cities_new();
+	namefinder_countries = namefinder_countries_new();
+	g_signal_connect(G_OBJECT(namefinder_cities), "city-activated", G_CALLBACK(namefinder_city_cb), NULL);
+	g_signal_connect(G_OBJECT(namefinder_countries), "country-activated", G_CALLBACK(namefinder_country_cb), NULL);
+	GtkWidget * label_namefinder_city = gtk_label_new("Cities");
+	GtkWidget * label_namefinder_country = gtk_label_new("Country");
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_namefinder), namefinder_cities, label_namefinder_city);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_namefinder), namefinder_countries, label_namefinder_country);
 	// --
 	GtkWidget * image_legend = gtk_image_new_from_file(GOSM_ICON_DIR "stock_chart-toggle-legend.png");
 	GtkWidget * image_bookmarks = gtk_image_new_from_file(GOSM_ICON_DIR "stock_bookmark.png");
 	GtkWidget * image_namefinder = gtk_image_new_from_file(GOSM_ICON_DIR "stock_internet.png");
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), scrolled, image_legend);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks, image_bookmarks);
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), namefinder, image_namefinder);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), notebook_namefinder, image_namefinder);
 
 	/**
 	 * Other widgets
@@ -1362,11 +1372,21 @@ static gboolean legend_click_cb(GtkWidget *widget, GdkEventButton *event)
 
 static gboolean namefinder_city_cb(GtkWidget *widget)
 {
-	int idx = namefinder_cities_get_activated_id(GOSM_NAMEFINDER_CITIES(namefinder));
-	city * cities = namefinder_cities_get_cities(GOSM_NAMEFINDER_CITIES(namefinder));
+	int idx = namefinder_cities_get_activated_id(GOSM_NAMEFINDER_CITIES(namefinder_cities));
+	city * cities = namefinder_cities_get_cities(GOSM_NAMEFINDER_CITIES(namefinder_cities));
 	city thiscity = cities[idx];
 	printf("Hopping to: %s, lon: %f, lat: %f\n", thiscity.name, thiscity.lon, thiscity.lat);
 	map_area_goto_lon_lat_zoom(area, thiscity.lon, thiscity.lat, map_area_get_zoom(area));
+	map_area_repaint(area);
+}
+
+static gboolean namefinder_country_cb(GtkWidget *widget)
+{
+	int idx = namefinder_countries_get_activated_id(GOSM_NAMEFINDER_COUNTRIES(namefinder_countries));
+	country * countries = namefinder_countries_get_countries(GOSM_NAMEFINDER_COUNTRIES(namefinder_countries));
+	country thiscountry = countries[idx];
+	printf("Hopping to: %s, lon: %f, lat: %f\n", thiscountry.name, thiscountry.lon, thiscountry.lat);
+	map_area_goto_lon_lat_zoom(area, thiscountry.lon, thiscountry.lat, map_area_get_zoom(area));
 	map_area_repaint(area);
 }
 

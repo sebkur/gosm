@@ -79,10 +79,14 @@ customio.o: customio.c
 page_math.o: page_math.c page_math.h atlas.h
 namefinder_cities.o: namefinder/namefinder_cities.c namefinder/../paths.h \
   namefinder/../customio.h namefinder/namefinder_cities.h
+namefinder_countries.o: namefinder/namefinder_countries.c \
+  namefinder/../paths.h namefinder/../customio.h \
+  namefinder/namefinder_countries.h
 gosm.o: gosm.c uri.h paths.h config.h configuration.h config_widget.h \
   map_area.h map_types.h tile_manager.h tile_cache.h ringbuffer.h \
   tilesets.h map_navigator.h select_tool.h distance_tool.h atlas.h \
-  atlas_tool.h namefinder/namefinder_cities.h wizzard/wizzard_download.h \
+  atlas_tool.h namefinder/namefinder_cities.h \
+  namefinder/namefinder_countries.h wizzard/wizzard_download.h \
   wizzard/select_use_window.h wizzard/../map_types.h \
   wizzard/tile_download_window.h wizzard/../tile_loader.h \
   wizzard/../map_types.h wizzard/wizzard_export.h \

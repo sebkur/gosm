@@ -37,6 +37,7 @@ config/color_button.c \
 customio.c \
 page_math.c \
 namefinder/namefinder_cities.c \
+namefinder/namefinder_countries.c \
 gosm.c
 
 OBJ = \
@@ -76,6 +77,7 @@ config/color_button.o \
 customio.o \
 page_math.o \
 namefinder/namefinder_cities.o \
+namefinder/namefinder_countries.o \
 gosm.o
 
 CC  = /usr/bin/gcc
