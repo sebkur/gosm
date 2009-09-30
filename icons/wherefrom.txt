@@ -8,6 +8,7 @@ edit-copy.png: 			/usr/share/icons/gnome/24x24/actions/edit-copy.png
 edit-delete.png:		/usr/share/icons/gnome/24x24/actions/edit-delete.png
 font.png:		 	/usr/share/icons/gnome/24x24/stock/text/stock_fontwork.png
 grid.png:		 	/usr/share/icons/gnome/24x24/stock/image/stock_guides.png
+insert-object.png:		/usr/share/icons/gnome/24x24/actions/insert-object.png
 measure.png:		 	adapted from: /usr/share/icons/gnome/24x24/stock/image/stock_node-add.png
 navigate.png:		 	/usr/share/icons/gnome/24x24/stock/navigation/stock_navigator.png
 network-idle.png:	 	/usr/share/icons/gnome/24x24/status/network-idle.png

@@ -34,6 +34,7 @@
 #include "tile_cache.h"
 #include "tile_manager.h"
 #include "tilesets.h"
+#include "paths.h"
 
 #define MATCHES(a,b)	((a & b) == b)
 #define TILESIZE	256
@@ -234,6 +235,7 @@ static void map_area_init(MapArea *map_area)
         map_area -> slice_intersect_y = 150;
 
 	map_area -> path			= g_list_alloc();
+	map_area -> markers			= g_list_alloc();
 
 	g_signal_connect(G_OBJECT(map_area), "motion_notify_event",	G_CALLBACK(mouse_motion_cb),	NULL);
 	g_signal_connect(G_OBJECT(map_area), "button_press_event", 	G_CALLBACK(mouse_button_cb),	NULL);
@@ -329,6 +331,27 @@ void map_area_goto_lon_lat_zoom(MapArea *map_area, double lon, double lat, int z
 	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_BEEN_MOVED], 0);
 	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_ZOOM_CHANGED], 0);
 	map_has_moved(map_area);
+}
+
+void map_area_get_visible_area(MapArea * map_area, double *min_lon, double *min_lat, double *max_lon, double *max_lat)
+{
+	int width = map_area -> map_position.width;
+	int height = map_area -> map_position.height;
+	double lon_m = map_area -> map_position.lon;
+	double lat_m = map_area -> map_position.lat;
+	int zoom = map_area -> map_position.zoom;
+	double width_half = ((double) width) / 2;
+	double height_half = ((double) height) / 2;
+	double x = lon_to_x(lon_m, zoom);
+	double x_le = x - width_half / 256;
+	double x_ri = x + width_half / 256;
+	*min_lon = x_to_lon(x_le, zoom);
+	*max_lon  = x_to_lon(x_ri, zoom);
+	double y = lat_to_y(lat_m, zoom);
+	double y_to = y - height_half / 256;
+	double y_bo = y + height_half / 256;
+	*max_lat = y_to_lat(y_to, zoom);
+	*min_lat = y_to_lat(y_bo, zoom);
 }
 
 gboolean map_area_check_if_fits(double lon1, double lat1, double lon2, double lat2, int zoom, int width, int height)
@@ -464,6 +487,12 @@ void map_area_path_clear(MapArea *map_area)
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 }
 
+void map_area_add_marker(MapArea *map_area, double lon, double lat)
+{
+	poi_set_add(map_area -> poi_set, lon, lat);
+	gtk_widget_queue_draw(GTK_WIDGET(map_area));
+}
+
 static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
@@ -481,8 +510,13 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 			map_area_zoom_out(map_area);
 		}
 	}
-	if (event -> type == GDK_BUTTON_PRESS && map_area -> action_state == 2){
-		path_add_point(map_area, lon, lat);
+	// TODO: put action_state (== gosm.c.CURSOR) somewhere else
+	if (event -> type == GDK_BUTTON_PRESS){
+		if (map_area -> action_state == 2){
+			path_add_point(map_area, lon, lat);
+		}else if(map_area -> action_state == 3){
+			map_area_add_marker(map_area, lon, lat);
+		}
 	}
 }
 
@@ -709,7 +743,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		if (map_area -> pixmap != NULL) g_object_unref(map_area -> pixmap);
 		map_area -> pixmap = gdk_pixmap_new(widget->window,
 				widget->allocation.width,
-				widget->allocation.height, -1);
+				widget->allocation.height, 24);
 		map_has_moved(map_area);
 	}
 	int width = map_area -> width;
@@ -941,6 +975,40 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	cairo_fill(cr_arcs);
 	//gettimeofday(&t2, NULL);
 	//printf("time %d\n", time_diff(&t1, &t2));
+	// DRAW MARKERS
+	if (map_area -> icon_marker == NULL){
+		map_area -> icon_marker = cairo_image_surface_create_from_png(GOSM_ICON_DIR "point.png");
+	}
+	cairo_t * cr_marker = gdk_cairo_create(widget->window);
+	// TODO: clean up with old marker-stuff. e.g. map_area -> markers...
+	//GList * node_m = map_area -> markers -> next;
+	//while(node_m != NULL){
+	double min_lon, min_lat, max_lon, max_lat;
+	map_area_get_visible_area(map_area, &min_lon, &min_lat, &max_lon, &max_lat);
+	int marker_count;
+	LonLatPair * points = poi_set_get(map_area -> poi_set, &marker_count, min_lon, min_lat, max_lon, max_lat);
+	int p;
+	// efficency test
+	cairo_pattern_t * pat_dots = cairo_pattern_create_rgb(0.85, 0.25, 0.25);
+	cairo_set_source(cr_marker, pat_dots);
+	double square_size = 2;
+	if (map_area -> map_position.zoom > 6) square_size = 3;
+	if (map_area -> map_position.zoom > 8) square_size = 4;
+	if (map_area -> map_position.zoom > 10) square_size = 5;
+	double square_size_half = square_size / 2;
+	// efficency test
+	for (p = 0; p < marker_count; p++){
+		int x = map_area_lon_to_area_x(map_area, points[p].lon);
+		int y = map_area_lat_to_area_y(map_area, points[p].lat);
+		//cairo_set_source_surface(cr_marker, map_area -> icon_marker, x - 12, y - 12);
+		//cairo_rectangle(cr_marker, x-12, y-12, 24, 24);
+		//cairo_paint(cr_marker);
+		cairo_move_to(cr_marker, x, y);
+		//cairo_arc(cr_marker, x, y, 3, 0.0, 2 * 3.1415927);
+		cairo_rectangle(cr_marker, x-square_size_half, y-square_size_half, square_size, square_size); 
+	}
+	cairo_fill(cr_marker);
+	free(points);
 	return TRUE;
 }
 
@@ -977,4 +1045,9 @@ void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQu
 TileManager * map_area_get_tile_manager(MapArea *map_area, Tileset tileset)
 {
 	return map_area -> tile_manager[tileset];
+}
+
+void map_area_set_poi_set(MapArea *map_area, PoiSet *poi_set)
+{
+	map_area -> poi_set = poi_set;
 }

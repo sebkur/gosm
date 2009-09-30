@@ -38,6 +38,14 @@ customio.c \
 page_math.c \
 namefinder/namefinder_cities.c \
 namefinder/namefinder_countries.c \
+poi/poi_set.c \
+poi/RTree/card.c \
+poi/RTree/gammavol.c \
+poi/RTree/index.c \
+poi/RTree/node.c \
+poi/RTree/rect.c \
+poi/RTree/sphvol.c \
+poi/RTree/split_l.c \
 gosm.c
 
 OBJ = \
@@ -78,6 +86,14 @@ customio.o \
 page_math.o \
 namefinder/namefinder_cities.o \
 namefinder/namefinder_countries.o \
+poi/poi_set.o \
+poi/RTree/card.o \
+poi/RTree/gammavol.o \
+poi/RTree/index.o \
+poi/RTree/node.o \
+poi/RTree/rect.o \
+poi/RTree/sphvol.o \
+poi/RTree/split_l.o \
 gosm.o
 
 CC  = /usr/bin/gcc

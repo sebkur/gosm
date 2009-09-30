@@ -23,10 +23,12 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#include <cairo/cairo.h>
 #include <glib.h>
 #include "map_types.h"
 #include "tile_manager.h"
 #include "tilesets.h"
+#include "poi/poi_set.h"
 
 #define GOSM_TYPE_MAP_AREA		(map_area_get_type ())
 #define GOSM_MAP_AREA(obj)		(G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_MAP_AREA, MapArea))
@@ -48,6 +50,7 @@ struct _MapArea
 	MapPosition map_position;
 	Selection selection;
 	GList * path;
+	GList * markers;
 	int action_state;
 	gboolean show_grid;
 	gboolean show_font;
@@ -72,6 +75,9 @@ struct _MapArea
 	ColorQuadriple color_selection_out;
 	ColorQuadriple color_selection_pad;
 	ColorQuadriple color_atlas_lines;
+
+	PoiSet * poi_set;
+	cairo_surface_t * icon_marker;
 };
 
 struct _MapAreaClass
@@ -119,7 +125,13 @@ void map_area_set_network_state(MapArea * map_area, gboolean state);
 void map_area_path_remove_point(MapArea *map_area);
 void map_area_path_clear(MapArea *map_area);
 
+void map_area_add_marker(MapArea *map_area, double lon, double lat);
+
 void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad, ColorQuadriple c_a_lines);
 
 TileManager * map_area_get_tile_manager(MapArea *map_area, Tileset tileset);
+
+void map_area_set_poi_set(MapArea *map_area, PoiSet *poi_set);
+
+void map_area_get_visible_area(MapArea * map_area, double *min_lon, double *min_lat, double *max_lon, double *max_lat);
 #endif

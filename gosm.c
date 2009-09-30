@@ -61,6 +61,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
 #include <libgen.h>
 #include <locale.h>
 #include <math.h>
@@ -71,6 +73,7 @@
 #include "uri.h"
 #include <webkit/webkit.h>
 
+#include "customio.h"
 #include "paths.h"
 #include "config.h"
 #include "config_widget.h"
@@ -97,12 +100,15 @@
 #include "imageglue/imageglue.h"
 #include "imageglue/pdf_generator.h"
 
+#include "poi/poi_set.h"
+
 #include <unistd.h>
 #include <wait.h>
 
 #define CURSOR_HAND		0
 #define CURSOR_SELECT		1
 #define CURSOR_TARGET		2
+#define CURSOR_POINT		3
 
 char * urls[TILESET_LAST] = {
         "http://b.tile.openstreetmap.org/%d/%d/%d.png",
@@ -146,7 +152,7 @@ GtkWidget * 	web_legend;
 GtkWidget *	namefinder_cities;
 GtkWidget *	namefinder_countries;
 
-GtkWidget ** 	toolbar_buttons; // first 3 buttons; CURSOR_* is used as index
+GtkWidget ** 	toolbar_buttons; // first 4 buttons; CURSOR_* is used as index
 GtkWidget * 	button_network;
 GtkWidget * 	button_map_controls;
 GtkWidget * 	button_side_bar;
@@ -513,13 +519,16 @@ int main(int argc, char *argv[])
 	GtkWidget * icon1 = gtk_image_new_from_file(GOSM_ICON_DIR "navigate.png");
 	GtkWidget * icon2 = gtk_image_new_from_file(GOSM_ICON_DIR "select.png");
 	GtkWidget * icon3 = gtk_image_new_from_file(GOSM_ICON_DIR "measure.png");
-	toolbar_buttons = malloc(3 * sizeof(GtkButton*));
+	GtkWidget * icon12 = gtk_image_new_from_file(GOSM_ICON_DIR "insert-object.png");
+	toolbar_buttons = malloc(4 * sizeof(GtkButton*));
 	toolbar_buttons[0] = gtk_toggle_button_new();
 	toolbar_buttons[1] = gtk_toggle_button_new();
 	toolbar_buttons[2] = gtk_toggle_button_new();
+	toolbar_buttons[3] = gtk_toggle_button_new();
 	gtk_button_set_image(GTK_BUTTON(toolbar_buttons[0]), icon1);
 	gtk_button_set_image(GTK_BUTTON(toolbar_buttons[1]), icon2);
 	gtk_button_set_image(GTK_BUTTON(toolbar_buttons[2]), icon3);
+	gtk_button_set_image(GTK_BUTTON(toolbar_buttons[3]), icon12);
 	
 	GtkWidget * separator1 = gtk_hseparator_new();
 
@@ -565,6 +574,7 @@ int main(int argc, char *argv[])
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), toolbar_buttons[0], NULL, NULL, tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), toolbar_buttons[1], NULL, NULL, tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), toolbar_buttons[2], NULL, NULL, tc++);
+	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), toolbar_buttons[3], NULL, NULL, tc++);
 	gtk_toolbar_insert_space( GTK_TOOLBAR(toolbar), tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_zoom_in, NULL, NULL, tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_zoom_out, NULL, NULL, tc++);
@@ -586,6 +596,7 @@ int main(int argc, char *argv[])
 	gtk_widget_set_tooltip_text(toolbar_buttons[0],		"Navigation mode");
 	gtk_widget_set_tooltip_text(toolbar_buttons[1],		"Selection mode");
 	gtk_widget_set_tooltip_text(toolbar_buttons[2],		"Measure mode");
+	gtk_widget_set_tooltip_text(toolbar_buttons[3],		"Point of Interest mode");
 	gtk_widget_set_tooltip_text(button_zoom_in,		"zoom in");
 	gtk_widget_set_tooltip_text(button_zoom_out,		"zoom out");
 	gtk_widget_set_tooltip_text(button_grid,		"grid");
@@ -598,6 +609,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(toolbar_buttons[0]), 	"toggled", G_CALLBACK(action_select_cb), GINT_TO_POINTER(CURSOR_HAND));
 	g_signal_connect(G_OBJECT(toolbar_buttons[1]), 	"toggled", G_CALLBACK(action_select_cb), GINT_TO_POINTER(CURSOR_SELECT));
 	g_signal_connect(G_OBJECT(toolbar_buttons[2]), 	"toggled", G_CALLBACK(action_select_cb), GINT_TO_POINTER(CURSOR_TARGET));
+	g_signal_connect(G_OBJECT(toolbar_buttons[3]), 	"toggled", G_CALLBACK(action_select_cb), GINT_TO_POINTER(CURSOR_POINT));
 	g_signal_connect(G_OBJECT(button_grid), 	"toggled", G_CALLBACK(button_grid_cb), NULL);
 	g_signal_connect(G_OBJECT(button_font), 	"toggled", G_CALLBACK(button_font_cb), NULL);
 	g_signal_connect(G_OBJECT(button_zoom_in), 	"clicked", G_CALLBACK(button_zoom_cb), GINT_TO_POINTER(0));
@@ -708,6 +720,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(toolbar_buttons[0]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(toolbar_buttons[1]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(toolbar_buttons[2]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
+	g_signal_connect(G_OBJECT(toolbar_buttons[3]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 
 	// config
 	if (!show_controls) toggle_map_controls();
@@ -718,6 +731,37 @@ int main(int argc, char *argv[])
 	if (!show_statusbar) toggle_status_bar();
 	if (!show_sidebar) toggle_side_bar();
 	if (!show_sidebar_left) toggle_side_bar_left();
+
+	//TEST TEST TEST
+	PoiSet * poi_set = poi_set_new();
+
+	/*char * filename = GOSM_NAMEFINDER_DIR "cities15000.crop.txt";
+	
+	struct stat sb;
+	int s = stat(filename, &sb);
+	int size = sb.st_size;
+
+	char buf[size + 1];
+	int fd = open(filename, O_RDONLY);
+	int r = read(fd, buf, size);
+	close(fd);
+	buf[size] = '\0';
+
+	gchar ** splitted = g_strsplit(buf, "\n", 21500);
+	int l = g_strv_length(splitted);
+
+	int c;
+	for (c = 0; c < l - 1; c++){
+	//for (c = 0; c < 1000; c++){
+		gchar ** split2 = g_strsplit(splitted[c], "\t", 3);
+		//printf("%s a %s b %s\n", split2[0], split2[1], split2[2]);
+		double lat = strtodouble(split2[1]);
+		double lon = strtodouble(split2[2]);	
+		//map_area_add_marker(area, lon, lat);
+		poi_set_add(poi_set, lon, lat);
+	}*/
+	map_area_set_poi_set(area, poi_set);
+	//TEST TEST TEST*/
 
 	gdk_threads_enter();	
 	gtk_main();
@@ -770,6 +814,7 @@ void area_set_cursor(int id)
 	switch(id){
 		case CURSOR_SELECT: cursor = gdk_cursor_new(GDK_CROSS); break;
 		case CURSOR_TARGET: cursor = gdk_cursor_new(GDK_TARGET); break;
+		case CURSOR_POINT:  cursor = gdk_cursor_new(GDK_TARGET); break;
 	}
 	gdk_window_set_cursor(GTK_WIDGET(area)->window, cursor);
 }
@@ -986,6 +1031,10 @@ static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event)
 	}
 	case 100:{ // d
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toolbar_buttons[2]), TRUE);
+		break;
+	}
+	case 102:{ // f
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toolbar_buttons[3]), TRUE);
 		break;
 	}
 	/* mode select */
