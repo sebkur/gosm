@@ -48,9 +48,10 @@ struct _PoiSet
 
 	struct Node * root;
 	int node_index;
-	LonLatPair * points;
+	LonLatPairData * points;
+	void * data;
 
-	LonLatPair * results;
+	LonLatPairData * results;
 	int result_index;
 };
 
@@ -63,7 +64,7 @@ struct _PoiSetClass
 
 PoiSet * poi_set_new();
 
-void poi_set_add(PoiSet * poi_set, double lon, double lat);
-LonLatPair * poi_set_get(PoiSet * poi_set, int* count, double min_lon, double min_lat, double max_lon, double max_lat);
+void poi_set_add(PoiSet * poi_set, double lon, double lat, void * data);
+LonLatPairData * poi_set_get(PoiSet * poi_set, int* count, double min_lon, double min_lat, double max_lon, double max_lat);
 
 #endif /* _POI_SET_H_ */

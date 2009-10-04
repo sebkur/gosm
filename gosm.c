@@ -221,7 +221,8 @@ static gboolean legend_click_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean namefinder_city_cb(GtkWidget *widget);
 static gboolean namefinder_country_cb(GtkWidget *widget);
 static gboolean exit_cb(GtkWidget *widget);
-void   chdir_to_bin(char * arg0);
+       void     chdir_to_bin(char * arg0);
+       void     add_pois(PoiSet * poi_set);
 
 /*
  * Start auto-generated menu
@@ -734,32 +735,7 @@ int main(int argc, char *argv[])
 
 	//TEST TEST TEST
 	PoiSet * poi_set = poi_set_new();
-
-	/*char * filename = GOSM_NAMEFINDER_DIR "cities15000.crop.txt";
-	
-	struct stat sb;
-	int s = stat(filename, &sb);
-	int size = sb.st_size;
-
-	char buf[size + 1];
-	int fd = open(filename, O_RDONLY);
-	int r = read(fd, buf, size);
-	close(fd);
-	buf[size] = '\0';
-
-	gchar ** splitted = g_strsplit(buf, "\n", 21500);
-	int l = g_strv_length(splitted);
-
-	int c;
-	for (c = 0; c < l - 1; c++){
-	//for (c = 0; c < 1000; c++){
-		gchar ** split2 = g_strsplit(splitted[c], "\t", 3);
-		//printf("%s a %s b %s\n", split2[0], split2[1], split2[2]);
-		double lat = strtodouble(split2[1]);
-		double lon = strtodouble(split2[2]);	
-		//map_area_add_marker(area, lon, lat);
-		poi_set_add(poi_set, lon, lat);
-	}*/
+	//add_pois(poi_set);
 	map_area_set_poi_set(area, poi_set);
 	//TEST TEST TEST*/
 
@@ -810,7 +786,8 @@ static gboolean close_cb(GtkWidget *widget)
 // set cursor to CURSOR_*
 void area_set_cursor(int id)
 {
-	GdkCursor * cursor = gdk_cursor_new(GDK_HAND1);
+	//GdkCursor * cursor = gdk_cursor_new(GDK_HAND1);
+	GdkCursor * cursor = gdk_cursor_new(GDK_ARROW);
 	switch(id){
 		case CURSOR_SELECT: cursor = gdk_cursor_new(GDK_CROSS); break;
 		case CURSOR_TARGET: cursor = gdk_cursor_new(GDK_TARGET); break;
@@ -1449,4 +1426,39 @@ void chdir_to_bin(char * arg0)
 {
 	char * dir = dirname(arg0);
 	chdir(dir);
+}
+
+void add_pois(PoiSet *poi_set)
+{
+	char * filename = GOSM_NAMEFINDER_DIR "berlin_supermarkets.txt";
+	//char * filename = GOSM_NAMEFINDER_DIR "berlin_names.txt";
+	//char * filename = GOSM_NAMEFINDER_DIR "berlin_museums.txt";
+	
+	struct stat sb;
+	int s = stat(filename, &sb);
+	int size = sb.st_size;
+
+	char buf[size + 1];
+	int fd = open(filename, O_RDONLY);
+	int r = read(fd, buf, size);
+	close(fd);
+	buf[size] = '\0';
+
+	gchar ** splitted = g_strsplit(buf, "\n", 21500);
+	int l = g_strv_length(splitted);
+
+	int c;
+	for (c = 0; c < l - 1; c++){
+	//for (c = 0; c < 1000; c++){
+		gchar ** split2 = g_strsplit(splitted[c], "\t", 4);
+		//printf("%s a %s b %s\n", split2[0], split2[1], split2[2]);
+		double lat = strtodouble(split2[2]);
+		double lon = strtodouble(split2[3]);	
+		//map_area_add_marker(area, lon, lat);
+		IdAndName * id_name = malloc(sizeof(IdAndName));
+		id_name -> id = atoi(split2[0]);
+		id_name -> name = malloc(sizeof(char) * (strlen(split2[1]) + 1));
+		strcpy(id_name -> name, split2[1]);
+		poi_set_add(poi_set, lon, lat, (void*)id_name);
+	}
 }

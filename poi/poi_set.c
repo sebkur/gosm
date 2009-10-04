@@ -49,7 +49,7 @@ PoiSet * poi_set_new()
 	PoiSet * poi_set = g_object_new(GOSM_TYPE_POI_SET, NULL);
 	poi_set -> root = RTreeNewIndex();
 	poi_set -> node_index = 1;
-	poi_set -> points = malloc(sizeof(LonLatPair) * 100000);
+	poi_set -> points = malloc(sizeof(LonLatPairData) * 100000);
 	return poi_set;
 }
 
@@ -69,11 +69,12 @@ static void poi_set_init(PoiSet *poi_set)
 {
 }
 
-void poi_set_add(PoiSet * poi_set, double lon, double lat)
+void poi_set_add(PoiSet * poi_set, double lon, double lat, void * data)
 {
 	int array_index = poi_set -> node_index - 1;
 	poi_set -> points[array_index].lon = lon;
 	poi_set -> points[array_index].lat = lat;
+	poi_set -> points[array_index].data = data;
 	struct Rect * rect = malloc(sizeof(struct Rect));
 	rect -> boundary[0] = lon;
 	rect -> boundary[1] = lat;
@@ -90,10 +91,11 @@ int poi_set_search_cb(int id, void* arg)
 	int i = poi_set -> result_index;
 	poi_set -> results[i].lon = poi_set -> points[array_index].lon;
 	poi_set -> results[i].lat = poi_set -> points[array_index].lat;
+	poi_set -> results[i].data = poi_set -> points[array_index].data;
 	poi_set -> result_index++;
 }
 
-LonLatPair * poi_set_get(PoiSet * poi_set, int* count, double min_lon, double min_lat, double max_lon, double max_lat)
+LonLatPairData * poi_set_get(PoiSet * poi_set, int* count, double min_lon, double min_lat, double max_lon, double max_lat)
 {
 	struct Rect rect;
 	if (min_lon > max_lon){
@@ -112,7 +114,7 @@ LonLatPair * poi_set_get(PoiSet * poi_set, int* count, double min_lon, double mi
 	rect.boundary[3] = max_lat;
 	int number_of_results = RTreeSearch(poi_set -> root, &rect, NULL, 0);
 	*count = number_of_results;
-	poi_set -> results = malloc(sizeof(LonLatPair) * number_of_results);
+	poi_set -> results = malloc(sizeof(LonLatPairData) * number_of_results);
 	poi_set -> result_index = 0;
 	int n = RTreeSearch(poi_set -> root, &rect, poi_set_search_cb, (void*)poi_set);
 	return poi_set -> results;

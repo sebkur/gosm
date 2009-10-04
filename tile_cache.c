@@ -186,7 +186,7 @@ void cache_purge_tile(TileCache * cache, int zoom, int x, int y)
 
 void cache_remove_tile(TileCache * cache, int zoom, int x, int y)
 {
-	printf("removing\n");
+	//printf("removing\n");
 	GList ** list = &((cache -> table)[zoom]);
 	if (*list == NULL){
 		return;

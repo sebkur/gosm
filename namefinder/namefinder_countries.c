@@ -18,9 +18,6 @@
  * along with Gosm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// TODO: lat / lon should not be used for positioning
-// instead, the bounding box should be used to center on screen
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

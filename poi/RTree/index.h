@@ -6,7 +6,7 @@
 #define NUMDIMS	2	/* number of dimensions */
 #define NDEBUG
 
-typedef float RectReal;
+typedef double RectReal;
 
 
 /*-----------------------------------------------------------------------------

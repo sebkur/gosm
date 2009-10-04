@@ -44,13 +44,11 @@ struct _MapArea
 {
 	GtkDrawingArea parent;
 
-	GdkPixmap *pixmap;
-	int width;
-	int height;
+	GdkPixmap * pixmap;
+	GdkPixmap * no_pic;
 	MapPosition map_position;
 	Selection selection;
 	GList * path;
-	GList * markers;
 	int action_state;
 	gboolean show_grid;
 	gboolean show_font;
@@ -65,6 +63,8 @@ struct _MapArea
 	int slice_intersect_y;
 
 	gboolean need_repaint;
+	gboolean map_moved;
+	Point point_drag;
 
 	Tileset tileset;
 	TileManager * tile_manager[TILESET_LAST];
@@ -77,6 +77,8 @@ struct _MapArea
 	ColorQuadriple color_atlas_lines;
 
 	PoiSet * poi_set;
+	int next_marker_id;
+	int poi_active_id;
 	cairo_surface_t * icon_marker;
 };
 
@@ -101,10 +103,6 @@ void map_area_set_tileset(MapArea *map_area, Tileset tileset);
 Tileset map_area_get_tileset(MapArea *map_area);
 
 void map_area_set_cache_directory(MapArea *map_area, Tileset tileset, char * directory);
-
-// TODO remove: void map_has_moved();
-
-// TODO: remove: void map_load_new_tiles();
 
 void map_area_move(MapArea *map_area, int direction);
 void map_area_zoom_in(MapArea *map_area);

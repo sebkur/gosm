@@ -22,6 +22,8 @@
 #include <gdk/gdk.h>
 #include <glib.h>
 #include <cairo/cairo.h>
+#include <pango/pango.h>
+#include <pango/pangocairo.h>
 
 #include <sys/time.h>
 #include <string.h>
@@ -76,14 +78,7 @@ extern char * urls[];
 	"http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png"
 };*/
 
-// TODO: put in object
-
-Point point_drag;
-GdkPixmap *no_pic;
-
 struct timeval t1, t2;
-
-gboolean map_moved = TRUE;
 
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event);
 static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event);
@@ -92,6 +87,8 @@ static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event);
 static gboolean scroll_cb(MapArea *map_area, GdkEventScroll *event);
 
 void map_has_moved(MapArea *map_area);
+void map_area_adjust_map_position_values(MapArea *map_area);
+void map_area_adjust_tile_count_information(MapArea *map_area);
 
 GtkWidget * map_area_new()
 {
@@ -185,8 +182,8 @@ void map_area_set_network_state(MapArea *map_area, gboolean state)
 
 static void tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
 {
-	printf("received a repaint signal\n");
-	map_moved = TRUE;
+	//printf("received a repaint signal\n");
+	map_area -> need_repaint = TRUE;
 	gdk_threads_enter();
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 	gdk_threads_leave();
@@ -215,6 +212,9 @@ static void map_area_init(MapArea *map_area)
 	map_area -> snap_selection		= TRUE;
 	// end useless part
 
+	map_area -> map_moved			= TRUE;
+	map_area -> need_repaint		= TRUE;
+
 	map_area -> selection.x1 		= 0;
 	map_area -> selection.x2 		= 0;
 	map_area -> selection.y1 		= 0;
@@ -235,7 +235,6 @@ static void map_area_init(MapArea *map_area)
         map_area -> slice_intersect_y = 150;
 
 	map_area -> path			= g_list_alloc();
-	map_area -> markers			= g_list_alloc();
 
 	g_signal_connect(G_OBJECT(map_area), "motion_notify_event",	G_CALLBACK(mouse_motion_cb),	NULL);
 	g_signal_connect(G_OBJECT(map_area), "button_press_event", 	G_CALLBACK(mouse_button_cb),	NULL);
@@ -253,6 +252,8 @@ static void map_area_init(MapArea *map_area)
 		tile_manager_set_url_format(map_area -> tile_manager[i], urls[i]);
 		g_signal_connect(G_OBJECT(map_area -> tile_manager[i]), "tile_loaded_from_disk", G_CALLBACK(tile_loaded_cb), map_area);
 	}
+	map_area -> poi_active_id = 0;
+	map_area -> next_marker_id = 1;
 }
 
 int map_area_position_get_center_x(MapArea *map_area)
@@ -318,16 +319,12 @@ void map_area_repaint(MapArea *map_area)
 
 void map_area_goto_lon_lat_zoom(MapArea *map_area, double lon, double lat, int zoom)
 {
+	//printf("%f %f %d\n", lon, lat, zoom);
 	map_area -> map_position.lon = lon;
 	map_area -> map_position.lat = lat;
 	map_area -> map_position.zoom = zoom;
-	printf("%f %f %d\n", lon, lat, zoom);
-	double x = lon_to_x(lon, zoom) - map_area -> width/2/256.0;
-	double y = lat_to_y(lat, zoom) - map_area -> height/2/256.0;
-	map_area -> map_position.tile_top       = (int)y;
-	map_area -> map_position.tile_left      = (int)x;
-	map_area -> map_position.tile_offset_y  = ((int)(y * 256.0)) % 256;
-	map_area -> map_position.tile_offset_x  = ((int)(x * 256.0)) % 256;
+	map_area_adjust_map_position_values(map_area);
+	map_area_adjust_tile_count_information(map_area);
 	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_BEEN_MOVED], 0);
 	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_ZOOM_CHANGED], 0);
 	map_has_moved(map_area);
@@ -400,7 +397,7 @@ void map_area_goto_bbox(MapArea *map_area, double lon1, double lat1, double lon2
 
 void map_has_moved(MapArea *map_area)
 {
-	map_moved = TRUE;
+	map_area -> map_moved = TRUE;
 	if (map_area -> snap_selection){
 		map_area -> selection.x1 = map_area_lon_to_area_x(map_area, map_area -> selection.lon1);
 		map_area -> selection.x2 = map_area_lon_to_area_x(map_area, map_area -> selection.lon2);
@@ -489,7 +486,11 @@ void map_area_path_clear(MapArea *map_area)
 
 void map_area_add_marker(MapArea *map_area, double lon, double lat)
 {
-	poi_set_add(map_area -> poi_set, lon, lat);
+	IdAndName * id_name = malloc(sizeof(IdAndName));
+	id_name -> id = map_area -> next_marker_id ++;
+	id_name -> name = malloc(sizeof(char));
+	strcpy(id_name -> name, "");
+	poi_set_add(map_area -> poi_set, lon, lat, (void*)id_name);
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 }
 
@@ -499,9 +500,9 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 	gtk_widget_grab_focus(widget);
 	double lon = map_area_x_to_lon(map_area, (int) event -> x);
 	double lat = map_area_y_to_lat(map_area, (int) event -> y);
-	printf("button %f %f\n", lon, lat);
-	point_drag.x = (int) event -> x;
-	point_drag.y = (int) event -> y;
+	//printf("button %f %f\n", lon, lat);
+	map_area -> point_drag.x = (int) event -> x;
+	map_area -> point_drag.y = (int) event -> y;
 	if (event -> type == GDK_2BUTTON_PRESS){
 		if (event -> button == 1){
 			map_area_zoom_in(map_area);
@@ -529,10 +530,10 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 		if (MATCHES(event->state, GDK_BUTTON1_MASK)){
 			//printf("motion %d\n", event->state);
 			//printf("x: %d, y: %d\n", (int)event->x, (int)event->y);
-			int diff_x = ((int) event -> x) - point_drag.x;
-			int diff_y = ((int) event -> y) - point_drag.y;
-			point_drag.x = (int) event -> x;
-			point_drag.y = (int) event -> y;
+			int diff_x = ((int) event -> x) - map_area -> point_drag.x;
+			int diff_y = ((int) event -> y) - map_area -> point_drag.y;
+			map_area -> point_drag.x = (int) event -> x;
+			map_area -> point_drag.y = (int) event -> y;
 			//printf("motion %d %d\n", diff_x, diff_y);
 			map_position -> tile_offset_x -= diff_x;
 			map_position -> tile_offset_y -= diff_y;
@@ -555,6 +556,32 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 			//printf("offset now: %d\n", map_position -> tile_offset_x);
 			map_has_moved(map_area);
 			gtk_widget_queue_draw(widget);
+		}else{
+			// NORMAL mode + mouse not pressed
+			double lon = map_area_x_to_lon(map_area, (int) event -> x);
+			double lat = map_area_y_to_lat(map_area, (int) event -> y);
+			double squaresize = 16;
+			double lon1 = map_area_x_to_lon(map_area, (int) (event -> x - squaresize / 2));
+			double lat1 = map_area_y_to_lat(map_area, (int) (event -> y + squaresize / 2));
+			double lon2 = map_area_x_to_lon(map_area, (int) (event -> x + squaresize / 2));
+			double lat2 = map_area_y_to_lat(map_area, (int) (event -> y - squaresize / 2));
+			//printf("%f %f %f %f\n", lon1, lon2, lat1, lat2);
+			int marker_count;
+			LonLatPairData * points = poi_set_get(map_area -> poi_set, &marker_count, lon1, lat1, lon2, lat2);
+			if (marker_count > 0){
+				IdAndName * id_name = (IdAndName*)points -> data;
+				if (map_area -> poi_active_id != id_name -> id){
+					map_area -> poi_active_id = id_name -> id;
+					printf("%s\n", id_name -> name);	
+					map_area_repaint(map_area);
+				}
+			}else{
+				if (map_area -> poi_active_id != 0){
+					map_area -> poi_active_id = 0;
+					map_area_repaint(map_area);
+				}
+			}
+			//printf("%d %f\n", marker_count, event -> x);
 		}
 	}
 	// SELECTION mode
@@ -609,41 +636,41 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 		if (MATCHES(event->state, GDK_BUTTON1_MASK)){
 			int mo = map_area -> selection_mouseover;
 			if (mo == DIRECTION_LEFT || mo == DIRECTION_TOP_LEFT || mo == DIRECTION_DOWN_LEFT){
-				int diff = x - point_drag.x;
+				int diff = x - map_area -> point_drag.x;
 				if (selection.x1 + diff < selection.x2){
 					map_area -> selection.x1 += diff;
 					map_area -> selection.lon1 = map_area_x_to_lon(map_area, map_area -> selection.x1),
-					point_drag.x = x;
+					map_area -> point_drag.x = x;
 					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
 					gtk_widget_queue_draw(widget);
 				}
 			}
 			if (mo == DIRECTION_RIGHT || mo == DIRECTION_TOP_RIGHT || mo == DIRECTION_DOWN_RIGHT){
-				int diff = x - point_drag.x;
+				int diff = x - map_area -> point_drag.x;
 				if (selection.x2 + diff > selection.x1){
 					map_area -> selection.x2 += diff;
 					map_area -> selection.lon2 = map_area_x_to_lon(map_area, map_area -> selection.x2),
-					point_drag.x = x;
+					map_area -> point_drag.x = x;
 					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
 					gtk_widget_queue_draw(widget);
 				}
 			}
 			if (mo == DIRECTION_TOP || mo == DIRECTION_TOP_LEFT || mo == DIRECTION_TOP_RIGHT){
-				int diff = y - point_drag.y;
+				int diff = y - map_area -> point_drag.y;
 				if (selection.y1 + diff < selection.y2){
 					map_area -> selection.y1 += diff;
 					map_area -> selection.lat1 = map_area_y_to_lat(map_area, map_area -> selection.y1),
-					point_drag.y = y;
+					map_area -> point_drag.y = y;
 					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
 					gtk_widget_queue_draw(widget);
 				}
 			}
 			if (mo == DIRECTION_DOWN || mo == DIRECTION_DOWN_LEFT || mo == DIRECTION_DOWN_RIGHT){
-				int diff = y - point_drag.y;
+				int diff = y - map_area -> point_drag.y;
 				if (selection.y2 + diff > selection.y1){
 					map_area -> selection.y2 += diff;
 					map_area -> selection.lat2 = map_area_y_to_lat(map_area, map_area -> selection.y2),
-					point_drag.y = y;
+					map_area -> point_drag.y = y;
 					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
 					gtk_widget_queue_draw(widget);
 				}
@@ -655,19 +682,19 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 		// set selection to:
 		// (last press position) to (current pointer position)
 		if (map_area -> selection_mouseover == 0 && MATCHES(event->state, GDK_BUTTON1_MASK)){
-			if (point_drag.x > (int) event -> x){	
+			if (map_area -> point_drag.x > (int) event -> x){	
 				map_area -> selection.x1 = (int) event -> x;
-				map_area -> selection.x2 = point_drag.x;
+				map_area -> selection.x2 = map_area -> point_drag.x;
 			}else{	
 				map_area -> selection.x2 = (int) event -> x;
-				map_area -> selection.x1 = point_drag.x;
+				map_area -> selection.x1 = map_area -> point_drag.x;
 			}
-			if (point_drag.y > (int) event -> y){
+			if (map_area -> point_drag.y > (int) event -> y){
 				map_area -> selection.y1 = (int) event -> y;
-				map_area -> selection.y2 = point_drag.y;
+				map_area -> selection.y2 = map_area -> point_drag.y;
 			}else{
 				map_area -> selection.y2 = (int) event -> y;
-				map_area -> selection.y1 = point_drag.y;
+				map_area -> selection.y1 = map_area -> point_drag.y;
 			}
 			map_area -> selection.lon1 = map_area_x_to_lon(map_area, map_area -> selection.x1),
 			map_area -> selection.lon2 = map_area_x_to_lon(map_area, map_area -> selection.x2),
@@ -714,64 +741,64 @@ void map_area_move(MapArea *map_area, int direction)
 	button_move_function(map_area, GINT_TO_POINTER(direction));
 }
 
-static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
+void map_area_adjust_map_position_values(MapArea *map_area)
 {
-	//printf("expose\n");
-	MapArea *map_area = GOSM_MAP_AREA(widget);
 	MapPosition *map_position = &(map_area -> map_position);
+	double x = lon_to_x(map_position -> lon, map_position -> zoom) - map_position -> width/2/256.0;
+	double y = lat_to_y(map_position -> lat, map_position -> zoom) - map_position -> height/2/256.0;
+	map_area -> map_position.tile_top 	= (int)y;
+	map_area -> map_position.tile_left 	= (int)x;
+	map_area -> map_position.tile_offset_y 	= ((int)(y * 256.0)) % 256;
+	map_area -> map_position.tile_offset_x 	= ((int)(x * 256.0)) % 256;	
+}
 
-	gboolean recreate = FALSE;
-	// create Pixmap-Buffer if first time of drawing
-	if (map_area -> pixmap == NULL
-			|| widget -> allocation.width != map_area -> width
-			|| widget -> allocation.height != map_area -> height){
-		recreate = TRUE;
-		map_area -> width = widget->allocation.width;
-		map_area -> height = widget->allocation.height;
-		map_position -> width = map_area -> width;
-		map_position -> height = map_area -> height;
-
-		// capsle
-		double x = lon_to_x(map_position -> lon, map_position -> zoom) - map_area -> width/2/256.0;
-		double y = lat_to_y(map_position -> lat, map_position -> zoom) - map_area -> height/2/256.0;
-		map_area -> map_position.tile_top 	= (int)y;
-		map_area -> map_position.tile_left 	= (int)x;
-		map_area -> map_position.tile_offset_y 	= ((int)(y * 256.0)) % 256;
-		map_area -> map_position.tile_offset_x 	= ((int)(x * 256.0)) % 256;	
-		// capsle
-
-		if (map_area -> pixmap != NULL) g_object_unref(map_area -> pixmap);
-		map_area -> pixmap = gdk_pixmap_new(widget->window,
-				widget->allocation.width,
-				widget->allocation.height, 24);
-		map_has_moved(map_area);
-	}
-	int width = map_area -> width;
-	int height = map_area -> height;
+void map_area_adjust_tile_count_information(MapArea *map_area)
+{
+	MapPosition *map_position = &(map_area -> map_position);
+	int width = map_position -> width;
+	int height = map_position -> height;
 	int width_1 = width - TILESIZE +  map_position -> tile_offset_x;
 	int height_1 = height - TILESIZE +  map_position -> tile_offset_y;
 	width_1 = width_1 > 0 ? width_1 : 0;
 	height_1 = height_1 > 0 ? height_1 :0;
 	map_position -> tile_count_x = width_1 / 256 + 2;
 	map_position -> tile_count_y = height_1 / 256 + 2;
+}
 
-	//printf("tiles: %d\n", map_position -> tile_count_x * map_position -> tile_count_y);
-	if (map_moved){
-		map_moved = FALSE;
-		recreate = TRUE;
+static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
+{
+	//printf("function map_area.expose_cb\n");
+	MapArea *map_area = GOSM_MAP_AREA(widget);
+	MapPosition *map_position = &(map_area -> map_position);
+	/* recreate == true <=> first exposure OR widget-size changed */
+	gboolean recreate = map_area -> pixmap == NULL
+				|| widget -> allocation.width != map_position -> width
+				|| widget -> allocation.height != map_position -> height;
+	if (recreate){
+		/* store new size */
+		map_position -> width  = widget -> allocation.width;
+		map_position -> height = widget -> allocation.height;
+		map_area_adjust_map_position_values(map_area);
+		/* throw away the old pixmap, if exists */
+		if (map_area -> pixmap != NULL) g_object_unref(map_area -> pixmap);
+		map_area -> pixmap = gdk_pixmap_new(widget->window,
+				widget->allocation.width,
+				widget->allocation.height, 24);
+		map_has_moved(map_area);
 	}
-	if (map_area -> need_repaint){
+	map_area_adjust_tile_count_information(map_area);
+	//printf("visible tiles: %d\n", map_position -> tile_count_x * map_position -> tile_count_y);
+	/* paint into the pixmap-buffer */
+	if(map_area -> map_moved || map_area -> need_repaint){
+		map_area -> map_moved = FALSE;
 		map_area -> need_repaint = FALSE;
-		recreate = TRUE;
-	}
-	if(recreate){
+		/* draw white background */
 		gdk_draw_rectangle(map_area -> pixmap,
 				widget->style->white_gc,
 				TRUE, 0, 0, 
 				widget -> allocation.width,
 				widget -> allocation.height);
-
-		char path[100];
+		/* draw tiles */
 		int x, y = 0; int t_x, t_y; int c;
 		for (x = 0; x < map_position -> tile_count_x; x++){
 		  for(y = 0; y < map_position -> tile_count_y; y++){
@@ -779,35 +806,33 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			GdkPixmap *pixmap;
 			t_x = map_position -> tile_left + x;
 			t_y = map_position -> tile_top  + y;
-
-			gboolean in_cache = FALSE;
-
-			//gpointer pointer = cache_find_tile(tile_cache, map_position -> zoom, t_x, t_y);
-			gpointer pointer = tile_manager_request_tile(map_area -> tile_manager[map_area -> tileset], t_x, t_y, map_position -> zoom); 
-			if (pointer != NULL){
-				in_cache = TRUE;
+			gpointer pointer = tile_manager_request_tile(
+				map_area -> tile_manager[map_area -> tileset],
+				t_x, t_y, map_position -> zoom); 
+			gboolean in_cache = pointer != NULL;
+			if (in_cache){
 				pixmap = GDK_PIXMAP(pointer);
-			}
-			if (!in_cache){
-				printf("CACHE MISS\n");
-				if (no_pic == NULL){
-					no_pic = gdk_pixmap_new(NULL,
-						256, 256, 24);
+			}else{
+				//printf("CACHE MISS\n");
+				/* if the empty pic has not been initialised */
+				if (map_area -> no_pic == NULL){
+					map_area -> no_pic = gdk_pixmap_new(
+						NULL, 256, 256, 24);
 					GdkVisual * visual = gdk_visual_get_best_with_depth(24);
 					GdkColormap * colormap = gdk_colormap_new(visual, TRUE);
-					gdk_drawable_set_colormap(no_pic, colormap);
-					gdk_draw_rectangle(no_pic,
+					gdk_drawable_set_colormap(map_area -> no_pic, colormap);
+					gdk_draw_rectangle(map_area -> no_pic,
 						widget->style->white_gc,
 						TRUE, 0, 0, TILESIZE, TILESIZE);
 				}
-				pixmap = no_pic;
+				pixmap = map_area -> no_pic;
 			}
 			gdk_draw_drawable(map_area -> pixmap, widget->style->black_gc, pixmap,
 				0, 0,
 				TILESIZE * x - map_position -> tile_offset_x,
 				TILESIZE * y - map_position -> tile_offset_y,
 				TILESIZE, TILESIZE);
-			// if DRAW_GRID
+			/* DRAW_GRID */
 			if (map_area -> show_grid){
 				gdk_draw_rectangle(map_area -> pixmap, widget->style->black_gc,
 					FALSE,
@@ -815,7 +840,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 					TILESIZE * y - map_position -> tile_offset_y,
 					256, 256);
 			}
-			// if DRAW_TILE_NAMES
+			/* DRAW_TILE_NAMES */
 			if (map_area -> show_font){
 				char text[20];
 				sprintf(text, "%d_%d_%d", map_position -> zoom, t_x, t_y);
@@ -824,21 +849,21 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 					TILESIZE * x - map_position -> tile_offset_x + 10,
 					TILESIZE * y - map_position -> tile_offset_y + 20,
 					text, strlen(text));
+				gdk_font_unref(font);
 			}
-		  } // for y
-		} // for x
+		  } /* for y */
+		} /* for x */
 	} /* endif recreate */
-	//gettimeofday(&t1, NULL);
+	/* draw buffer-pixmap to screen */
 	gdk_draw_drawable(widget->window,
 		widget->style->fg_gc[GTK_WIDGET_STATE(widget)],
 		map_area -> pixmap,
 		event->area.x, event->area.y,
 		event->area.x, event->area.y,
 		event->area.width, event->area.height);
-	//gettimeofday(&t2, NULL);
-	// DRAW SELECTION
+	/* DRAW SELECTION */
 	if (map_area -> show_selection){
-		// fill
+		/* fill */
 		cairo_t * cr_sel = gdk_cairo_create(widget->window);
 		ColorQuadriple * c = &(map_area -> color_selection);
 		cairo_pattern_t * pat_sel = cairo_pattern_create_rgba(c -> r, c -> g, c -> b, c -> a);
@@ -849,8 +874,9 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			map_area -> selection.x2 - map_area -> selection.x1,
 			map_area -> selection.y2 - map_area -> selection.y1);
 		cairo_fill(cr_sel);
-		// outline
+		/* outline */
 		c = &(map_area -> color_selection_out);
+		cairo_pattern_destroy(pat_sel);
 		pat_sel = cairo_pattern_create_rgba(c -> r, c -> g, c -> b, c -> a);
 		cairo_set_source(cr_sel, pat_sel);
 		cairo_rectangle(cr_sel,
@@ -860,8 +886,8 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			map_area -> selection.y2 - map_area -> selection.y1);
 		cairo_set_line_width(cr_sel, 1.0);
 		cairo_stroke(cr_sel);
-
-		// slicing
+		cairo_pattern_destroy(pat_sel);
+		/* slicing */
 		if (map_area -> show_slice){
 			int z_diff = map_position -> zoom - map_area -> slice_zl;
 			double z_factor = pow(2, z_diff);
@@ -880,8 +906,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			if (parts_x * parts_y < 1000){
 				//printf("slices: %d %d\n", parts_x, parts_y);
 				ColorQuadriple * c = &(map_area -> color_atlas_lines);
-				cairo_pattern_t * pat_sel = cairo_pattern_create_rgba(c -> r, c -> g, c -> b, c -> a);
-				//pat_sel = cairo_pattern_create_rgba(0.5,0.5,0.5,0.4);
+				pat_sel = cairo_pattern_create_rgba(c -> r, c -> g, c -> b, c -> a);
 				cairo_set_source(cr_sel, pat_sel);
 				int s_x, s_y;
 				for(s_x = 0; s_x < parts_x; s_x++){
@@ -895,6 +920,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 				}
 				cairo_set_line_width(cr_sel, 1.0);
 				cairo_stroke(cr_sel);
+				cairo_pattern_destroy(pat_sel);
 			}
 		}
 
@@ -944,12 +970,12 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			}
 			cairo_fill(cr_sel);
 		}
+		cairo_destroy(cr_sel);
 		/* RESIZE PADS end */
 	}
-	// DRAW PATH
+	/* DRAW PATH */
 	int last_x, last_y; gboolean first = TRUE;
 	GList * node = map_area -> path -> next;
-	GdkGC *gc = gdk_gc_new(widget->window);
 	cairo_t * cr_lines = gdk_cairo_create(widget->window);
 	cairo_set_line_width(cr_lines, 1.5);
 	cairo_t * cr_arcs = gdk_cairo_create(widget->window);
@@ -973,42 +999,100 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	cairo_pattern_t * pat_arcs = cairo_pattern_create_rgb(0.85, 0.25, 0.25);
 	cairo_set_source(cr_arcs, pat_arcs);
 	cairo_fill(cr_arcs);
-	//gettimeofday(&t2, NULL);
-	//printf("time %d\n", time_diff(&t1, &t2));
-	// DRAW MARKERS
+	cairo_destroy(cr_lines);
+	cairo_destroy(cr_arcs);
+	/* DRAW MARKERS */
 	if (map_area -> icon_marker == NULL){
 		map_area -> icon_marker = cairo_image_surface_create_from_png(GOSM_ICON_DIR "point.png");
 	}
-	cairo_t * cr_marker = gdk_cairo_create(widget->window);
-	// TODO: clean up with old marker-stuff. e.g. map_area -> markers...
-	//GList * node_m = map_area -> markers -> next;
-	//while(node_m != NULL){
 	double min_lon, min_lat, max_lon, max_lat;
 	map_area_get_visible_area(map_area, &min_lon, &min_lat, &max_lon, &max_lat);
 	int marker_count;
-	LonLatPair * points = poi_set_get(map_area -> poi_set, &marker_count, min_lon, min_lat, max_lon, max_lat);
-	int p;
-	// efficency test
-	cairo_pattern_t * pat_dots = cairo_pattern_create_rgb(0.85, 0.25, 0.25);
+	LonLatPairData * points = poi_set_get(map_area -> poi_set, &marker_count, min_lon, min_lat, max_lon, max_lat);
+	cairo_t * cr_marker = gdk_cairo_create(widget->window);
+	cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(0.85, 0.25, 0.25, 0.9);
 	cairo_set_source(cr_marker, pat_dots);
+	/* adjust visible size */
 	double square_size = 2;
 	if (map_area -> map_position.zoom > 6) square_size = 3;
 	if (map_area -> map_position.zoom > 8) square_size = 4;
 	if (map_area -> map_position.zoom > 10) square_size = 5;
+	if (map_area -> map_position.zoom > 12) square_size = 6;
+	if (map_area -> map_position.zoom > 14) square_size = 7;
 	double square_size_half = square_size / 2;
-	// efficency test
+	/* n_active is the one, where mouse is over */
+	int n_active = -1;
+	int p;
 	for (p = 0; p < marker_count; p++){
 		int x = map_area_lon_to_area_x(map_area, points[p].lon);
 		int y = map_area_lat_to_area_y(map_area, points[p].lat);
-		//cairo_set_source_surface(cr_marker, map_area -> icon_marker, x - 12, y - 12);
-		//cairo_rectangle(cr_marker, x-12, y-12, 24, 24);
-		//cairo_paint(cr_marker);
 		cairo_move_to(cr_marker, x, y);
-		//cairo_arc(cr_marker, x, y, 3, 0.0, 2 * 3.1415927);
-		cairo_rectangle(cr_marker, x-square_size_half, y-square_size_half, square_size, square_size); 
+		IdAndName * id_name = (IdAndName*) points[p].data;
+		if (id_name -> id != map_area -> poi_active_id){
+			cairo_rectangle(cr_marker, x-square_size_half, y-square_size_half, square_size, square_size); 
+			//cairo_arc(cr_marker, x, y, 3, 0.0, 2 * 3.1415927);
+			//cairo_set_source_surface(cr_marker, map_area -> icon_marker, x - 12, y - 12);
+			//cairo_rectangle(cr_marker, x-12, y-12, 24, 24);
+			//cairo_paint(cr_marker);
+		}else{
+			n_active = p;
+		}
 	}
 	cairo_fill(cr_marker);
+	/* n_active == -1 means: mouse not over any marker */
+	if (n_active >= 0){
+		pat_dots = cairo_pattern_create_rgba(0.85, 0.55, 0.55, 0.9);
+		cairo_set_source(cr_marker, pat_dots);
+		int p = n_active;
+		int x = map_area_lon_to_area_x(map_area, points[p].lon);
+		int y = map_area_lat_to_area_y(map_area, points[p].lat);
+		cairo_move_to(cr_marker, x, y);
+		IdAndName * id_name = (IdAndName*) points[p].data;
+		cairo_rectangle(cr_marker, x-square_size, y-square_size, square_size * 2, square_size * 2);
+		cairo_fill(cr_marker);
+		cairo_pattern_destroy(pat_dots);
+
+		cairo_t * cr_font = gdk_cairo_create(widget->window);
+		PangoContext * pc_marker = pango_cairo_create_context(cr_font);
+		PangoLayout * pl_marker = pango_layout_new(pc_marker);
+		char * markup = malloc(sizeof(char) * (strlen(id_name -> name) + 8));
+		strcpy(markup, "<b>");
+		strcpy(markup + strlen(markup), id_name -> name);
+		strcpy(markup + strlen(markup), "</b>");
+		pango_layout_set_markup(pl_marker, markup, -1);
+
+		PangoRectangle rect1, rect2;
+		pango_layout_get_pixel_extents(pl_marker, &rect1, &rect2);
+
+		cairo_move_to(cr_font, x - rect2.width/2, y - square_size - 2 - rect2.height);
+		pango_cairo_layout_path(cr_font, pl_marker);
+		cairo_pattern_t * pat_font = cairo_pattern_create_rgba(0.99, 0.99, 0.99, 0.9);
+		cairo_set_source(cr_font, pat_font);
+		cairo_stroke(cr_font);
+		cairo_pattern_destroy(pat_font);
+		pat_font = cairo_pattern_create_rgba(0.15, 0.15, 0.15, 0.9);
+		cairo_set_source(cr_font, pat_font);
+		cairo_move_to(cr_font, x - rect2.width/2, y - square_size - 2 - rect2.height);
+		pango_cairo_show_layout(cr_font, pl_marker);
+		cairo_fill(cr_font);
+		cairo_destroy(cr_font);
+		cairo_pattern_destroy(pat_font);
+		g_object_unref(pc_marker);
+		g_object_unref(pl_marker);
+		free(markup);
+	}
 	free(points);
+	cairo_destroy(cr_marker);
+
+	/* cairo_t * cr_font = gdk_cairo_create(widget->window);
+	cairo_pattern_t * pat_font = cairo_pattern_create_rgba(0.85, 0.25, 0.25, 0.9);
+	cairo_set_source(cr_font, pat_font);
+	cairo_move_to(cr_font, 0, 0);
+	PangoContext * pc_marker = pango_cairo_create_context(cr_font);
+	PangoLayout * pl_marker = pango_layout_new(pc_marker);
+	pango_layout_set_markup(pl_marker, "<b>FOO Bar</b>", -1);
+	pango_cairo_show_layout(cr_font, pl_marker);
+	cairo_fill(cr_font); */
 	return TRUE;
 }
 

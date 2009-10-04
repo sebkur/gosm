@@ -210,7 +210,7 @@ void tile_manager_delete_tile(TileManager * tile_manager, int x, int y, int zoom
 
 void get_tile_from_harddisk(TileManager * tile_manager, int x, int y, int zoom)
 {
-	printf("get tile from hd: %d %d %d\n", x, y, zoom);
+	//printf("get tile from hd: %d %d %d\n", x, y, zoom);
 	pthread_mutex_lock(&(tile_manager -> mutex_load_from_disk));
 	MapTile map_tile;
 	map_tile.x = x;
@@ -218,7 +218,7 @@ void get_tile_from_harddisk(TileManager * tile_manager, int x, int y, int zoom)
 	map_tile.zoom = zoom;
 	if (!(is_in_list(tile_manager -> load_from_disk, &map_tile) || !memcmp(&(tile_manager -> actual_load_from_disk), &map_tile, sizeof(MapTile)))){
 		g_array_append_val(tile_manager -> load_from_disk, map_tile);
-		printf("appended\n");
+		//printf("appended\n");
 	}
 	pthread_mutex_unlock(&(tile_manager -> mutex_load_from_disk));
 	// notify loader thread
@@ -229,7 +229,7 @@ void get_tile_from_harddisk(TileManager * tile_manager, int x, int y, int zoom)
 
 void get_tile_from_network(TileManager * tile_manager, int x, int y, int zoom)
 {
-	printf("get tile from nw: %d %d %d\n", x, y, zoom);
+	//printf("get tile from nw: %d %d %d\n", x, y, zoom);
 	pthread_mutex_lock(&(tile_manager -> mutex_load_from_netw));
 	MapTile map_tile;
 	map_tile.x = x;
@@ -237,7 +237,7 @@ void get_tile_from_network(TileManager * tile_manager, int x, int y, int zoom)
 	map_tile.zoom = zoom;
 	if (!(is_in_list(tile_manager -> load_from_netw, &map_tile) || is_in_list(tile_manager -> actual_load_from_netw, &map_tile))){
 		g_array_append_val(tile_manager -> load_from_netw, map_tile);
-		printf("appended\n");
+		//printf("appended\n");
 	}
 	pthread_mutex_unlock(&(tile_manager -> mutex_load_from_netw));
 	// notify loader thread
@@ -354,9 +354,9 @@ void tile_manager_download_tile(TileManager * tile_manager, CURL * easyhandle, i
 	char filename[tile_manager -> cache_files_format_len + 22];
 	sprintf(url, tile_manager -> format_url, zoom, x, y);
 	sprintf(filename, tile_manager -> cache_files_format, zoom, x, y);
-	printf("downloading %s to %s\n", url, filename);
+	//printf("downloading %s to %s\n", url, filename);
 	tile_manager_download(tile_manager, easyhandle, url, filename);
-	printf("got %s\n", filename);
+	//printf("got %s\n", filename);
 }
 
 void function_load_from_netw(TileManager * tile_manager)
@@ -378,7 +378,7 @@ void function_load_from_netw(TileManager * tile_manager)
 				pthread_mutex_lock(&(tile_manager -> mutex_load_from_netw));
 				int pos = pos_in_list(tile_manager -> actual_load_from_netw, &map_tile);
 				g_array_remove_index_fast(tile_manager -> actual_load_from_netw, pos);
-				printf("list len: %d\n", tile_manager -> actual_load_from_netw -> len);
+				//printf("list len: %d\n", tile_manager -> actual_load_from_netw -> len);
 				pthread_mutex_unlock(&(tile_manager -> mutex_load_from_netw));
 
 				g_signal_emit (tile_manager, tile_manager_signals[TILE_LOADED_FROM_DISK], 0);

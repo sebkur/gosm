@@ -93,7 +93,7 @@ static void RTreePickSeeds(struct PartitionVars *P)
 	register struct PartitionVars *p = P;
 	register int i, dim, high;
 	register struct Rect *r, *rlow, *rhigh;
-	register float w, separation, bestSep;
+	register double w, separation, bestSep;
 	RectReal width[NUMDIMS];
 	int leastUpper[NUMDIMS], greatestLower[NUMDIMS];
 	int seed0, seed1;

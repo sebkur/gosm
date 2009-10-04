@@ -73,6 +73,17 @@ typedef struct LonLatPair {
 	double lat;
 } LonLatPair;
 
+typedef struct LonLatPairData {
+	double lon;
+	double lat;
+	void * data;
+} LonLatPairData;
+
+typedef struct IdAndName {
+	int id;
+	char * name;
+} IdAndName;
+
 typedef struct ColorQuadriple {
 	double r;
 	double g;

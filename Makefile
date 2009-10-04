@@ -99,10 +99,10 @@ gosm.o
 CC  = /usr/bin/gcc
 DEPENDFILE = .depend
 CFLAGS  = -D BUILD=0 \
- `pkg-config --cflags --libs gtk+-2.0 gdk-2.0 cairo glib-2.0 gthread-2.0 libpng webkit-1.0` \
+ `pkg-config --cflags --libs gtk+-2.0 gdk-2.0 pango cairo glib-2.0 gthread-2.0 libpng webkit-1.0` \
  `curl-config --cflags --libs`
 LDFLAGS = -lm -lpthread \
- `pkg-config --cflags --libs gtk+-2.0 gdk-2.0 cairo glib-2.0 gthread-2.0 libpng webkit-1.0` \
+ `pkg-config --cflags --libs gtk+-2.0 gdk-2.0 pango cairo glib-2.0 gthread-2.0 libpng webkit-1.0` \
  `curl-config --cflags --libs`
 
 gosm: $(OBJ)
@@ -116,6 +116,75 @@ dep: $(SRC)
 
 clean:
 	rm -f $(BIN) $(OBJ)
+
+# PACKAGING
+
+VERSION := $(shell cat VERSION)
+DIRNAME = $(shell basename `pwd`)
+
+packages: tar deb
+
+tar:
+	cd .. &&\
+	tar --exclude=*.svn* --exclude=*.o --exclude=packages/* -cvzf $(DIRNAME)/packages/gosm.$(VERSION).tar.gz $(DIRNAME)
+
+deb:
+	rm -rf packages/deb 
+	mkdir packages/deb 
+	mkdir packages/deb/DEBIAN 
+	mkdir packages/deb/usr 
+	mkdir packages/deb/usr/bin 
+	mkdir packages/deb/usr/share 
+	mkdir packages/deb/usr/share/gosm 
+	mkdir packages/deb/usr/share/gosm/about 
+	mkdir packages/deb/usr/share/gosm/icons 
+	mkdir packages/deb/usr/share/gosm/manual 
+	mkdir packages/deb/usr/share/gosm/namefinder 
+	mkdir packages/deb/usr/share/gosm/legend 
+	mkdir packages/deb/usr/share/gosm/legend/mapnik 
+	mkdir packages/deb/usr/share/gosm/legend/mapnik/images 
+	mkdir packages/deb/usr/share/gosm/legend/cycle 
+	mkdir packages/deb/usr/share/gosm/legend/cycle/images 
+	mkdir packages/deb/usr/lib 
+	mkdir packages/deb/usr/lib/gosm 
+	mkdir packages/deb/usr/lib/gosm/imageglue 
+	mkdir packages/deb/usr/lib/gosm/imageglue/pdf_creator 
+	mkdir packages/deb/usr/lib/gosm/imageglue/pdf_creator/pdf 
+	echo "Copying files" 
+	cp gosm packages/deb/usr/bin/ 
+	cp about/*png packages/deb/usr/share/gosm/about 
+	cp about/*html packages/deb/usr/share/gosm/about 
+	cp icons/* packages/deb/usr/share/gosm/icons/ 
+	cp manual/*png packages/deb/usr/share/gosm/manual 
+	cp manual/*html packages/deb/usr/share/gosm/manual 
+	cp namefinder/*txt packages/deb/usr/share/gosm/namefinder 
+	cp legend/*html packages/deb/usr/share/gosm/legend 
+	cp legend/mapnik/*html packages/deb/usr/share/gosm/legend/mapnik 
+	cp legend/mapnik/images/*png* packages/deb/usr/share/gosm/legend/mapnik/images 
+	cp legend/cycle/*html packages/deb/usr/share/gosm/legend/cycle 
+	cp legend/cycle/images/*png* packages/deb/usr/share/gosm/legend/cycle/images 
+	cp imageglue/pdf_creator/*jar packages/deb/usr/lib/gosm/imageglue/pdf_creator 
+	cp imageglue/pdf_creator/pdf/*class packages/deb/usr/lib/gosm/imageglue/pdf_creator/pdf 
+	echo "creating control file"
+	cd packages/deb/DEBIAN &&\
+	touch control &&\
+	echo "Package: gosm" >> control &&\
+	echo "Version: $(VERSION)" >> control &&\
+	echo "Section: net" >> control &&\
+	echo "Priority: optional" >> control &&\
+	echo "Architecture: i386" >> control &&\
+	echo "Depends: curl (>= 7.18.2)" >> control &&\
+	echo "Depends: libwebkit-1.0-1 (>= 1.0.1)" >> control &&\
+	echo "Depends: libpng12-0 (>= 1.2.27)" >> control &&\
+	echo "Depends: libgtk2.0-0 (>= 2.16.1)" >> control &&\
+	echo "Depends: libcairo2 (>= 1.8.6)" >> control &&\
+	echo "Installed-Size: 329" >> control &&\
+	echo "Maintainer: Sebastian Kürten <sebastian.kuerten@fu-berlin.de>" >> control &&\
+	echo "Description: Viewer for the OpenStreetMap" >> control
+	dpkg-deb -b packages/deb packages/gosm.$(VERSION)_i386.deb
+	rm -rf packages/deb
+
+
 
 -include $(DEPENDFILE)
 
