@@ -1055,16 +1055,19 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		cairo_t * cr_font = gdk_cairo_create(widget->window);
 		PangoContext * pc_marker = pango_cairo_create_context(cr_font);
 		PangoLayout * pl_marker = pango_layout_new(pc_marker);
-		char * markup = malloc(sizeof(char) * (strlen(id_name -> name) + 8));
-		strcpy(markup, "<b>");
-		strcpy(markup + strlen(markup), id_name -> name);
-		strcpy(markup + strlen(markup), "</b>");
-		pango_layout_set_markup(pl_marker, markup, -1);
+		pango_layout_set_text(pl_marker, id_name -> name, -1);
+		PangoAttrList * attrs = pango_attr_list_new();
+		PangoAttribute * weight = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
+		PangoAttribute * size = pango_attr_size_new(PANGO_SCALE * 14);
+		pango_attr_list_insert(attrs, weight);
+		pango_attr_list_insert(attrs, size);
+		pango_layout_set_attributes(pl_marker, attrs);
 
 		PangoRectangle rect1, rect2;
 		pango_layout_get_pixel_extents(pl_marker, &rect1, &rect2);
 
 		cairo_move_to(cr_font, x - rect2.width/2, y - square_size - 2 - rect2.height);
+		cairo_set_line_width(cr_font, 4.0);
 		pango_cairo_layout_path(cr_font, pl_marker);
 		cairo_pattern_t * pat_font = cairo_pattern_create_rgba(0.99, 0.99, 0.99, 0.9);
 		cairo_set_source(cr_font, pat_font);
@@ -1079,7 +1082,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		cairo_pattern_destroy(pat_font);
 		g_object_unref(pc_marker);
 		g_object_unref(pl_marker);
-		free(markup);
+		pango_attr_list_unref(attrs);
 	}
 	free(points);
 	cairo_destroy(cr_marker);

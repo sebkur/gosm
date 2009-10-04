@@ -1433,6 +1433,9 @@ void add_pois(PoiSet *poi_set)
 	char * filename = GOSM_NAMEFINDER_DIR "berlin_supermarkets.txt";
 	//char * filename = GOSM_NAMEFINDER_DIR "berlin_names.txt";
 	//char * filename = GOSM_NAMEFINDER_DIR "berlin_museums.txt";
+	filename = GOSM_NAMEFINDER_DIR "vienna_supermarkets.txt";
+	filename = GOSM_NAMEFINDER_DIR "vienna_wlan.txt";
+	filename = GOSM_NAMEFINDER_DIR "vienna_names.txt";
 	
 	struct stat sb;
 	int s = stat(filename, &sb);
@@ -1444,7 +1447,7 @@ void add_pois(PoiSet *poi_set)
 	close(fd);
 	buf[size] = '\0';
 
-	gchar ** splitted = g_strsplit(buf, "\n", 21500);
+	gchar ** splitted = g_strsplit(buf, "\n", 30500);
 	int l = g_strv_length(splitted);
 
 	int c;
