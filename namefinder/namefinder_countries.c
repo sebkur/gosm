@@ -81,7 +81,7 @@ static void namefinder_countries_class_init(NamefinderCountriesClass *class)
 
 static void namefinder_countries_init(NamefinderCountries *namefinder_countries)
 {
-	char * filename = GOSM_NAMEFINDER_DIR "countries.txt";
+	char * filename = GOSM_NAMEFINDER_DIR "res/countries.txt";
 	
 	struct stat sb;
 	int s = stat(filename, &sb);

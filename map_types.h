@@ -79,6 +79,12 @@ typedef struct LonLatPairData {
 	void * data;
 } LonLatPairData;
 
+typedef struct LonLatTags {
+	double lon;
+	double lat;
+	GHashTable * tags;
+} LonLatTags;
+
 typedef struct IdAndName {
 	int id;
 	char * name;

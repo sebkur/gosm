@@ -101,6 +101,7 @@
 #include "imageglue/pdf_generator.h"
 
 #include "poi/poi_set.h"
+#include "poi/osm_reader.h"
 
 #include <unistd.h>
 #include <wait.h>
@@ -1430,38 +1431,27 @@ void chdir_to_bin(char * arg0)
 
 void add_pois(PoiSet *poi_set)
 {
-	char * filename = GOSM_NAMEFINDER_DIR "berlin_supermarkets.txt";
-	//char * filename = GOSM_NAMEFINDER_DIR "berlin_names.txt";
-	//char * filename = GOSM_NAMEFINDER_DIR "berlin_museums.txt";
-	filename = GOSM_NAMEFINDER_DIR "vienna_supermarkets.txt";
-	filename = GOSM_NAMEFINDER_DIR "vienna_wlan.txt";
-	filename = GOSM_NAMEFINDER_DIR "vienna_names.txt";
-	
-	struct stat sb;
-	int s = stat(filename, &sb);
-	int size = sb.st_size;
-
-	char buf[size + 1];
-	int fd = open(filename, O_RDONLY);
-	int r = read(fd, buf, size);
-	close(fd);
-	buf[size] = '\0';
-
-	gchar ** splitted = g_strsplit(buf, "\n", 30500);
-	int l = g_strv_length(splitted);
-
-	int c;
-	for (c = 0; c < l - 1; c++){
-	//for (c = 0; c < 1000; c++){
-		gchar ** split2 = g_strsplit(splitted[c], "\t", 4);
-		//printf("%s a %s b %s\n", split2[0], split2[1], split2[2]);
-		double lat = strtodouble(split2[2]);
-		double lon = strtodouble(split2[3]);	
-		//map_area_add_marker(area, lon, lat);
+	char * filename = GOSM_NAMEFINDER_DIR "res/10000.osm";
+	filename = GOSM_NAMEFINDER_DIR "res/vienna.osm";
+	printf("%s\n", filename);
+	OsmReader * osm_reader = osm_reader_new();
+	osm_reader_parse_file(osm_reader, filename);
+	printf("file parsed\n");
+//	GArray * ids = osm_reader_find_ids_key_value(osm_reader, "shop", "supermarket");
+	GArray * ids = osm_reader_find_ids_key_value(osm_reader, "amenity", "pub");
+	int i;
+	for (i = 0; i < ids -> len; i++){
+		int id = g_array_index(ids, int, i);
+		LonLatTags * llt = (LonLatTags*) g_tree_lookup(osm_reader -> tree_ids, &id);
+		char * name = g_hash_table_lookup(llt -> tags, "name");
+		printf("%d\n", g_hash_table_size(llt -> tags));
+		if (name == NULL){
+			name = malloc(sizeof(char));
+			name[0] = '\0';
+		}
 		IdAndName * id_name = malloc(sizeof(IdAndName));
-		id_name -> id = atoi(split2[0]);
-		id_name -> name = malloc(sizeof(char) * (strlen(split2[1]) + 1));
-		strcpy(id_name -> name, split2[1]);
-		poi_set_add(poi_set, lon, lat, (void*)id_name);
+		id_name -> id = id;
+		id_name -> name = name;
+		poi_set_add(poi_set, llt -> lon, llt -> lat, (void*)id_name);
 	}
 }
