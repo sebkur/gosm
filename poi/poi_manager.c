@@ -51,10 +51,25 @@ PoiManager * poi_manager_new()
 	poi_manager -> osm_reader = osm_reader_new();
 	//osm_reader_parse_file(poi_manager -> osm_reader, filename);
 	poi_manager_add_poi_set(poi_manager, "shop", 	"supermarket", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"restaurant", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"cafe", FALSE);
 	poi_manager_add_poi_set(poi_manager, "amenity",	"pub", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"biergarten", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"bar", FALSE);
 	poi_manager_add_poi_set(poi_manager, "amenity",	"nightclub", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"cinema", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"theatre", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"library", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"place_of_worship", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"pharmacy", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"fuel", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"bank", FALSE);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"police", FALSE);
 	poi_manager_add_poi_set(poi_manager, "tourism",	"museum", FALSE);
 	poi_manager_add_poi_set(poi_manager, "tourism",	"hotel", FALSE);
+	poi_manager_add_poi_set(poi_manager, "tourism",	"hostel", FALSE);
+	poi_manager_add_poi_set(poi_manager, "tourism",	"attraction", FALSE);
+	poi_manager_add_poi_set(poi_manager, "tourism",	"viewpoint", FALSE);
 	return poi_manager;
 }
 
