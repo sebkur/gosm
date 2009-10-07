@@ -18,6 +18,9 @@
  * along with Gosm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _GOSM_OSM_READER_H_
+#define _GOSM_OSM_READER_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -65,3 +68,5 @@ OsmReader * osm_reader_new();
 int osm_reader_parse_file(OsmReader * osm_reader, char * filename);
 
 GArray * osm_reader_find_ids_key_value(OsmReader * osm_reader, char * key, char * value);
+
+#endif /* _GOSM_OSM_READER_H_ */

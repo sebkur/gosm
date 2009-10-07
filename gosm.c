@@ -69,6 +69,7 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#include <glib.h>
 
 #include "uri.h"
 #include <webkit/webkit.h>
@@ -101,7 +102,8 @@
 #include "imageglue/pdf_generator.h"
 
 #include "poi/poi_set.h"
-#include "poi/osm_reader.h"
+#include "poi/poi_selector.h"
+#include "poi/poi_manager.h"
 
 #include <unistd.h>
 #include <wait.h>
@@ -159,6 +161,8 @@ GtkWidget * 	button_map_controls;
 GtkWidget * 	button_side_bar;
 GtkWidget * 	button_side_bar_left;
 GtkWidget * 	combo_tiles;
+
+PoiManager *	poi_manager;
 
 typedef struct WidgetPlusPointer{
 	GtkWidget * widget;
@@ -221,9 +225,11 @@ static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean legend_click_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean namefinder_city_cb(GtkWidget *widget);
 static gboolean namefinder_country_cb(GtkWidget *widget);
+static gboolean poi_selector_cb(GtkWidget *widget, gpointer pointer);
 static gboolean exit_cb(GtkWidget *widget);
        void     chdir_to_bin(char * arg0);
-       void     add_pois(PoiSet * poi_set);
+       void     add_pois(PoiSet * poi_set, char * key, char * value);
+       void	read_osm_file();
 
 /*
  * Start auto-generated menu
@@ -344,6 +350,11 @@ int main(int argc, char *argv[])
 	map_area_set_cache_directory(area, TILESET_OSMARENDER,	cache_dir_osmarender);
 	map_area_set_cache_directory(area, TILESET_CYCLE,	cache_dir_cycle);
 	map_area_set_color_selection(area, color_selection, color_selection_out, color_selection_pad, color_atlas_lines);
+
+	//TEST TEST TEST
+	poi_manager = poi_manager_new();
+	map_area_set_poi_manager(area, poi_manager);
+	//TEST TEST TEST*/
 
 	// Selection-Widget in sidebar
 	select_tool = select_tool_new();
@@ -664,6 +675,9 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start(GTK_BOX(side_left), notebook_side_left, TRUE, TRUE, 0);
 	// this is a dummy to prevent the context-menu to appear
 	g_signal_connect(G_OBJECT(web_legend), 	"button-press-event", G_CALLBACK(legend_click_cb), NULL);
+	// pois
+	GtkWidget * poi_selector = poi_selector_new(poi_manager);
+	g_signal_connect(G_OBJECT(poi_selector),"poi-selector-toggled", G_CALLBACK(poi_selector_cb), NULL);
 	// bookmarks
 	GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
 	// namefinder
@@ -678,11 +692,13 @@ int main(int argc, char *argv[])
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_namefinder), namefinder_countries, label_namefinder_country);
 	// --
 	GtkWidget * image_legend = gtk_image_new_from_file(GOSM_ICON_DIR "stock_chart-toggle-legend.png");
+	GtkWidget * image_pois = gtk_image_new_from_file(GOSM_ICON_DIR "stock_draw-cube.png");
 	GtkWidget * image_bookmarks = gtk_image_new_from_file(GOSM_ICON_DIR "stock_bookmark.png");
 	GtkWidget * image_namefinder = gtk_image_new_from_file(GOSM_ICON_DIR "stock_internet.png");
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), scrolled, image_legend);
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks, image_bookmarks);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), notebook_namefinder, image_namefinder);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), poi_selector, image_pois);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks, image_bookmarks);
 
 	/**
 	 * Other widgets
@@ -733,12 +749,6 @@ int main(int argc, char *argv[])
 	if (!show_statusbar) toggle_status_bar();
 	if (!show_sidebar) toggle_side_bar();
 	if (!show_sidebar_left) toggle_side_bar_left();
-
-	//TEST TEST TEST
-	PoiSet * poi_set = poi_set_new();
-	//add_pois(poi_set);
-	map_area_set_poi_set(area, poi_set);
-	//TEST TEST TEST*/
 
 	gdk_threads_enter();	
 	gtk_main();
@@ -1429,29 +1439,11 @@ void chdir_to_bin(char * arg0)
 	chdir(dir);
 }
 
-void add_pois(PoiSet *poi_set)
+static gboolean poi_selector_cb(GtkWidget *widget, gpointer pointer)
 {
-	char * filename = GOSM_NAMEFINDER_DIR "res/10000.osm";
-	filename = GOSM_NAMEFINDER_DIR "res/vienna.osm";
-	printf("%s\n", filename);
-	OsmReader * osm_reader = osm_reader_new();
-	osm_reader_parse_file(osm_reader, filename);
-	printf("file parsed\n");
-//	GArray * ids = osm_reader_find_ids_key_value(osm_reader, "shop", "supermarket");
-	GArray * ids = osm_reader_find_ids_key_value(osm_reader, "amenity", "pub");
-	int i;
-	for (i = 0; i < ids -> len; i++){
-		int id = g_array_index(ids, int, i);
-		LonLatTags * llt = (LonLatTags*) g_tree_lookup(osm_reader -> tree_ids, &id);
-		char * name = g_hash_table_lookup(llt -> tags, "name");
-		printf("%d\n", g_hash_table_size(llt -> tags));
-		if (name == NULL){
-			name = malloc(sizeof(char));
-			name[0] = '\0';
-		}
-		IdAndName * id_name = malloc(sizeof(IdAndName));
-		id_name -> id = id;
-		id_name -> name = name;
-		poi_set_add(poi_set, llt -> lon, llt -> lat, (void*)id_name);
-	}
+	KeyValueBoolean * kvb = (KeyValueBoolean*) pointer;
+	//printf("toggled: %s %s %d\n", kvb -> key, kvb -> value, kvb -> active);
+	poi_manager_toggle_poi_set(poi_manager, kvb -> key, kvb -> value, kvb -> active);
+	map_area_repaint(area);
+	return FALSE;
 }

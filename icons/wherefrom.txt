@@ -18,6 +18,7 @@ object-flip-vertical.png:	/usr/share/icons/gnome/24x24/actions/object-flip-verti
 select.png:		 	/usr/share/icons/gnome/24x24/stock/image/stock_draw-line-45.png
 stock_bookmark.png:	 	/usr/share/icons/gnome/24x24/stock/object/stock_bookmark.png
 stock_chart-toggle-legend.png:	/usr/share/icons/gnome/24x24/stock/chart/stock_chart-toggle-legend.png
+stock_draw-cube.png:		/usr/share/icons/gnome/24x24/stock/image/stock_draw-cube.png
 stock_form-navigator.png:	/usr/share/icons/gnome/24x24/stock/form/stock_form-navigator.png
 stock_insert_image.png:	 	/usr/share/icons/gnome/24x24/stock/image/stock_insert_image.png
 stock_internet.png:		/usr/share/icons/gnome/24x24/stock/net/stock_internet.png

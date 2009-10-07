@@ -47,6 +47,8 @@ poi/RTree/rect.c \
 poi/RTree/sphvol.c \
 poi/RTree/split_l.c \
 poi/osm_reader.c \
+poi/poi_selector.c \
+poi/poi_manager.c \
 gosm.c
 
 OBJ = \
@@ -96,11 +98,13 @@ poi/RTree/rect.o \
 poi/RTree/sphvol.o \
 poi/RTree/split_l.o \
 poi/osm_reader.o \
+poi/poi_selector.o \
+poi/poi_manager.o \
 gosm.o
 
 CC  = /usr/bin/gcc
 DEPENDFILE = .depend
-CFLAGS  = -D BUILD=0 \
+CFLAGS  = -D BUILD=0 -g\
  `pkg-config --cflags --libs gtk+-2.0 gdk-2.0 pango cairo glib-2.0 gthread-2.0 libpng webkit-1.0` \
  `curl-config --cflags --libs`
 LDFLAGS = -lm -lpthread -lexpat\
