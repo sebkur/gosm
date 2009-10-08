@@ -51,6 +51,7 @@ GtkWidget * color_button_new()
 	color_button -> b = 1.0; 
 	color_button -> a = 0.8; 
 	g_signal_connect (color_button, "expose-event", G_CALLBACK (expose_cb), NULL);
+	gtk_widget_set_events(GTK_WIDGET(color_button), gtk_widget_get_events(GTK_WIDGET(color_button)) | GDK_BUTTON_PRESS_MASK);
 	return GTK_WIDGET(color_button);
 }
 

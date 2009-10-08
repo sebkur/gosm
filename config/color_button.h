@@ -54,3 +54,5 @@ struct _ColorButtonClass
 };
 
 GtkWidget * color_button_new();
+
+void color_button_set_color(ColorButton * color_button, double r, double g, double b, double a);

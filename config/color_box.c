@@ -56,7 +56,6 @@ GtkWidget * color_box_new()
 	gtk_widget_set_size_request(color_box -> button, 40, -1);
 	gtk_box_pack_start(GTK_BOX(color_box), color_box -> entry, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(color_box), color_box -> button, FALSE, FALSE, 0);
-	gtk_widget_set_events(color_box -> button, gtk_widget_get_events(color_box -> button) | GDK_BUTTON_PRESS_MASK);
 	g_signal_connect(G_OBJECT(color_box -> entry), "changed", G_CALLBACK(color_box_entry_cb), color_box);
 	g_signal_connect(G_OBJECT(color_box -> button), "button_press_event", G_CALLBACK(color_box_button_cb), color_box);
 	return GTK_WIDGET(color_box);

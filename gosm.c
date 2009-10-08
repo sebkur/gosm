@@ -225,7 +225,8 @@ static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean legend_click_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean namefinder_city_cb(GtkWidget *widget);
 static gboolean namefinder_country_cb(GtkWidget *widget);
-static gboolean poi_selector_cb(GtkWidget *widget, gpointer pointer);
+static gboolean poi_selector_cb(PoiSelector * poi_selector, gpointer pointer);
+static gboolean poi_manager_colour_cb(PoiManager * poi_manager, int index);
 static gboolean exit_cb(GtkWidget *widget);
        void     chdir_to_bin(char * arg0);
        void     add_pois(PoiSet * poi_set, char * key, char * value);
@@ -354,6 +355,7 @@ int main(int argc, char *argv[])
 	//TEST TEST TEST
 	poi_manager = poi_manager_new();
 	map_area_set_poi_manager(area, poi_manager);
+	g_signal_connect(G_OBJECT(poi_manager),"colour-changed", G_CALLBACK(poi_manager_colour_cb), NULL);
 	//TEST TEST TEST*/
 
 	// Selection-Widget in sidebar
@@ -1439,11 +1441,16 @@ void chdir_to_bin(char * arg0)
 	chdir(dir);
 }
 
-static gboolean poi_selector_cb(GtkWidget *widget, gpointer pointer)
+static gboolean poi_selector_cb(PoiSelector * poi_selector, gpointer pointer)
 {
-	KeyValueBoolean * kvb = (KeyValueBoolean*) pointer;
-	//printf("toggled: %s %s %d\n", kvb -> key, kvb -> value, kvb -> active);
-	poi_manager_toggle_poi_set(poi_manager, kvb -> key, kvb -> value, kvb -> active);
+	NamedPoiSet * poi_set = (NamedPoiSet*) pointer;
+	poi_manager_toggle_poi_set(poi_manager, poi_set);
+	map_area_repaint(area);
+	return FALSE;
+}
+
+static gboolean poi_manager_colour_cb(PoiManager * poi_manager, int index)
+{
 	map_area_repaint(area);
 	return FALSE;
 }

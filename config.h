@@ -32,6 +32,7 @@ Configuration * config_new();
 
 char * config_get_config_dir();
 char * config_get_config_file();
+char * config_get_poi_layers_file();
 
 gpointer config_get_entry_data(Configuration * configuration, char * name);
 

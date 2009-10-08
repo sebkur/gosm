@@ -18,6 +18,9 @@
  * along with Gosm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _STYLED_POI_SET_H_
+#define _STYLED_POI_SET_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -58,3 +61,8 @@ struct _StyledPoiSetClass
 StyledPoiSet * styled_poi_set_new(char * key, char * value, double r, double g, double b, double a);
 void styled_poi_set_constructor(StyledPoiSet * styled_poi_set, char * key, char * value,
 	double r, double g, double b, double a);
+
+void styled_poi_set_get_colour(StyledPoiSet * styled_poi_set, double * r, double * g, double * b, double * a);
+void styled_poi_set_set_colour(StyledPoiSet * styled_poi_set, double r, double g, double b, double a);
+
+#endif /* _STYLED_POI_SET_H_ */

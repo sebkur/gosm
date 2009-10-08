@@ -27,6 +27,7 @@
 #include <gdk/gdk.h>
 
 #include "poi_manager.h"
+#include "styled_poi_set.h"
 
 #define GOSM_TYPE_POI_SELECTOR           (poi_selector_get_type ())
 #define GOSM_POI_SELECTOR(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_POI_SELECTOR, PoiSelector))
@@ -39,14 +40,8 @@ typedef struct _PoiSelector        PoiSelector;
 typedef struct _PoiSelectorClass   PoiSelectorClass;
 
 typedef struct {
-	char * key;
-	char * value;
-	gboolean active;
-} KeyValueBoolean;
-
-typedef struct {
 	PoiSelector * poi_selector;
-	int num;
+	StyledPoiSet * poi_set;
 } PoiSelectorCheckSignalData;
 
 struct _PoiSelector
@@ -54,8 +49,7 @@ struct _PoiSelector
 	GtkVBox parent;
 	
 	PoiManager * poi_manager;
-	GArray * key_value_pairs;
-	GArray * buttons;
+	GArray * rows;
 	GtkWidget * table;
 	int number_of_entries;
 };

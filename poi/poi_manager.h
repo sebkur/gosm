@@ -63,7 +63,9 @@ struct _PoiManagerClass
 {
 	GObjectClass parent_class;
 
-	void (* function_name) (PoiManager *poi_manager);
+	void (* colour_changed) (PoiManager *poi_manager, int index);
+	void (* key_changed) (PoiManager *poi_manager, int index);
+	void (* value_changed) (PoiManager *poi_manager, int index);
 };
 
 PoiManager * poi_manager_new();
@@ -71,10 +73,12 @@ PoiManager * poi_manager_new();
 void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active,
 	double r, double g, double b, double a);
 
-void poi_manager_toggle_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active);
+void poi_manager_toggle_poi_set(PoiManager * poi_manager, NamedPoiSet * poi_set);
 
 int poi_manager_get_number_of_poi_sets(PoiManager * poi_manager);
 
 StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index);
+
+void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double r, double g, double b, double a);
 
 #endif /* _GOSM_POI_MANAGER_H */

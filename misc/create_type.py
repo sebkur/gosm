@@ -44,6 +44,9 @@ def get_names(name):
 def get_header(name, parent_mixed, type_return):
 	names = get_names(name)
 	text_h = \
+	"#ifndef _"+names[1]+"_H_\n" + \
+	"#define _"+names[1]+"_H_\n" + \
+	"\n" + \
 	"#include <stdio.h>\n" + \
 	"#include <stdlib.h>\n" + \
 	"#include <unistd.h>\n" + \
@@ -74,7 +77,9 @@ def get_header(name, parent_mixed, type_return):
 	"	void (* function_name) ("+names[2]+" *"+names[0]+");\n" + \
 	"};\n" + \
 	"\n" + \
-	type_return+" * "+names[0]+"_new();\n" 
+	type_return+" * "+names[0]+"_new();\n" + \
+	"\n" + \
+	"#endif /* _"+names[1]+"_H_ */\n"
 	return text_h
 
 def get_class(name, parent_mixed, parent_upper, type_return):

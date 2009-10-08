@@ -108,6 +108,7 @@ gpointer config_get_entry_data(Configuration * configuration, char * name)
 	}	
 	return NULL;
 }
+//TODO: use g_build_filename instead of self-made string-concat
 char * config_get_config_dir()
 {
 	char * dir = getenv("HOME");
@@ -122,6 +123,16 @@ char * config_get_config_dir()
 char * config_get_config_file()
 {
 	char * filename = "configuration";
+	char * gosmdir = config_get_config_dir();
+	char * filepath = malloc(sizeof(char) * (strlen(gosmdir) + strlen(filename)+ 2 ));
+	sprintf(filepath, "%s/%s", gosmdir,filename);
+	printf("%s\n", filepath);
+	free(gosmdir);
+	return filepath;
+}
+char * config_get_poi_layers_file()
+{
+	char * filename = "poi_layers";
 	char * gosmdir = config_get_config_dir();
 	char * filepath = malloc(sizeof(char) * (strlen(gosmdir) + strlen(filename)+ 2 ));
 	sprintf(filepath, "%s/%s", gosmdir,filename);
@@ -165,7 +176,8 @@ gboolean config_load_config_file(Configuration * configuration)
 			}
                 }
                 current = splitted[++i];
-        }	
+        }
+	//TODO: free ?
 }
 
 gboolean config_save_config_file(Configuration * configuration)

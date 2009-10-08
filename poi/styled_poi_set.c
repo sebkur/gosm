@@ -71,3 +71,19 @@ static void styled_poi_set_class_init(StyledPoiSetClass *class)
 static void styled_poi_set_init(StyledPoiSet *styled_poi_set)
 {
 }
+
+void styled_poi_set_get_colour(StyledPoiSet * styled_poi_set, double * r, double * g, double * b, double * a)
+{
+	*r = styled_poi_set -> r;
+	*g = styled_poi_set -> g;
+	*b = styled_poi_set -> b;
+	*a = styled_poi_set -> a;
+}
+
+void styled_poi_set_set_colour(StyledPoiSet * styled_poi_set, double r, double g, double b, double a)
+{
+	styled_poi_set -> r = r;
+	styled_poi_set -> g = g;
+	styled_poi_set -> b = b;
+	styled_poi_set -> a = a;
+}
