@@ -48,7 +48,7 @@ struct _PoiSet
 
 	struct Node * root;
 	int node_index;
-	LonLatPairData * points;
+	GArray * points;
 	void * data;
 
 	LonLatPairData * results;

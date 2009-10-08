@@ -174,9 +174,15 @@ static void XMLCALL osm_reader_EndElementCallback(	void * userData,
 	osm_reader -> current_level --;
 	if (osm_reader -> current_level == 1 && osm_reader -> current_element == OSM_READER_ELEMENT_NODE){
 		if (g_hash_table_size(osm_reader -> current_node -> tags) > 0){
+			/* insert finished node into tree holding nodes, sorted by ids */
 			int * id_insert = malloc(sizeof(int));
 			*id_insert = osm_reader -> current_id;
 			g_tree_insert(osm_reader -> tree_ids, id_insert, osm_reader -> current_node);
+		}else{
+			/* the last node had no relevant tags
+			   -> it is not inserted into tree */
+			g_hash_table_unref(osm_reader -> current_node -> tags);
+			free(osm_reader -> current_node);
 		}
 	}
 }

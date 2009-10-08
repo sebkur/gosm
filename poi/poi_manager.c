@@ -48,8 +48,9 @@ PoiManager * poi_manager_new()
 	PoiManager * poi_manager = g_object_new(GOSM_TYPE_POI_MANAGER, NULL);
 	poi_manager -> poi_sets = g_array_new(FALSE, FALSE, sizeof(KeyValueBooleanPoiSet*));
 	char * filename = GOSM_NAMEFINDER_DIR "res/vienna.short.osm";
+//	filename = GOSM_NAMEFINDER_DIR "res/berlin.short.osm";
 	poi_manager -> osm_reader = osm_reader_new();
-	//osm_reader_parse_file(poi_manager -> osm_reader, filename);
+//	osm_reader_parse_file(poi_manager -> osm_reader, filename);
 	poi_manager_add_poi_set(poi_manager, "shop", 	"supermarket", FALSE);
 	poi_manager_add_poi_set(poi_manager, "amenity",	"restaurant", FALSE);
 	poi_manager_add_poi_set(poi_manager, "amenity",	"cafe", FALSE);

@@ -581,6 +581,7 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 						IdAndName * id_name = (IdAndName*)points -> data;
 						new_active_id = id_name -> id;
 					}
+					free(points);
 				}
 			}
 			map_area -> poi_active_id = new_active_id;

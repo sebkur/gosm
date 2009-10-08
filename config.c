@@ -126,6 +126,7 @@ char * config_get_config_file()
 	char * filepath = malloc(sizeof(char) * (strlen(gosmdir) + strlen(filename)+ 2 ));
 	sprintf(filepath, "%s/%s", gosmdir,filename);
 	printf("%s\n", filepath);
+	free(gosmdir);
 	return filepath;
 }
 gboolean config_load_config_file(Configuration * configuration)
@@ -268,6 +269,7 @@ gboolean config_set_entry_data(ConfEntry * ce, char * data_str)
 		((ColorQuadriple*)ce -> data) -> g = strtodouble(split[1]);
 		((ColorQuadriple*)ce -> data) -> b = strtodouble(split[2]);
 		((ColorQuadriple*)ce -> data) -> a = strtodouble(split[3]);
+		g_strfreev(split);
 		return TRUE;
 	}
 	case TYPE_STRING:

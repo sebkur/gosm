@@ -49,7 +49,7 @@ PoiSet * poi_set_new()
 	PoiSet * poi_set = g_object_new(GOSM_TYPE_POI_SET, NULL);
 	poi_set -> root = RTreeNewIndex();
 	poi_set -> node_index = 1;
-	poi_set -> points = malloc(sizeof(LonLatPairData) * 100000);
+	poi_set -> points = g_array_new(FALSE, FALSE, sizeof(LonLatPairData));
 	return poi_set;
 }
 
@@ -72,26 +72,31 @@ static void poi_set_init(PoiSet *poi_set)
 void poi_set_add(PoiSet * poi_set, double lon, double lat, void * data)
 {
 	int array_index = poi_set -> node_index - 1;
-	poi_set -> points[array_index].lon = lon;
-	poi_set -> points[array_index].lat = lat;
-	poi_set -> points[array_index].data = data;
+	LonLatPairData llpd = {lon, lat, data};
+	g_array_append_val(poi_set -> points, llpd);
 	struct Rect * rect = malloc(sizeof(struct Rect));
 	rect -> boundary[0] = lon;
 	rect -> boundary[1] = lat;
 	rect -> boundary[2] = lon;
 	rect -> boundary[3] = lat;
 	RTreeInsertRect(rect, poi_set -> node_index, &(poi_set -> root), 0);
+	free(rect);
 	poi_set -> node_index++;
 }
 
+/*
+	used as a callback for searching the RTree.
+	this function adds found nodes to the resultset
+*/
 int poi_set_search_cb(int id, void* arg)
 {
 	PoiSet * poi_set = (PoiSet*) arg;
 	int array_index = id - 1;
 	int i = poi_set -> result_index;
-	poi_set -> results[i].lon = poi_set -> points[array_index].lon;
-	poi_set -> results[i].lat = poi_set -> points[array_index].lat;
-	poi_set -> results[i].data = poi_set -> points[array_index].data;
+	LonLatPairData * llpd = &g_array_index(poi_set -> points, LonLatPairData, array_index);
+	poi_set -> results[i].lon = llpd -> lon;
+	poi_set -> results[i].lat = llpd -> lat;
+	poi_set -> results[i].data = llpd -> data;
 	poi_set -> result_index++;
 }
 
