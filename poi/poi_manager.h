@@ -30,6 +30,8 @@
 #include <gdk/gdk.h>
 
 #include "poi_set.h"
+#include "named_poi_set.h"
+#include "styled_poi_set.h"
 #include "osm_reader.h"
 
 #define GOSM_TYPE_POI_MANAGER           (poi_manager_get_type ())
@@ -42,12 +44,12 @@
 typedef struct _PoiManager        PoiManager;
 typedef struct _PoiManagerClass   PoiManagerClass;
 
-typedef struct {
-	char * key;
-	char * value;
-	gboolean active;
-	PoiSet * poi_set;
-} KeyValueBooleanPoiSet;
+//typedef struct {
+//	char * key;
+//	char * value;
+//	gboolean active;
+//	PoiSet * poi_set;
+//} KeyValueBooleanPoiSet;
 
 struct _PoiManager
 {
@@ -66,12 +68,13 @@ struct _PoiManagerClass
 
 PoiManager * poi_manager_new();
 
-void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active);
+void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active,
+	double r, double g, double b, double a);
 
 void poi_manager_toggle_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active);
 
 int poi_manager_get_number_of_poi_sets(PoiManager * poi_manager);
 
-KeyValueBooleanPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index);
+StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index);
 
 #endif /* _GOSM_POI_MANAGER_H */

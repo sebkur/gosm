@@ -46,31 +46,31 @@ G_DEFINE_TYPE (PoiManager, poi_manager, G_TYPE_OBJECT);
 PoiManager * poi_manager_new()
 {
 	PoiManager * poi_manager = g_object_new(GOSM_TYPE_POI_MANAGER, NULL);
-	poi_manager -> poi_sets = g_array_new(FALSE, FALSE, sizeof(KeyValueBooleanPoiSet*));
+	poi_manager -> poi_sets = g_array_new(FALSE, FALSE, sizeof(StyledPoiSet*));
 	char * filename = GOSM_NAMEFINDER_DIR "res/vienna.short.osm";
 //	filename = GOSM_NAMEFINDER_DIR "res/berlin.short.osm";
 	poi_manager -> osm_reader = osm_reader_new();
 //	osm_reader_parse_file(poi_manager -> osm_reader, filename);
-	poi_manager_add_poi_set(poi_manager, "shop", 	"supermarket", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"restaurant", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"cafe", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"pub", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"biergarten", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"bar", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"nightclub", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"cinema", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"theatre", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"library", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"place_of_worship", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"pharmacy", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"fuel", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"bank", FALSE);
-	poi_manager_add_poi_set(poi_manager, "amenity",	"police", FALSE);
-	poi_manager_add_poi_set(poi_manager, "tourism",	"museum", FALSE);
-	poi_manager_add_poi_set(poi_manager, "tourism",	"hotel", FALSE);
-	poi_manager_add_poi_set(poi_manager, "tourism",	"hostel", FALSE);
-	poi_manager_add_poi_set(poi_manager, "tourism",	"attraction", FALSE);
-	poi_manager_add_poi_set(poi_manager, "tourism",	"viewpoint", FALSE);
+	poi_manager_add_poi_set(poi_manager, "shop", 	"supermarket", FALSE, 		0.0, 1.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"restaurant", FALSE, 		1.0, 0.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"cafe", FALSE, 			0.8, 0.1, 0.1, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"pub", FALSE, 			0.6, 0.2, 0.2, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"biergarten", FALSE, 		0.5, 0.2, 0.2, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"bar", FALSE, 			0.0, 0.0, 1.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"nightclub", FALSE, 		0.1, 0.1, 0.8, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"cinema", FALSE, 		1.0, 0.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"theatre", FALSE, 		1.0, 0.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"library", FALSE, 		1.0, 0.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"place_of_worship", FALSE, 	1.0, 0.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"pharmacy", FALSE, 		1.0, 1.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"fuel", FALSE, 			0.0, 1.0, 1.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"bank", FALSE, 			1.0, 0.0, 1.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "amenity",	"police", FALSE,		0.0, 0.0, 1.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "tourism",	"museum", FALSE, 		1.0, 0.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "tourism",	"hotel", FALSE, 		1.0, 1.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "tourism",	"hostel", FALSE, 		1.0, 0.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "tourism",	"attraction", FALSE, 		1.0, 0.0, 0.0, 0.7);
+	poi_manager_add_poi_set(poi_manager, "tourism",	"viewpoint", FALSE, 		1.0, 0.0, 0.0, 0.7);
 	return poi_manager;
 }
 
@@ -90,15 +90,17 @@ static void poi_manager_init(PoiManager *poi_manager)
 {
 }
 
-void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active)
+void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active,
+	double r, double g, double b, double a)
 {
-	PoiSet * poi_set = poi_set_new();
-	KeyValueBooleanPoiSet * kvbps = malloc(sizeof(KeyValueBooleanPoiSet));
-	kvbps -> key = key;
-	kvbps -> value = value;
-	kvbps -> active = active;
-	kvbps -> poi_set = poi_set;
-	g_array_append_val(poi_manager -> poi_sets, kvbps);
+	StyledPoiSet * poi_set = styled_poi_set_new(key, value, r, g, b, a);
+	poi_set_set_visible(GOSM_POI_SET(poi_set), active);
+//	KeyValueBooleanPoiSet * kvbps = malloc(sizeof(KeyValueBooleanPoiSet));
+//	kvbps -> key = key;
+//	kvbps -> value = value;
+//	kvbps -> active = active;
+//	kvbps -> poi_set = poi_set;
+	g_array_append_val(poi_manager -> poi_sets, poi_set);
 	GArray * ids = osm_reader_find_ids_key_value(poi_manager -> osm_reader, key, value);
 	if (ids != NULL){
 		int i;
@@ -113,7 +115,7 @@ void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value,
 			IdAndName * id_name = malloc(sizeof(IdAndName));
 			id_name -> id = id;
 			id_name -> name = name;
-			poi_set_add(poi_set, llt -> lon, llt -> lat, (void*)id_name);
+			poi_set_add(GOSM_POI_SET(poi_set), llt -> lon, llt -> lat, (void*)id_name);
 		}
 	}
 }
@@ -123,10 +125,12 @@ void poi_manager_toggle_poi_set(PoiManager * poi_manager, char * key, char * val
 	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
 	int poi;
 	for (poi = 0; poi < num_poi_sets; poi++){
-		KeyValueBooleanPoiSet * kvbps = poi_manager_get_poi_set(poi_manager, poi);
+//		KeyValueBooleanPoiSet * kvbps = poi_manager_get_poi_set(poi_manager, poi);
+		NamedPoiSet * poi_set = GOSM_NAMED_POI_SET(poi_manager_get_poi_set(poi_manager, poi));
 		//printf("%s %s %s %s\n", key, value, kvbps -> key, kvbps -> value);
-		if (strcmp(kvbps -> key, key) == 0 && strcmp(kvbps -> value, value) == 0){
-			kvbps -> active = active;
+		if (strcmp(named_poi_set_get_key(poi_set), key) == 0 
+		    && strcmp(named_poi_set_get_value(poi_set), value) == 0){
+			poi_set_set_visible(GOSM_POI_SET(poi_set), active);
 			break;
 		}
 	}
@@ -137,8 +141,8 @@ int poi_manager_get_number_of_poi_sets(PoiManager * poi_manager)
 	return poi_manager -> poi_sets -> len;
 }
 
-KeyValueBooleanPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index)
+StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index)
 {
-	return g_array_index(poi_manager -> poi_sets, KeyValueBooleanPoiSet*, index);
+	return g_array_index(poi_manager -> poi_sets, StyledPoiSet*, index);
 }
 

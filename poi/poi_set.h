@@ -50,6 +50,7 @@ struct _PoiSet
 	int node_index;
 	GArray * points;
 	void * data;
+	gboolean visible;
 
 	LonLatPairData * results;
 	int result_index;
@@ -63,8 +64,11 @@ struct _PoiSetClass
 };
 
 PoiSet * poi_set_new();
+void poi_set_constructor(PoiSet * poi_set);
 
 void poi_set_add(PoiSet * poi_set, double lon, double lat, void * data);
 LonLatPairData * poi_set_get(PoiSet * poi_set, int* count, double min_lon, double min_lat, double max_lon, double max_lat);
+void poi_set_set_visible(PoiSet * poi_set, gboolean visible);
+gboolean poi_set_get_visible(PoiSet * poi_set);
 
 #endif /* _POI_SET_H_ */

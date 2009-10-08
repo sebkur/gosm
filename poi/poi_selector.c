@@ -53,8 +53,11 @@ GtkWidget * poi_selector_new(PoiManager * poi_manager)
 	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
 	int poi;
 	for (poi = 0; poi < num_poi_sets; poi++){
-		KeyValueBooleanPoiSet * kvbps = poi_manager_get_poi_set(poi_manager, poi);
-		poi_selector_add_pair(poi_selector, kvbps -> active, kvbps -> key, kvbps -> value);
+		NamedPoiSet * named_poi_set = poi_manager_get_poi_set(poi_manager, poi);
+		poi_selector_add_pair(poi_selector, 
+			poi_set_get_visible(GOSM_POI_SET(named_poi_set)),
+			named_poi_set_get_key(named_poi_set),
+			named_poi_set_get_value(named_poi_set));
 	}
 	gtk_box_pack_start(GTK_BOX(poi_selector), poi_selector -> table, FALSE, FALSE, 0);
 	return GTK_WIDGET(poi_selector);

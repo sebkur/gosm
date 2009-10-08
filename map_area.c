@@ -573,9 +573,8 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 			int new_active_id = 0;
 			int old_active_id = map_area -> poi_active_id;
 			for (poi = 0; poi < num_poi_sets; poi++){
-				KeyValueBooleanPoiSet * kvbps = poi_manager_get_poi_set(map_area -> poi_manager, poi);
-				if (kvbps -> active){
-					PoiSet * poi_set = kvbps -> poi_set;
+				PoiSet * poi_set = GOSM_POI_SET(poi_manager_get_poi_set(map_area -> poi_manager, poi));
+				if (poi_set_get_visible(poi_set)){
 					LonLatPairData * points = poi_set_get(poi_set, &marker_count, lon1, lat1, lon2, lat2);
 					if (marker_count > 0){
 						IdAndName * id_name = (IdAndName*)points -> data;
@@ -1018,6 +1017,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	int num_poi_sets = poi_manager_get_number_of_poi_sets(map_area -> poi_manager);
 	int poi;
 	int active_x, active_y;
+	double active_r, active_g, active_b, active_a;
 	int n_active = -1;
 	int p_active = -1;
 	IdAndName * id_name_active;
@@ -1030,13 +1030,16 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	if (map_area -> map_position.zoom > 12) square_size = 6;
 	if (map_area -> map_position.zoom > 14) square_size = 7;
 	double square_size_half = square_size / 2;
+	/* iterate poi sets */
 	for (poi = 0; poi < num_poi_sets; poi++){
-		KeyValueBooleanPoiSet * kvbps = poi_manager_get_poi_set(map_area -> poi_manager, poi);
-		if (kvbps -> active){
-			PoiSet * poi_set = kvbps -> poi_set;
-			LonLatPairData * points = poi_set_get(poi_set, &marker_count, min_lon, min_lat, max_lon, max_lat);
+		StyledPoiSet * poi_set = poi_manager_get_poi_set(map_area -> poi_manager, poi);
+		if (poi_set_get_visible(GOSM_POI_SET(poi_set))){
+			LonLatPairData * points = poi_set_get(
+				GOSM_POI_SET(poi_set), &marker_count, min_lon, min_lat, max_lon, max_lat);
 			cairo_t * cr_marker = gdk_cairo_create(widget->window);
-			cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(0.85, 0.25, 0.25, 0.9);
+//			cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(0.85, 0.25, 0.25, 0.9);
+			cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(
+				poi_set -> r, poi_set -> g, poi_set -> b, poi_set -> a);
 			cairo_set_source(cr_marker, pat_dots);
 			/* n_active is the one, where mouse is over */
 			int p;
@@ -1057,6 +1060,10 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 					id_name_active = (IdAndName*) points[p].data;
 					active_x = x;
 					active_y = y;
+					active_r = poi_set -> r;
+					active_g = poi_set -> g;
+					active_b = poi_set -> b;
+					active_a = poi_set -> a;
 				}
 			}
 			cairo_fill(cr_marker);
@@ -1067,7 +1074,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	}
 	if (n_active >= 0){
 		cairo_t * cr_marker = gdk_cairo_create(widget->window);
-		cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(0.85, 0.25, 0.25, 0.7);
+		cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(active_r, active_g, active_b, active_a);
 		cairo_set_source(cr_marker, pat_dots);
 		int p = n_active;
 		int x = active_x;
