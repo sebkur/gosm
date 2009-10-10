@@ -64,6 +64,7 @@ struct _OsmReaderClass
 };
 
 OsmReader * osm_reader_new();
+void osm_reader_clear(OsmReader * osm_reader);
 
 int osm_reader_parse_file(OsmReader * osm_reader, char * filename);
 

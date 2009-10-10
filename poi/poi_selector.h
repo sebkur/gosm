@@ -18,6 +18,9 @@
  * along with Gosm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _POI_SELECTOR_H_
+#define _POI_SELECTOR_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -62,3 +65,5 @@ struct _PoiSelectorClass
 };
 
 GtkWidget * poi_selector_new(PoiManager * poi_manager);
+
+#endif /* _POI_SELECTOR_H_ */

@@ -44,19 +44,21 @@
 typedef struct _PoiManager        PoiManager;
 typedef struct _PoiManagerClass   PoiManagerClass;
 
-//typedef struct {
-//	char * key;
-//	char * value;
-//	gboolean active;
-//	PoiSet * poi_set;
-//} KeyValueBooleanPoiSet;
+typedef struct {
+	char * filename;
+	char * basename;
+	char * dirname;
+} PoiSource;
 
 struct _PoiManager
 {
 	GObject parent;
 
 	GArray * poi_sets;
+	GArray * poi_sources;
 	OsmReader * osm_reader;
+
+	int active_poi_source;
 };
 
 struct _PoiManagerClass
@@ -66,6 +68,8 @@ struct _PoiManagerClass
 	void (* colour_changed) (PoiManager *poi_manager, int index);
 	void (* key_changed) (PoiManager *poi_manager, int index);
 	void (* value_changed) (PoiManager *poi_manager, int index);
+	void (* source_activated) (PoiManager *poi_manager, int index);
+	void (* source_deactivated) (PoiManager *poi_manager, int index);
 };
 
 PoiManager * poi_manager_new();
@@ -76,9 +80,15 @@ void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value,
 void poi_manager_toggle_poi_set(PoiManager * poi_manager, NamedPoiSet * poi_set);
 
 int poi_manager_get_number_of_poi_sets(PoiManager * poi_manager);
-
 StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index);
 
 void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double r, double g, double b, double a);
+
+gboolean poi_manager_save(PoiManager * poi_manager);
+gboolean poi_manager_revert(PoiManager * poi_manager);
+
+int poi_manager_get_number_of_poi_sources(PoiManager * poi_manager);
+PoiSource * poi_manager_get_poi_source(PoiManager * poi_manager, int index);
+void poi_manager_activate_poi_source(PoiManager * poi_manager, int index);
 
 #endif /* _GOSM_POI_MANAGER_H */

@@ -120,9 +120,8 @@ char * config_get_config_dir()
 	sprintf(gosmdir, "%s%s", dir,afterhomedir);
 	return gosmdir;
 }
-char * config_get_config_file()
+char * config_get_config_dir_sub_file(char * filename)
 {
-	char * filename = "configuration";
 	char * gosmdir = config_get_config_dir();
 	char * filepath = malloc(sizeof(char) * (strlen(gosmdir) + strlen(filename)+ 2 ));
 	sprintf(filepath, "%s/%s", gosmdir,filename);
@@ -130,15 +129,17 @@ char * config_get_config_file()
 	free(gosmdir);
 	return filepath;
 }
+char * config_get_config_file()
+{
+	return config_get_config_dir_sub_file("configuration");
+}
+char * config_get_poi_sources_file()
+{
+	return config_get_config_dir_sub_file("poi_sources");
+}
 char * config_get_poi_layers_file()
 {
-	char * filename = "poi_layers";
-	char * gosmdir = config_get_config_dir();
-	char * filepath = malloc(sizeof(char) * (strlen(gosmdir) + strlen(filename)+ 2 ));
-	sprintf(filepath, "%s/%s", gosmdir,filename);
-	printf("%s\n", filepath);
-	free(gosmdir);
-	return filepath;
+	return config_get_config_dir_sub_file("poi_layers");
 }
 gboolean config_load_config_file(Configuration * configuration)
 {

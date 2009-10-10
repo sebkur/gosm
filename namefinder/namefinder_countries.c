@@ -151,7 +151,7 @@ static GtkTreeModel * namefinder_countries_create_model (country * countries, in
 	GtkListStore	*store;
 	GtkTreeIter	  iter;
 	
-	store = gtk_list_store_new (NUM_COLS, G_TYPE_STRING, G_TYPE_UINT);
+	store = gtk_list_store_new (NUM_COLS, G_TYPE_STRING);
 
 	int c;
 	for (c = 0; c < num; c++){

@@ -46,44 +46,31 @@ enum
         COLOUR_CHANGED,
         KEY_CHANGED,
 	VALUE_CHANGED,
+	SOURCE_ACTIVATED,
+	SOURCE_DEACTIVATED,
         LAST_SIGNAL
 };
 
 static guint poi_manager_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, poi_manager_signals[SIGNAL_NAME_n], 0);
 
+gboolean poi_manager_read_poi_sources(PoiManager * poi_manager);
 gboolean poi_manager_read_poi_layers(PoiManager * poi_manager);
+void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set);
 
 PoiManager * poi_manager_new()
 {
 	PoiManager * poi_manager = g_object_new(GOSM_TYPE_POI_MANAGER, NULL);
 	poi_manager -> poi_sets = g_array_new(FALSE, FALSE, sizeof(StyledPoiSet*));
-	char * filename = GOSM_NAMEFINDER_DIR "res/vienna.short.osm";
+	poi_manager -> poi_sources = g_array_new(FALSE, FALSE, sizeof(PoiSource*));
+	poi_manager -> active_poi_source = -1;
+//	char * filename = GOSM_NAMEFINDER_DIR "res/vienna.short.osm";
 //	filename = GOSM_NAMEFINDER_DIR "res/berlin.short.osm";
 //	filename = GOSM_NAMEFINDER_DIR "res/vienna.50000.osm";
 	poi_manager -> osm_reader = osm_reader_new();
 //	osm_reader_parse_file(poi_manager -> osm_reader, filename);
 	poi_manager_read_poi_layers(poi_manager);
-//	poi_manager_add_poi_set(poi_manager, "shop", 	"supermarket", FALSE, 		0.0, 1.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"restaurant", FALSE, 		1.0, 0.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"cafe", FALSE, 			0.8, 0.1, 0.1, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"pub", FALSE, 			0.6, 0.2, 0.2, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"biergarten", FALSE, 		0.5, 0.2, 0.2, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"bar", FALSE, 			0.0, 0.0, 1.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"nightclub", FALSE, 		0.1, 0.1, 0.8, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"cinema", FALSE, 		1.0, 0.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"theatre", FALSE, 		1.0, 0.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"library", FALSE, 		1.0, 0.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"place_of_worship", FALSE, 	1.0, 0.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"pharmacy", FALSE, 		1.0, 1.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"fuel", FALSE, 			0.0, 1.0, 1.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"bank", FALSE, 			1.0, 0.0, 1.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "amenity",	"police", FALSE,		0.0, 0.0, 1.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "tourism",	"museum", FALSE, 		1.0, 0.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "tourism",	"hotel", FALSE, 		1.0, 1.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "tourism",	"hostel", FALSE, 		1.0, 0.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "tourism",	"attraction", FALSE, 		1.0, 0.0, 0.0, 0.7);
-//	poi_manager_add_poi_set(poi_manager, "tourism",	"viewpoint", FALSE, 		1.0, 0.0, 0.0, 0.7);
+	poi_manager_read_poi_sources(poi_manager);
 	return poi_manager;
 }
 
@@ -113,10 +100,77 @@ static void poi_manager_class_init(PoiManagerClass *class)
                 NULL, NULL,
                 g_cclosure_marshal_VOID__INT,
                 G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[SOURCE_ACTIVATED] = g_signal_new(
+                "source-activated",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, source_activated),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[SOURCE_DEACTIVATED] = g_signal_new(
+                "source-deactivated",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, source_deactivated),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
 }
 
 static void poi_manager_init(PoiManager *poi_manager)
 {
+}
+
+void poi_manager_add_poi_source(PoiManager * poi_manager, char * filename, gboolean load_on_startup)
+{
+	PoiSource * poi_source = malloc(sizeof(PoiSource*));
+	poi_source -> filename = malloc(sizeof(char) * (strlen(filename) + 1));
+	poi_source -> basename = g_path_get_basename(filename);
+	poi_source -> dirname = g_path_get_dirname(filename);
+	strcpy(poi_source -> filename, filename);
+	g_array_append_val(poi_manager -> poi_sources, poi_source);
+}
+
+//TODO: splitting in only 100 lines is stupid
+gboolean poi_manager_read_poi_sources(PoiManager * poi_manager)
+{
+	char * filepath = config_get_poi_sources_file();
+        struct stat sb;
+        int s = stat(filepath, &sb);
+        if (s == -1){
+                printf("poi_sources file not found\n");
+		return FALSE;
+        }
+        int fd = open(filepath, O_RDONLY);
+        if (fd == -1){
+                printf("poi_sources file could not be opened for reading\n");
+                return FALSE;
+        }
+        int size = sb.st_size;
+        char buf[size+1];
+        read(fd, buf, size);
+        close(fd);
+        buf[size] = '\0';
+
+        gchar ** splitted = g_strsplit(buf, "\n", 100);
+        gchar * current = splitted[0];
+        int i = 0;
+        while (current != NULL){
+                if (strlen(current) > 0){
+                        gchar ** splitline = g_strsplit(current, "\t", 2);
+			if (g_strv_length(splitline) == 2){
+	                        gchar * filename = g_strstrip(splitline[0]);
+				gboolean load = strcmp(splitline[1], "TRUE") == 0;
+				printf("%s %d\n", filename, load);
+				poi_manager_add_poi_source(poi_manager, filename, load);
+			}
+			g_strfreev(splitline);
+                }
+                current = splitted[++i];
+        }
+	g_strfreev(splitted);
+	return TRUE;
 }
 
 gboolean poi_manager_read_poi_layers(PoiManager * poi_manager)
@@ -162,6 +216,7 @@ gboolean poi_manager_read_poi_layers(PoiManager * poi_manager)
                 current = splitted[++i];
         }
 	g_strfreev(splitted);
+	return TRUE;
 }
 
 void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active,
@@ -170,6 +225,13 @@ void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value,
 	StyledPoiSet * poi_set = styled_poi_set_new(key, value, r, g, b, a);
 	poi_set_set_visible(GOSM_POI_SET(poi_set), active);
 	g_array_append_val(poi_manager -> poi_sets, poi_set);
+	poi_manager_fill_poi_set(poi_manager, poi_set);
+}
+
+void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set)
+{
+	char * key = named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set));
+	char * value = named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set));
 	GArray * ids = osm_reader_find_ids_key_value(poi_manager -> osm_reader, key, value);
 	if (ids != NULL){
 		int i;
@@ -205,9 +267,97 @@ StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index)
 	return g_array_index(poi_manager -> poi_sets, StyledPoiSet*, index);
 }
 
+int poi_manager_get_number_of_poi_sources(PoiManager * poi_manager)
+{
+	return poi_manager -> poi_sources -> len;
+}
+
+PoiSource * poi_manager_get_poi_source(PoiManager * poi_manager, int index)
+{
+	return g_array_index(poi_manager -> poi_sources, PoiSource*, index);
+}
+
+void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
+{
+	int old = poi_manager -> active_poi_source;
+	poi_manager -> active_poi_source = index;
+	if (old >= 0 && old != index){
+		g_signal_emit (poi_manager, poi_manager_signals[SOURCE_DEACTIVATED], 0, old);
+	}
+	if (old != index){
+		PoiSource * poi_source = poi_manager_get_poi_source(poi_manager, index);
+		int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
+		osm_reader_clear(poi_manager -> osm_reader);
+		int n;
+		for (n = 0; n < num_poi_sets; n++){
+			StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
+			poi_set_clear(GOSM_POI_SET(poi_set));
+		}
+		osm_reader_parse_file(poi_manager -> osm_reader, poi_source -> filename);
+		for (n = 0; n < num_poi_sets; n++){
+			StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
+			poi_manager_fill_poi_set(poi_manager, poi_set);
+		}
+		g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, index);
+	}
+}
+
 void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double r, double g, double b, double a)
 {
 	StyledPoiSet * poi_set = g_array_index(poi_manager -> poi_sets, StyledPoiSet*, index);
 	styled_poi_set_set_colour(poi_set, r, g, b, a);
 	g_signal_emit (poi_manager, poi_manager_signals[COLOUR_CHANGED], 0, index);
 }
+
+gboolean poi_manager_save(PoiManager * poi_manager)
+{
+	printf("saving poi layers\n");
+	char * filepath = config_get_poi_layers_file();
+        int fd = open(filepath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (fd == -1){
+                printf("poi_layers file could not be opened for writing\n");
+                return FALSE;
+        }
+	int i;
+	char * true_s = "TRUE";
+	char * false_s = "FALSE";
+	for (i = 0; i < poi_manager -> poi_sets -> len; i++){
+		StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, i);
+		char * key = named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set));
+		char * val = named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set));
+		double r, g, b, a;
+		styled_poi_set_get_colour(poi_set, &r, &g, &b, &a);
+		char r_s[6], g_s[6], b_s[6], a_s[6];
+		sprintdouble(r_s, r, 2);
+		sprintdouble(g_s, g, 2);
+		sprintdouble(b_s, b, 2);
+		sprintdouble(a_s, a, 2);
+		write(fd, key, strlen(key));
+		write(fd, "\t", 1);
+		write(fd, val, strlen(val));
+		write(fd, "\t", 1);
+		if (poi_set_get_visible(GOSM_POI_SET(poi_set))){
+			write(fd, true_s, strlen(true_s));
+		}else{
+			write(fd, false_s, strlen(false_s));
+		}
+		write(fd, "\t", 1);
+		write(fd, r_s, strlen(r_s));
+		write(fd, "\t", 1);
+		write(fd, g_s, strlen(g_s));
+		write(fd, "\t", 1);
+		write(fd, b_s, strlen(b_s));
+		write(fd, "\t", 1);
+		write(fd, a_s, strlen(a_s));
+		write(fd, "\n", 1);
+	}
+	close(fd);
+	return TRUE;
+}
+
+gboolean poi_manager_revert(PoiManager * poi_manager)
+{
+	printf("reverting poi layers\n");
+	return TRUE;
+}
+

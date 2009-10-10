@@ -49,8 +49,10 @@ poi/RTree/split_l.c \
 poi/osm_reader.c \
 poi/poi_selector.c \
 poi/poi_manager.c \
+poi/poi_tool.c \
 poi/named_poi_set.c \
 poi/styled_poi_set.c \
+poi/poi_source_selector.c \
 gosm.c
 
 OBJ = \
@@ -102,8 +104,10 @@ poi/RTree/split_l.o \
 poi/osm_reader.o \
 poi/poi_selector.o \
 poi/poi_manager.o \
+poi/poi_tool.o \
 poi/named_poi_set.o \
 poi/styled_poi_set.o \
+poi/poi_source_selector.o \
 gosm.o
 
 CC  = /usr/bin/gcc

@@ -33,7 +33,8 @@ void sprintdouble(char * buf, double d, int precision)
 	for (i = 0; i < precision; i++){
 		x *= 10;
 		y = (int) x;
-		sprintf(&buf[pos], "%d", y);
+		x -= y;
+		sprintf(&buf[pos+i], "%d", y);
 	}
 }
 

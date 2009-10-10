@@ -102,8 +102,9 @@
 #include "imageglue/pdf_generator.h"
 
 #include "poi/poi_set.h"
-#include "poi/poi_selector.h"
 #include "poi/poi_manager.h"
+#include "poi/poi_tool.h"
+#include "poi/poi_selector.h"
 
 #include <unistd.h>
 #include <wait.h>
@@ -227,6 +228,7 @@ static gboolean namefinder_city_cb(GtkWidget *widget);
 static gboolean namefinder_country_cb(GtkWidget *widget);
 static gboolean poi_selector_cb(PoiSelector * poi_selector, gpointer pointer);
 static gboolean poi_manager_colour_cb(PoiManager * poi_manager, int index);
+static gboolean poi_manager_source_cb(PoiManager * poi_manager, int index);
 static gboolean exit_cb(GtkWidget *widget);
        void     chdir_to_bin(char * arg0);
        void     add_pois(PoiSet * poi_set, char * key, char * value);
@@ -356,6 +358,7 @@ int main(int argc, char *argv[])
 	poi_manager = poi_manager_new();
 	map_area_set_poi_manager(area, poi_manager);
 	g_signal_connect(G_OBJECT(poi_manager),"colour-changed", G_CALLBACK(poi_manager_colour_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager),"source-activated", G_CALLBACK(poi_manager_source_cb), NULL);
 	//TEST TEST TEST*/
 
 	// Selection-Widget in sidebar
@@ -678,8 +681,8 @@ int main(int argc, char *argv[])
 	// this is a dummy to prevent the context-menu to appear
 	g_signal_connect(G_OBJECT(web_legend), 	"button-press-event", G_CALLBACK(legend_click_cb), NULL);
 	// pois
-	GtkWidget * poi_selector = poi_selector_new(poi_manager);
-	g_signal_connect(G_OBJECT(poi_selector),"poi-selector-toggled", G_CALLBACK(poi_selector_cb), NULL);
+	PoiTool * poi_tool = GOSM_POI_TOOL(poi_tool_new(poi_manager));
+	g_signal_connect(G_OBJECT(poi_tool -> poi_selector),"poi-selector-toggled", G_CALLBACK(poi_selector_cb), NULL);
 	// bookmarks
 	GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
 	// namefinder
@@ -699,7 +702,7 @@ int main(int argc, char *argv[])
 	GtkWidget * image_namefinder = gtk_image_new_from_file(GOSM_ICON_DIR "stock_internet.png");
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), scrolled, image_legend);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), notebook_namefinder, image_namefinder);
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), poi_selector, image_pois);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), GTK_WIDGET(poi_tool), image_pois);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks, image_bookmarks);
 
 	/**
@@ -1450,6 +1453,12 @@ static gboolean poi_selector_cb(PoiSelector * poi_selector, gpointer pointer)
 }
 
 static gboolean poi_manager_colour_cb(PoiManager * poi_manager, int index)
+{
+	map_area_repaint(area);
+	return FALSE;
+}
+
+static gboolean poi_manager_source_cb(PoiManager * poi_manager, int index)
 {
 	map_area_repaint(area);
 	return FALSE;

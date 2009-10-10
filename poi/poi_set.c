@@ -48,6 +48,7 @@ PoiSet * poi_set_new()
 {
 	PoiSet * poi_set = g_object_new(GOSM_TYPE_POI_SET, NULL);
 	poi_set_constructor(poi_set);
+	poi_set -> visible = FALSE;
 	return poi_set;
 }
 
@@ -56,7 +57,14 @@ void poi_set_constructor(PoiSet * poi_set)
 	poi_set -> root = RTreeNewIndex();
 	poi_set -> node_index = 1;
 	poi_set -> points = g_array_new(FALSE, FALSE, sizeof(LonLatPairData));
-	poi_set -> visible = FALSE;
+}
+
+void poi_set_clear(PoiSet * poi_set)
+{
+	//RTreeFreeNode(poi_set -> root);
+	RTreeClear(poi_set -> root);
+	g_array_free(poi_set -> points, TRUE);
+	poi_set_constructor(poi_set);
 }
 
 static void poi_set_class_init(PoiSetClass *class)

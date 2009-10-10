@@ -16,7 +16,16 @@ struct Node * RTreeNewIndex()
 	return x;
 }
 
-
+void RTreeClear(struct Node* N)
+{
+	int i;
+	if (N -> level > 0){
+		for (i = 0; i < N -> count; i++){
+			RTreeClear(N -> branch[i].child);
+		}
+		free(N);
+	}
+}
 
 // Search in an index tree or subtree for all data retangles that
 // overlap the argument rectangle.

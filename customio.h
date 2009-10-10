@@ -25,6 +25,10 @@
  * the reason is, that i did not get setlocale() to work properly with sprintf()
  */
 
+/*
+ * the length of the buffer should at least have size of precision+4
+ * ['-'] + '(int)d' + '.' + precision
+ */
 void sprintdouble(char * buf, double d, int precision);
 
 double strtodouble(char * buf);

@@ -49,6 +49,32 @@ G_DEFINE_TYPE (OsmReader, osm_reader, G_TYPE_OBJECT);
 //static guint osm_reader_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, osm_reader_signals[SIGNAL_NAME_n], 0);
 
+void destroy_int_p(gpointer data)
+{
+	//printf("%d\n", (int*)data);
+	free(data);
+}
+void destroy_string(gpointer data)
+{
+	//printf("%s\n", (char*)data);
+	free(data);
+}
+void destroy_value_trees(gpointer data)
+{
+	//printf("DESTROY value_tree\n");
+	g_tree_destroy((GTree*)data);
+}
+void destroy_element_arrays(gpointer data)
+{	//printf("DESTROY element array\n");
+	g_array_free((GArray*)data, TRUE);
+}
+void destroy_lon_lat_tags(gpointer data)
+{	//printf("DESTROY lon lat tags\n");
+	LonLatTags * llt = (LonLatTags*) data;
+	g_hash_table_destroy(llt -> tags);
+	free(llt);
+}
+
 gint osm_reader_compare_strings(gconstpointer a, gconstpointer b, gpointer user_data)
 {
 	return strcmp(a, b);
@@ -59,16 +85,27 @@ gint osm_reader_compare_ints(gconstpointer a, gconstpointer b, gpointer user_dat
 	return *(int*)a - *(int*)b;
 }
 
-OsmReader * osm_reader_new()
+void osm_reader_constructor(OsmReader * osm_reader)
 {
-	OsmReader * osm_reader = g_object_new(GOSM_TYPE_OSM_READER, NULL);
-	// TODO: add destroy functions
-	osm_reader -> tree_tags = g_tree_new_full(osm_reader_compare_strings, NULL, NULL, NULL);
-	osm_reader -> tree_ids =  g_tree_new_full(osm_reader_compare_ints, NULL, NULL, NULL);
+	osm_reader -> tree_tags = g_tree_new_full(osm_reader_compare_strings, NULL, destroy_string, destroy_value_trees);
+	osm_reader -> tree_ids =  g_tree_new_full(osm_reader_compare_ints, NULL, destroy_int_p, destroy_lon_lat_tags);
 	osm_reader -> current_level = 0;
 	osm_reader -> current_element = 0;
 	osm_reader -> current_id = 0;
+}
+
+OsmReader * osm_reader_new()
+{
+	OsmReader * osm_reader = g_object_new(GOSM_TYPE_OSM_READER, NULL);
+	osm_reader_constructor(osm_reader);
 	return osm_reader;
+}
+
+void osm_reader_clear(OsmReader * osm_reader)
+{
+	g_tree_destroy(osm_reader -> tree_tags);
+	g_tree_destroy(osm_reader -> tree_ids);
+	osm_reader_constructor(osm_reader);
 }
 
 static void osm_reader_class_init(OsmReaderClass *class)
@@ -117,7 +154,7 @@ static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 			const char * lat_s = osm_reader_get_value(atts, "lat");
 			double lon = strtodouble(lon_s);
 			double lat = strtodouble(lat_s);
-			GHashTable * tags = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, NULL);
+			GHashTable * tags = g_hash_table_new_full(g_str_hash, g_str_equal, destroy_string, destroy_string);
 			LonLatTags * llt = malloc(sizeof(LonLatTags));
 			llt -> lon = lon;
 			llt -> lat = lat;
@@ -130,8 +167,8 @@ static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 	if(osm_reader -> current_level == 3 && osm_reader -> current_element == OSM_READER_ELEMENT_NODE){
 		if (strcmp(name, "tag") == 0){
 			const char * k = osm_reader_get_value(atts, "k");
-			const char * v = osm_reader_get_value(atts, "v");
 			if (strcmp(k, "created_by") != 0){
+				const char * v = osm_reader_get_value(atts, "v");
 				int len_k = strlen(k) + 1;
 				int len_v = strlen(v) + 1;
 				/* put into node's hashmap */
@@ -145,7 +182,7 @@ static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 				GTree * tree1 = (GTree*)lookup1;
 				if (lookup1 == NULL){
 					/* no key found on first level (k not present) */
-					tree1 = g_tree_new_full(osm_reader_compare_strings, NULL, NULL, NULL);
+					tree1 = g_tree_new_full(osm_reader_compare_strings, NULL, destroy_string, destroy_element_arrays);
 					char * key_insert = malloc(sizeof(char) * len_k);
 					strcpy(key_insert, k);
 					g_tree_insert(osm_reader -> tree_tags, key_insert, tree1);
@@ -181,7 +218,7 @@ static void XMLCALL osm_reader_EndElementCallback(	void * userData,
 		}else{
 			/* the last node had no relevant tags
 			   -> it is not inserted into tree */
-			g_hash_table_unref(osm_reader -> current_node -> tags);
+			g_hash_table_destroy(osm_reader -> current_node -> tags);
 			free(osm_reader -> current_node);
 		}
 	}
