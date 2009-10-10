@@ -32,3 +32,8 @@
 void sprintdouble(char * buf, double d, int precision);
 
 double strtodouble(char * buf);
+
+/* just copy file 'source' to file 'dest 
+ * return 0 on success, <0 otherwise
+*/
+int copy_file(char * source, char * dest);

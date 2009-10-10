@@ -63,6 +63,11 @@ void poi_set_clear(PoiSet * poi_set)
 {
 	//RTreeFreeNode(poi_set -> root);
 	RTreeClear(poi_set -> root);
+	int i;
+	for (i = 0; i < poi_set -> points -> len; i++){
+		LonLatPairData * llpd = &g_array_index(poi_set -> points, LonLatPairData, i);
+		free(llpd -> data);
+	}
 	g_array_free(poi_set -> points, TRUE);
 	poi_set_constructor(poi_set);
 }

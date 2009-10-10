@@ -54,6 +54,7 @@ enum
 static guint poi_manager_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, poi_manager_signals[SIGNAL_NAME_n], 0);
 
+gboolean poi_manager_create_default_poi_layers();
 gboolean poi_manager_read_poi_sources(PoiManager * poi_manager);
 gboolean poi_manager_read_poi_layers(PoiManager * poi_manager);
 void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set);
@@ -69,7 +70,16 @@ PoiManager * poi_manager_new()
 //	filename = GOSM_NAMEFINDER_DIR "res/vienna.50000.osm";
 	poi_manager -> osm_reader = osm_reader_new();
 //	osm_reader_parse_file(poi_manager -> osm_reader, filename);
-	poi_manager_read_poi_layers(poi_manager);
+	gboolean layers = poi_manager_read_poi_layers(poi_manager);
+	if (!layers) {
+		printf("did not find poi_layers file, attempting to create it\n");
+		layers = poi_manager_create_default_poi_layers();
+		if (layers){
+			printf("created poi_layers file\n");
+			layers = poi_manager_read_poi_layers(poi_manager);
+		}
+		if (!layers) printf("could not read newly created poi_layers file\n");
+	}
 	poi_manager_read_poi_sources(poi_manager);
 	return poi_manager;
 }
@@ -171,6 +181,15 @@ gboolean poi_manager_read_poi_sources(PoiManager * poi_manager)
         }
 	g_strfreev(splitted);
 	return TRUE;
+}
+
+gboolean poi_manager_create_default_poi_layers()
+{
+	char * from = GOSM_POI_DIR "res/poi_layers";
+	char * to = config_get_poi_layers_file();
+	int ret = copy_file(from, to);
+	free(to);
+	return ret == 0;
 }
 
 gboolean poi_manager_read_poi_layers(PoiManager * poi_manager)

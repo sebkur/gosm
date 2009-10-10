@@ -23,6 +23,11 @@
 #include <string.h>
 #include <math.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <glib.h>
+
 void sprintdouble(char * buf, double d, int precision)
 {
 	int z = (int)d;
@@ -91,6 +96,36 @@ double strtodouble(char * buf)
 	}
 	return negative ? -result : result;
 }
+
+int copy_file(char * source, char * dest)
+{
+	printf("copying %s to %s\n", source, dest);
+	int f = open(source, O_RDONLY);
+	if (f < 0){
+		printf("unable to open input file for reading\n");
+		return -1;
+	}
+	char * dirname = g_path_get_dirname(dest);
+	int mk = g_mkdir_with_parents(dirname, 0755);
+	free(dirname);
+	if (mk < 0){
+		printf("unable to create parent folder\n");
+	}
+	int g = open(dest, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (g < 0){
+		printf("unable to open output file for writing\n");
+		return -1;
+	}
+	char buf[1];
+	while(read(f, buf, 1) > 0){
+		write(g, buf, 1);
+	}
+	int a = close(f);
+	int b = close(g);
+	if (a < 0 || b < 0) return -1;
+	return 0;
+}
+
 /*
 int main(int argc, char *argv[])
 {
