@@ -115,7 +115,7 @@ DEPENDFILE = .depend
 CFLAGS  = -D BUILD=0 -g\
  `pkg-config --cflags --libs gtk+-2.0 gdk-2.0 pango cairo glib-2.0 gthread-2.0 libpng webkit-1.0` \
  `curl-config --cflags --libs`
-LDFLAGS = -lm -lpthread -lexpat\
+LDFLAGS = -lm -lpthread -lexpat -lbz2\
  `pkg-config --cflags --libs gtk+-2.0 gdk-2.0 pango cairo glib-2.0 gthread-2.0 libpng webkit-1.0` \
  `curl-config --cflags --libs`
 

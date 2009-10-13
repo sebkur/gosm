@@ -32,6 +32,8 @@
 #include <fcntl.h>
 #include <string.h>
 
+#include <bzlib.h>
+
 #include "osm_reader.h"
 #include "../map_types.h"
 #include "../customio.h"
@@ -231,7 +233,8 @@ int osm_reader_parse_file(OsmReader * osm_reader, char * filename)
 	XML_SetStartElementHandler(parser, osm_reader_StartElementCallback);
 	XML_SetEndElementHandler(parser, osm_reader_EndElementCallback);
 
-	int f = open(filename, O_RDONLY);
+	// uncompressed .osm file
+	/*int f = open(filename, O_RDONLY);
 	if (f == 0) return 1;
 	ssize_t size;
 	int n = 1000;
@@ -240,6 +243,22 @@ int osm_reader_parse_file(OsmReader * osm_reader, char * filename)
 		size = read(f, buf, n);
 		XML_Parse(parser, buf, size, 0);
 	}while(size > 0);
+	XML_Parse(parser, NULL, 0, 1);*/
+	// compressed .osm.bz2 file
+	FILE * file = fopen(filename, "r");
+	int bzError;
+	int unused;
+	BZFILE * bz = BZ2_bzReadOpen(&bzError, file, 0, 0, &unused, 0);
+	int len = 10;
+	char buf[len+1];
+	int r;
+	do{
+		r = BZ2_bzRead(&bzError, bz, buf, len);
+		buf[r] = '\0';
+		XML_Parse(parser, buf, r, 0);
+	}while(r > 0);
+	BZ2_bzReadClose(&bzError, bz);
+	fclose(file);
 	XML_Parse(parser, NULL, 0, 1);
 	return 0;
 }

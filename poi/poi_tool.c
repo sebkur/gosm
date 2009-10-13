@@ -51,7 +51,7 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	GtkWidget * box_layers = gtk_vbox_new(FALSE, 0);
 	GtkWidget * box_source= gtk_vbox_new(FALSE, 0);
 	/* BOX layers */
-	/* the poi_selector widget */
+	/* layers, poi_selector widget */
 	poi_tool -> poi_selector = GOSM_POI_SELECTOR(poi_selector_new(poi_manager));
 	GtkWidget * poi_selector_scrolled = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(poi_selector_scrolled), 
@@ -59,25 +59,43 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (poi_selector_scrolled),
 	                                GTK_POLICY_AUTOMATIC,
 	                                GTK_POLICY_AUTOMATIC);
-	/* tool bar */
-	GtkWidget * tool_bar = gtk_hbox_new(FALSE, 0);
+	/* layers, tool bar */
+	GtkWidget * tool_bar_layers = gtk_hbox_new(FALSE, 0);
 	GtkWidget * button_save = gtk_button_new();
 	GtkWidget * button_revert = gtk_button_new();
 	GtkWidget * icon_save = gtk_image_new_from_stock("gtk-save", GTK_ICON_SIZE_BUTTON);
 	GtkWidget * icon_revert = gtk_image_new_from_stock("gtk-revert-to-saved", GTK_ICON_SIZE_BUTTON);
 	gtk_button_set_image(GTK_BUTTON(button_save), icon_save);
 	gtk_button_set_image(GTK_BUTTON(button_revert), icon_revert);
-	gtk_box_pack_start(GTK_BOX(tool_bar), button_save, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(tool_bar), button_revert, FALSE, FALSE, 0);
-	/* layers layout */
-	gtk_box_pack_start(GTK_BOX(box_layers), tool_bar, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_save, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_revert, FALSE, FALSE, 0);
+	/* layers, layout */
+	gtk_box_pack_start(GTK_BOX(box_layers), tool_bar_layers, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_layers), poi_selector_scrolled, TRUE, TRUE, 0);
-	/* callbacks */
+	/* layers, callbacks */
 	g_signal_connect(G_OBJECT(button_save), "clicked", G_CALLBACK(poi_tool_button_save_cb), (gpointer)poi_tool);
 	g_signal_connect(G_OBJECT(button_revert), "clicked", G_CALLBACK(poi_tool_button_revert_cb), (gpointer)poi_tool);
-	/* BOX source */
+	/* BOX sources */
+	/* sources, source_selector widget */
 	poi_tool -> poi_source_selector = poi_source_selector_new(poi_manager);
+	/* sources, tool bar */
+	GtkWidget * tool_bar_sources = gtk_hbox_new(FALSE, 0);
+	GtkWidget * button_add = gtk_button_new();
+	GtkWidget * button_delete = gtk_button_new();
+	GtkWidget * button_repos = gtk_button_new();
+	GtkWidget * icon_add = gtk_image_new_from_stock("gtk-add", GTK_ICON_SIZE_BUTTON);
+	GtkWidget * icon_delete = gtk_image_new_from_stock("gtk-remove", GTK_ICON_SIZE_BUTTON);
+	GtkWidget * icon_repos = gtk_image_new_from_stock("gtk-network", GTK_ICON_SIZE_BUTTON);
+	gtk_button_set_image(GTK_BUTTON(button_add), icon_add);
+	gtk_button_set_image(GTK_BUTTON(button_delete), icon_delete);
+	gtk_button_set_image(GTK_BUTTON(button_repos), icon_repos);
+	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_add, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_delete, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_repos, FALSE, FALSE, 0);
+	/* sources, layout */
+	gtk_box_pack_start(GTK_BOX(box_source), tool_bar_sources, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_source), GTK_WIDGET(poi_tool -> poi_source_selector), TRUE, TRUE, 0);
+
 	/* notebook */
 	GtkWidget * notebook = gtk_notebook_new();
 	GtkWidget * label_layers = gtk_label_new("Layers");
