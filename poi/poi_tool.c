@@ -25,6 +25,7 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#include <string.h>
 
 #include "poi_tool.h"
 
@@ -40,8 +41,11 @@ G_DEFINE_TYPE (PoiTool, poi_tool, GTK_TYPE_VBOX);
 //static guint poi_tool_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, poi_tool_signals[SIGNAL_NAME_n], 0);
 
-static gboolean poi_tool_button_save_cb(GtkWidget * button, gpointer data);
-static gboolean poi_tool_button_revert_cb(GtkWidget * button, gpointer data);
+static gboolean poi_tool_button_layers_save_cb(GtkWidget * button, gpointer data);
+static gboolean poi_tool_button_layers_revert_cb(GtkWidget * button, gpointer data);
+static gboolean poi_tool_button_sources_add_cb(GtkWidget * button, gpointer data);
+static gboolean poi_tool_button_sources_delete_cb(GtkWidget * button, gpointer data);
+static gboolean poi_tool_button_sources_save_cb(GtkWidget * button, gpointer data);
 
 GtkWidget * poi_tool_new(PoiManager * poi_manager)
 {
@@ -61,40 +65,53 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	                                GTK_POLICY_AUTOMATIC);
 	/* layers, tool bar */
 	GtkWidget * tool_bar_layers = gtk_hbox_new(FALSE, 0);
-	GtkWidget * button_save = gtk_button_new();
-	GtkWidget * button_revert = gtk_button_new();
+	GtkWidget * button_layers_save = gtk_button_new();
+	GtkWidget * button_layers_revert = gtk_button_new();
 	GtkWidget * icon_save = gtk_image_new_from_stock("gtk-save", GTK_ICON_SIZE_BUTTON);
 	GtkWidget * icon_revert = gtk_image_new_from_stock("gtk-revert-to-saved", GTK_ICON_SIZE_BUTTON);
-	gtk_button_set_image(GTK_BUTTON(button_save), icon_save);
-	gtk_button_set_image(GTK_BUTTON(button_revert), icon_revert);
-	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_save, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_revert, FALSE, FALSE, 0);
+	gtk_button_set_image(GTK_BUTTON(button_layers_save), icon_save);
+	gtk_button_set_image(GTK_BUTTON(button_layers_revert), icon_revert);
+	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_layers_save, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_layers_revert, FALSE, FALSE, 0);
 	/* layers, layout */
 	gtk_box_pack_start(GTK_BOX(box_layers), tool_bar_layers, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_layers), poi_selector_scrolled, TRUE, TRUE, 0);
 	/* layers, callbacks */
-	g_signal_connect(G_OBJECT(button_save), "clicked", G_CALLBACK(poi_tool_button_save_cb), (gpointer)poi_tool);
-	g_signal_connect(G_OBJECT(button_revert), "clicked", G_CALLBACK(poi_tool_button_revert_cb), (gpointer)poi_tool);
+	g_signal_connect(G_OBJECT(button_layers_save), "clicked",
+		G_CALLBACK(poi_tool_button_layers_save_cb), (gpointer)poi_tool);
+	g_signal_connect(G_OBJECT(button_layers_revert), "clicked",
+		G_CALLBACK(poi_tool_button_layers_revert_cb), (gpointer)poi_tool);
 	/* BOX sources */
 	/* sources, source_selector widget */
 	poi_tool -> poi_source_selector = poi_source_selector_new(poi_manager);
 	/* sources, tool bar */
 	GtkWidget * tool_bar_sources = gtk_hbox_new(FALSE, 0);
-	GtkWidget * button_add = gtk_button_new();
-	GtkWidget * button_delete = gtk_button_new();
-	GtkWidget * button_repos = gtk_button_new();
+	GtkWidget * button_sources_add = gtk_button_new();
+	GtkWidget * button_sources_delete = gtk_button_new();
+	GtkWidget * button_sources_save = gtk_button_new();
+	GtkWidget * button_sources_repos = gtk_button_new();
 	GtkWidget * icon_add = gtk_image_new_from_stock("gtk-add", GTK_ICON_SIZE_BUTTON);
 	GtkWidget * icon_delete = gtk_image_new_from_stock("gtk-remove", GTK_ICON_SIZE_BUTTON);
+	GtkWidget * icon_save2 = gtk_image_new_from_stock("gtk-save", GTK_ICON_SIZE_BUTTON);
 	GtkWidget * icon_repos = gtk_image_new_from_stock("gtk-network", GTK_ICON_SIZE_BUTTON);
-	gtk_button_set_image(GTK_BUTTON(button_add), icon_add);
-	gtk_button_set_image(GTK_BUTTON(button_delete), icon_delete);
-	gtk_button_set_image(GTK_BUTTON(button_repos), icon_repos);
-	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_add, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_delete, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_repos, FALSE, FALSE, 0);
+	gtk_button_set_image(GTK_BUTTON(button_sources_add), icon_add);
+	gtk_button_set_image(GTK_BUTTON(button_sources_delete), icon_delete);
+	gtk_button_set_image(GTK_BUTTON(button_sources_save), icon_save2);
+	gtk_button_set_image(GTK_BUTTON(button_sources_repos), icon_repos);
+	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_sources_add, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_sources_delete, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_sources_save, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_sources_repos, FALSE, FALSE, 0);
 	/* sources, layout */
 	gtk_box_pack_start(GTK_BOX(box_source), tool_bar_sources, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_source), GTK_WIDGET(poi_tool -> poi_source_selector), TRUE, TRUE, 0);
+	/* sources, callbacks */
+	g_signal_connect(G_OBJECT(button_sources_add), "clicked",
+		G_CALLBACK(poi_tool_button_sources_add_cb), (gpointer)poi_tool);
+	g_signal_connect(G_OBJECT(button_sources_delete), "clicked",
+		G_CALLBACK(poi_tool_button_sources_delete_cb), (gpointer)poi_tool);
+	g_signal_connect(G_OBJECT(button_sources_save), "clicked",
+		G_CALLBACK(poi_tool_button_sources_save_cb), (gpointer)poi_tool);
 
 	/* notebook */
 	GtkWidget * notebook = gtk_notebook_new();
@@ -123,16 +140,61 @@ static void poi_tool_init(PoiTool *poi_tool)
 {
 }
 
-static gboolean poi_tool_button_save_cb(GtkWidget * button, gpointer data)
+static gboolean poi_tool_button_layers_save_cb(GtkWidget * button, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
-	poi_manager_save(poi_tool -> poi_manager);
+	//TODO: use boolean return value of save-function
+	poi_manager_layers_save(poi_tool -> poi_manager);
 	return FALSE;
 }
 
-static gboolean poi_tool_button_revert_cb(GtkWidget * button, gpointer data)
+static gboolean poi_tool_button_layers_revert_cb(GtkWidget * button, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
-	poi_manager_revert(poi_tool -> poi_manager);
+	poi_manager_layers_revert(poi_tool -> poi_manager);
+	return FALSE;
+}
+
+static gboolean poi_tool_button_sources_add_cb(GtkWidget * button, gpointer data)
+{
+	GtkWidget * chooser = gtk_file_chooser_dialog_new("Select Osm-File to add",
+					NULL,
+					GTK_FILE_CHOOSER_ACTION_OPEN,
+					GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+					GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+					NULL);
+	gtk_window_set_modal(GTK_WINDOW(chooser), TRUE);
+	int result = gtk_dialog_run(GTK_DIALOG(chooser));
+	//TODO: some other dialogs don't trigger the delete-event
+	if (result == GTK_RESPONSE_CANCEL || result == GTK_RESPONSE_DELETE_EVENT){
+		gtk_widget_destroy(chooser);
+	}
+	if (result == GTK_RESPONSE_ACCEPT){
+		char * filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(chooser));
+		char * fn = malloc(sizeof(char) * (strlen(filename) + 1));
+		strcpy(fn, filename);
+		gtk_widget_destroy(chooser);
+		PoiTool * poi_tool = GOSM_POI_TOOL(data);
+		poi_manager_sources_add(poi_tool -> poi_manager, fn);
+		free(fn);
+	}
+	return FALSE;
+}
+
+static gboolean poi_tool_button_sources_delete_cb(GtkWidget * button, gpointer data)
+{
+	PoiTool * poi_tool = GOSM_POI_TOOL(data);
+	PoiSourceSelector * poi_source_selector = poi_tool -> poi_source_selector;
+	int index = poi_source_selector_get_active_item_index(poi_source_selector);
+	if (index >= 0){
+		poi_manager_sources_delete(poi_tool -> poi_manager, index);
+	}
+	return FALSE;
+}
+
+static gboolean poi_tool_button_sources_save_cb(GtkWidget * button, gpointer data)
+{
+	PoiTool * poi_tool = GOSM_POI_TOOL(data);
+	poi_manager_sources_save(poi_tool -> poi_manager);
 	return FALSE;
 }

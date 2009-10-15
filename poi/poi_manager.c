@@ -48,11 +48,12 @@ enum
 	VALUE_CHANGED,
 	SOURCE_ACTIVATED,
 	SOURCE_DEACTIVATED,
+	SOURCE_ADDED,
+	SOURCE_DELETED,
         LAST_SIGNAL
 };
 
 static guint poi_manager_signals[LAST_SIGNAL] = { 0 };
-//g_signal_emit (widget, poi_manager_signals[SIGNAL_NAME_n], 0);
 
 gboolean poi_manager_create_default_poi_layers();
 gboolean poi_manager_read_poi_sources(PoiManager * poi_manager);
@@ -126,6 +127,22 @@ static void poi_manager_class_init(PoiManagerClass *class)
                 NULL, NULL,
                 g_cclosure_marshal_VOID__INT,
                 G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[SOURCE_ADDED] = g_signal_new(
+                "source-added",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, source_added),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[SOURCE_DELETED] = g_signal_new(
+                "source-deleted",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, source_deleted),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
 }
 
 static void poi_manager_init(PoiManager *poi_manager)
@@ -134,12 +151,14 @@ static void poi_manager_init(PoiManager *poi_manager)
 
 void poi_manager_add_poi_source(PoiManager * poi_manager, char * filename, gboolean load_on_startup)
 {
-	PoiSource * poi_source = malloc(sizeof(PoiSource*));
+	PoiSource * poi_source = malloc(sizeof(PoiSource));
 	poi_source -> filename = malloc(sizeof(char) * (strlen(filename) + 1));
 	poi_source -> basename = g_path_get_basename(filename);
 	poi_source -> dirname = g_path_get_dirname(filename);
+	poi_source -> load_on_startup = load_on_startup;
 	strcpy(poi_source -> filename, filename);
 	g_array_append_val(poi_manager -> poi_sources, poi_source);
+	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ADDED], 0, poi_manager -> poi_sources -> len - 1);
 }
 
 //TODO: splitting in only 100 lines is stupid
@@ -174,6 +193,7 @@ gboolean poi_manager_read_poi_sources(PoiManager * poi_manager)
 				gboolean load = strcmp(splitline[1], "TRUE") == 0;
 				printf("%s %d\n", filename, load);
 				poi_manager_add_poi_source(poi_manager, filename, load);
+				g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ADDED], 0, i);
 			}
 			g_strfreev(splitline);
                 }
@@ -328,7 +348,7 @@ void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double 
 	g_signal_emit (poi_manager, poi_manager_signals[COLOUR_CHANGED], 0, index);
 }
 
-gboolean poi_manager_save(PoiManager * poi_manager)
+gboolean poi_manager_layers_save(PoiManager * poi_manager)
 {
 	printf("saving poi layers\n");
 	char * filepath = config_get_poi_layers_file();
@@ -374,9 +394,56 @@ gboolean poi_manager_save(PoiManager * poi_manager)
 	return TRUE;
 }
 
-gboolean poi_manager_revert(PoiManager * poi_manager)
+gboolean poi_manager_sources_save(PoiManager * poi_manager)
+{
+	printf("saving poi sources\n");
+	char * filepath = config_get_poi_sources_file();
+        int fd = open(filepath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (fd == -1){
+                printf("poi_sources file could not be opened for writing\n");
+                return FALSE;
+        }
+	int i;
+	char * true_s = "TRUE";
+	char * false_s = "FALSE";
+	for (i = 0; i < poi_manager -> poi_sources -> len; i++){
+		PoiSource * poi_source = poi_manager_get_poi_source(poi_manager, i);
+		char * filename = poi_source -> filename;
+		write(fd, filename, strlen(filename));
+		write(fd, "\t", 1);
+		if (poi_source -> load_on_startup){
+			write(fd, true_s, strlen(true_s));
+		}else{
+			write(fd, false_s, strlen(false_s));
+		}
+		write(fd, "\n", 1);
+	}
+	close(fd);
+	return TRUE;
+}
+
+gboolean poi_manager_layers_revert(PoiManager * poi_manager)
 {
 	printf("reverting poi layers\n");
 	return TRUE;
+}
+
+gboolean poi_manager_sources_add(PoiManager * poi_manager, char * path)
+{
+	poi_manager_add_poi_source(poi_manager, path, FALSE);
+}
+
+gboolean poi_manager_sources_delete(PoiManager * poi_manager, int index)
+{
+	if (index == poi_manager -> active_poi_source){
+		poi_manager -> active_poi_source = -1;
+		//TODO: free resources bound by the deleted, active poi_source, unshow
+	}
+	PoiSource * poi_source = g_array_index(poi_manager -> poi_sources, PoiSource*, index);
+	g_array_remove_index(poi_manager -> poi_sources, index);
+	free(poi_source -> filename);
+	free(poi_source -> basename);
+	free(poi_source -> dirname);
+	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_DELETED], 0, index);
 }
 

@@ -48,6 +48,7 @@ typedef struct {
 	char * filename;
 	char * basename;
 	char * dirname;
+	gboolean load_on_startup;
 } PoiSource;
 
 struct _PoiManager
@@ -70,6 +71,8 @@ struct _PoiManagerClass
 	void (* value_changed) (PoiManager *poi_manager, int index);
 	void (* source_activated) (PoiManager *poi_manager, int index);
 	void (* source_deactivated) (PoiManager *poi_manager, int index);
+	void (* source_added) (PoiManager *poi_manager, int index);
+	void (* source_deleted) (PoiManager *poi_manager, int index);
 };
 
 PoiManager * poi_manager_new();
@@ -84,8 +87,11 @@ StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index);
 
 void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double r, double g, double b, double a);
 
-gboolean poi_manager_save(PoiManager * poi_manager);
-gboolean poi_manager_revert(PoiManager * poi_manager);
+gboolean poi_manager_layers_save(PoiManager * poi_manager);
+gboolean poi_manager_layers_revert(PoiManager * poi_manager);
+gboolean poi_manager_sources_add(PoiManager * poi_manager, char * path);
+gboolean poi_manager_sources_delete(PoiManager * poi_manager, int index);
+gboolean poi_manager_sources_save(PoiManager * poi_manager);
 
 int poi_manager_get_number_of_poi_sources(PoiManager * poi_manager);
 PoiSource * poi_manager_get_poi_source(PoiManager * poi_manager, int index);

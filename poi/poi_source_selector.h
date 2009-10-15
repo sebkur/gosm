@@ -57,4 +57,5 @@ struct _PoiSourceSelectorClass
 
 PoiSourceSelector * poi_source_selector_new(PoiManager * poi_manager);
 
+int poi_source_selector_get_active_item_index(PoiSourceSelector * poi_source_selector);
 #endif /* _POI_SOURCE_SELECTOR_H_ */
