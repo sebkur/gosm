@@ -1,1 +1,0 @@
-gcc `pkg-config --cflags --libs gtk+-2.0 gdk-2.0 glib-2.0 gthread-2.0` `/home/bude/kuerten/dev/fakeroot/curl/bin/curl-config --cflags --libs` -pthread -lm -o gosm tool.c ringbuffer.c tile_cache.c tilemath.c select_tool.c select_use_window.c tile_download_window.c tile_manager.c map_area.c config.c gosm.c
