@@ -73,6 +73,8 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	gtk_button_set_image(GTK_BUTTON(button_layers_revert), icon_revert);
 	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_layers_save, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_layers_revert, FALSE, FALSE, 0);
+	gtk_widget_set_tooltip_text(button_layers_save, "save layers");
+	gtk_widget_set_tooltip_text(button_layers_revert, "revert to saved");
 	/* layers, layout */
 	gtk_box_pack_start(GTK_BOX(box_layers), tool_bar_layers, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_layers), poi_selector_scrolled, TRUE, TRUE, 0);
@@ -102,6 +104,10 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_sources_delete, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_sources_save, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(tool_bar_sources), button_sources_repos, FALSE, FALSE, 0);
+	gtk_widget_set_tooltip_text(button_sources_add, "add source file");
+	gtk_widget_set_tooltip_text(button_sources_delete, "remove selected file");
+	gtk_widget_set_tooltip_text(button_sources_save, "save list");
+	gtk_widget_set_tooltip_text(button_sources_repos, "sync to repository (not implemented)");
 	/* sources, layout */
 	gtk_box_pack_start(GTK_BOX(box_source), tool_bar_sources, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_source), GTK_WIDGET(poi_tool -> poi_source_selector), TRUE, TRUE, 0);

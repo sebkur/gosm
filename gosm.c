@@ -704,7 +704,14 @@ int main(int argc, char *argv[])
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), notebook_namefinder, image_namefinder);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), GTK_WIDGET(poi_tool), image_pois);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks, image_bookmarks);
-
+	gtk_widget_set_tooltip_text(gtk_notebook_get_tab_label(
+		GTK_NOTEBOOK(notebook_side_left), scrolled), "map-key");
+	gtk_widget_set_tooltip_text(gtk_notebook_get_tab_label(
+		GTK_NOTEBOOK(notebook_side_left), notebook_namefinder), "namefinder");
+	gtk_widget_set_tooltip_text(gtk_notebook_get_tab_label(
+		GTK_NOTEBOOK(notebook_side_left), GTK_WIDGET(poi_tool)), "points of interest");
+	gtk_widget_set_tooltip_text(gtk_notebook_get_tab_label(
+		GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks), "bookmarks (not implemented)");
 	/**
 	 * Other widgets
 	 */
