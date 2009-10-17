@@ -89,6 +89,7 @@ static gboolean scroll_cb(MapArea *map_area, GdkEventScroll *event);
 void map_has_moved(MapArea *map_area);
 void map_area_adjust_map_position_values(MapArea *map_area);
 void map_area_adjust_tile_count_information(MapArea *map_area);
+double map_area_get_poi_square_size(MapArea *map_area);
 
 GtkWidget * map_area_new()
 {
@@ -417,37 +418,41 @@ void map_has_moved(MapArea *map_area)
 void map_area_zoom_in(MapArea *map_area)
 {
 	MapPosition *map_position = &(map_area -> map_position);
-	map_position -> zoom += 1;
-	int middle_x_old = map_position -> tile_left * 256 + map_position -> tile_offset_x + map_position -> width/2;
-	int corner_x_new = middle_x_old * 2 - map_position -> width/2;
-	map_position -> tile_offset_x = corner_x_new % 256;
-	map_position -> tile_left = corner_x_new / 256;
-	int middle_y_old = map_position -> tile_top * 256 + map_position -> tile_offset_y + map_position -> height/2;
-	int corner_y_new = middle_y_old * 2 - map_position -> height/2;
-	map_position -> tile_offset_y = corner_y_new % 256;
-	map_position -> tile_top = corner_y_new / 256;
+	if (map_position -> zoom < 18){
+		map_position -> zoom += 1;
+		int middle_x_old = map_position -> tile_left * 256 + map_position -> tile_offset_x + map_position -> width/2;
+		int corner_x_new = middle_x_old * 2 - map_position -> width/2;
+		map_position -> tile_offset_x = corner_x_new % 256;
+		map_position -> tile_left = corner_x_new / 256;
+		int middle_y_old = map_position -> tile_top * 256 + map_position -> tile_offset_y + map_position -> height/2;
+		int corner_y_new = middle_y_old * 2 - map_position -> height/2;
+		map_position -> tile_offset_y = corner_y_new % 256;
+		map_position -> tile_top = corner_y_new / 256;
 
-	map_has_moved(map_area);
-	g_signal_emit (map_area, map_area_signals[MAP_ZOOM_CHANGED], 0);
-	gtk_widget_queue_draw(GTK_WIDGET(map_area));
+		map_has_moved(map_area);
+		g_signal_emit (map_area, map_area_signals[MAP_ZOOM_CHANGED], 0);
+		gtk_widget_queue_draw(GTK_WIDGET(map_area));
+	}
 }
 
 void map_area_zoom_out(MapArea *map_area)
 {
 	MapPosition *map_position = &(map_area -> map_position);
-	map_position -> zoom -= 1;
-	int middle_x_old = map_position -> tile_left * 256 + map_position -> tile_offset_x + map_position -> width/2;
-	int corner_x_new = middle_x_old / 2.0 - map_position -> width/2;
-	map_position -> tile_offset_x = corner_x_new % 256;
-	map_position -> tile_left = corner_x_new / 256;
-	int middle_y_old = map_position -> tile_top * 256 + map_position -> tile_offset_y + map_position -> height/2;
-	int corner_y_new = middle_y_old / 2.0 - map_position -> height/2;
-	map_position -> tile_offset_y = corner_y_new % 256;
-	map_position -> tile_top = corner_y_new / 256;
-	
-	map_has_moved(map_area);
-	g_signal_emit (map_area, map_area_signals[MAP_ZOOM_CHANGED], 0);
-	gtk_widget_queue_draw(GTK_WIDGET(map_area));
+	if (map_position -> zoom > 1){
+		map_position -> zoom -= 1;
+		int middle_x_old = map_position -> tile_left * 256 + map_position -> tile_offset_x + map_position -> width/2;
+		int corner_x_new = middle_x_old / 2.0 - map_position -> width/2;
+		map_position -> tile_offset_x = corner_x_new % 256;
+		map_position -> tile_left = corner_x_new / 256;
+		int middle_y_old = map_position -> tile_top * 256 + map_position -> tile_offset_y + map_position -> height/2;
+		int corner_y_new = middle_y_old / 2.0 - map_position -> height/2;
+		map_position -> tile_offset_y = corner_y_new % 256;
+		map_position -> tile_top = corner_y_new / 256;
+		
+		map_has_moved(map_area);
+		g_signal_emit (map_area, map_area_signals[MAP_ZOOM_CHANGED], 0);
+		gtk_widget_queue_draw(GTK_WIDGET(map_area));
+	}
 }
 
 void path_add_point(MapArea *map_area, double lon, double lat)
@@ -560,7 +565,7 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 			// NORMAL mode + mouse not pressed
 			double lon = map_area_x_to_lon(map_area, (int) event -> x);
 			double lat = map_area_y_to_lat(map_area, (int) event -> y);
-			double squaresize = 16;
+			double squaresize = map_area_get_poi_square_size(map_area);
 			double lon1 = map_area_x_to_lon(map_area, (int) (event -> x - squaresize / 2));
 			double lat1 = map_area_y_to_lat(map_area, (int) (event -> y + squaresize / 2));
 			double lon2 = map_area_x_to_lon(map_area, (int) (event -> x + squaresize / 2));
@@ -849,6 +854,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			/* DRAW_TILE_NAMES */
 			if (map_area -> show_font){
 				char text[20];
+				//TODO: use pango instead
 				sprintf(text, "%d_%d_%d", map_position -> zoom, t_x, t_y);
 				GdkFont *font = gdk_font_load("-*-terminal-*-*-*-*-14-*-*-*-*-*-*-*");
 				gdk_draw_text(map_area -> pixmap, font, widget->style->black_gc,
@@ -1023,12 +1029,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	IdAndName * id_name_active;
 	
 	/* adjust visible size */
-	double square_size = 2;
-	if (map_area -> map_position.zoom > 6) square_size = 3;
-	if (map_area -> map_position.zoom > 8) square_size = 4;
-	if (map_area -> map_position.zoom > 10) square_size = 5;
-	if (map_area -> map_position.zoom > 12) square_size = 6;
-	if (map_area -> map_position.zoom > 14) square_size = 7;
+	double square_size = map_area_get_poi_square_size(map_area);
 	double square_size_half = square_size / 2;
 	/* iterate poi sets */
 	for (poi = 0; poi < num_poi_sets; poi++){
@@ -1171,4 +1172,23 @@ TileManager * map_area_get_tile_manager(MapArea *map_area, Tileset tileset)
 void map_area_set_poi_manager(MapArea *map_area, PoiManager *poi_manager)
 {
 	map_area -> poi_manager = poi_manager;
+}
+
+double map_area_get_poi_square_size(MapArea *map_area)
+{
+	switch(map_area -> map_position.zoom){
+	case(7):
+	case(8): return 3;
+	case(9):
+	case(10): return 4;
+	case(11):
+	case(12): return 5;
+	case(13):
+	case(14): return 6;
+	case(15): return 7;
+	case(16): return 8;
+	case(17): return 9;
+	case(18): return 10;
+	default: return 2;
+	}
 }
