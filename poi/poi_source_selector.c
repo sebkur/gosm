@@ -169,6 +169,7 @@ static gboolean poi_source_selector_deactivated_cb(PoiManager * poi_manager, int
 				COL_NAME, poi_source -> basename,
 				COL_DIR, poi_source -> dirname,
 				-1);
+	return FALSE;
 }
 
 static gboolean poi_source_selector_activated_cb(PoiManager * poi_manager, int index, gpointer data)
@@ -186,6 +187,7 @@ static gboolean poi_source_selector_activated_cb(PoiManager * poi_manager, int i
 				COL_NAME, poi_source -> basename,
 				COL_DIR, poi_source -> dirname,
 				-1);
+	return FALSE;
 }
 
 void poi_source_selector_list_cb(GtkTreeView	      *treeview,
@@ -246,6 +248,7 @@ static gboolean poi_source_selector_added_cb(PoiManager * poi_manager, int index
 				COL_NAME, poi_source -> basename,
 				COL_DIR, poi_source -> dirname,
 				-1);
+	return FALSE;
 }
 
 static gboolean poi_source_selector_deleted_cb(PoiManager * poi_manager, int index, gpointer data)
@@ -258,6 +261,7 @@ static gboolean poi_source_selector_deleted_cb(PoiManager * poi_manager, int ind
 	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
 	gtk_tree_model_get_iter(model, &iter, path);
 	gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+	return FALSE;
 }
 
 int poi_source_selector_get_active_item_index(PoiSourceSelector * poi_source_selector)

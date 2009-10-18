@@ -66,6 +66,7 @@ struct _PoiManagerClass
 {
 	GObjectClass parent_class;
 
+	void (* layer_toggled) (PoiManager *poi_manager, int index);
 	void (* colour_changed) (PoiManager *poi_manager, int index);
 	void (* key_changed) (PoiManager *poi_manager, int index);
 	void (* value_changed) (PoiManager *poi_manager, int index);
@@ -80,7 +81,7 @@ PoiManager * poi_manager_new();
 void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active,
 	double r, double g, double b, double a);
 
-void poi_manager_toggle_poi_set(PoiManager * poi_manager, NamedPoiSet * poi_set);
+void poi_manager_toggle_poi_set(PoiManager * poi_manager, int index);
 
 int poi_manager_get_number_of_poi_sets(PoiManager * poi_manager);
 StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index);

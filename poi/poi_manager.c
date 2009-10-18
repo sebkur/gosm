@@ -43,6 +43,7 @@ G_DEFINE_TYPE (PoiManager, poi_manager, G_TYPE_OBJECT);
 
 enum
 {
+	LAYER_TOGGLED,
         COLOUR_CHANGED,
         KEY_CHANGED,
 	VALUE_CHANGED,
@@ -87,6 +88,14 @@ PoiManager * poi_manager_new()
 
 static void poi_manager_class_init(PoiManagerClass *class)
 {
+        poi_manager_signals[LAYER_TOGGLED] = g_signal_new(
+                "layer-toggled",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, layer_toggled),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
         poi_manager_signals[COLOUR_CHANGED] = g_signal_new(
                 "colour-changed",
                 G_OBJECT_CLASS_TYPE (class),
@@ -290,10 +299,12 @@ void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set)
 	}
 }
 
-void poi_manager_toggle_poi_set(PoiManager * poi_manager, NamedPoiSet * poi_set)
+void poi_manager_toggle_poi_set(PoiManager * poi_manager, int index)
 {
+	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, index);
 	gboolean visible = poi_set_get_visible(GOSM_POI_SET(poi_set));
 	poi_set_set_visible(GOSM_POI_SET(poi_set), !visible);
+	g_signal_emit (poi_manager, poi_manager_signals[LAYER_TOGGLED], 0, index);
 }
 
 int poi_manager_get_number_of_poi_sets(PoiManager * poi_manager)

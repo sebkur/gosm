@@ -50,18 +50,14 @@ typedef struct {
 struct _PoiSelector
 {
 	GtkVBox parent;
-	
+
+	GtkWidget * view;	
 	PoiManager * poi_manager;
-	GArray * rows;
-	GtkWidget * table;
-	int number_of_entries;
 };
 
 struct _PoiSelectorClass
 {
 	GtkVBoxClass parent_class;
-
-	void (* poi_selector_toggled) (PoiSelector *poi_selector, gpointer kvb);
 };
 
 GtkWidget * poi_selector_new(PoiManager * poi_manager);

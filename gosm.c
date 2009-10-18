@@ -226,7 +226,7 @@ static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean legend_click_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean namefinder_city_cb(GtkWidget *widget);
 static gboolean namefinder_country_cb(GtkWidget *widget);
-static gboolean poi_selector_cb(PoiSelector * poi_selector, gpointer pointer);
+static gboolean poi_manager_layer_cb(PoiSelector * poi_selector, int index);
 static gboolean poi_manager_colour_cb(PoiManager * poi_manager, int index);
 static gboolean poi_manager_source_cb(PoiManager * poi_manager, int index);
 static gboolean exit_cb(GtkWidget *widget);
@@ -357,6 +357,7 @@ int main(int argc, char *argv[])
 	//TEST TEST TEST
 	poi_manager = poi_manager_new();
 	map_area_set_poi_manager(area, poi_manager);
+	g_signal_connect(G_OBJECT(poi_manager),"layer-toggled", G_CALLBACK(poi_manager_layer_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"colour-changed", G_CALLBACK(poi_manager_colour_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"source-activated", G_CALLBACK(poi_manager_source_cb), NULL);
 	//TEST TEST TEST*/
@@ -682,7 +683,6 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(web_legend), 	"button-press-event", G_CALLBACK(legend_click_cb), NULL);
 	// pois
 	PoiTool * poi_tool = GOSM_POI_TOOL(poi_tool_new(poi_manager));
-	g_signal_connect(G_OBJECT(poi_tool -> poi_selector),"poi-selector-toggled", G_CALLBACK(poi_selector_cb), NULL);
 	// bookmarks
 	GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
 	// namefinder
@@ -1451,10 +1451,8 @@ void chdir_to_bin(char * arg0)
 	chdir(dir);
 }
 
-static gboolean poi_selector_cb(PoiSelector * poi_selector, gpointer pointer)
+static gboolean poi_manager_layer_cb(PoiSelector * poi_selector, int index)
 {
-	NamedPoiSet * poi_set = (NamedPoiSet*) pointer;
-	poi_manager_toggle_poi_set(poi_manager, poi_set);
 	map_area_repaint(area);
 	return FALSE;
 }

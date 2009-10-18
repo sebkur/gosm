@@ -57,12 +57,6 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	/* BOX layers */
 	/* layers, poi_selector widget */
 	poi_tool -> poi_selector = GOSM_POI_SELECTOR(poi_selector_new(poi_manager));
-	GtkWidget * poi_selector_scrolled = gtk_scrolled_window_new(NULL, NULL);
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(poi_selector_scrolled), 
-		GTK_WIDGET(poi_tool -> poi_selector));
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (poi_selector_scrolled),
-	                                GTK_POLICY_AUTOMATIC,
-	                                GTK_POLICY_AUTOMATIC);
 	/* layers, tool bar */
 	GtkWidget * tool_bar_layers = gtk_hbox_new(FALSE, 0);
 	GtkWidget * button_layers_save = gtk_button_new();
@@ -77,7 +71,7 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	gtk_widget_set_tooltip_text(button_layers_revert, "revert to saved");
 	/* layers, layout */
 	gtk_box_pack_start(GTK_BOX(box_layers), tool_bar_layers, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(box_layers), poi_selector_scrolled, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(box_layers), GTK_WIDGET(poi_tool -> poi_selector), TRUE, TRUE, 0);
 	/* layers, callbacks */
 	g_signal_connect(G_OBJECT(button_layers_save), "clicked",
 		G_CALLBACK(poi_tool_button_layers_save_cb), (gpointer)poi_tool);

@@ -18,6 +18,10 @@
  * along with Gosm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * this is derived from http://scentric.net/tutorial/sec-custom-cell-renderers.html
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -28,113 +32,73 @@
 #include <gdk/gdk.h>
 
 #include "poi_selector.h"
+#include "cell_renderer_colour.h"
 #include "../config/color_button.h"
 
 G_DEFINE_TYPE (PoiSelector, poi_selector, GTK_TYPE_VBOX);
 
 enum
 {
-	POI_SELECTOR_TOGGLED,
-        LAST_SIGNAL
+	COL_ACTIVE = 0,
+	COL_KEY,
+	COL_VALUE,
+	COL_R, COL_G, COL_B, COL_A,
+	NUM_COLS
 };
 
-typedef struct {
-	PoiSelector * poi_selector;
-	int index;
-	StyledPoiSet * poi_set;
-	GtkWidget * label_key;
-	GtkWidget * label_val;
-	GtkWidget * check_visible;
-	GtkWidget * color_button;
-} PoiSelectorRow;
+//static guint poi_selector_signals[LAST_SIGNAL] = { 0 };
 
-static guint poi_selector_signals[LAST_SIGNAL] = { 0 };
-
+static GtkWidget * poi_selector_create_view (PoiSelector * poi_selector);
 void poi_selector_add_pair(PoiSelector * poi_selector, StyledPoiSet * poi_set);
-static gboolean poi_selector_check_cb(GtkWidget *widget, gpointer data);
-static gboolean poi_selector_color_button_cb(GtkWidget *widget, GdkEventButton * button, gpointer data);
+static gboolean poi_selector_check_cb(GtkCellRendererToggle * renderer, const gchar * path_string, gpointer data);
+static gboolean poi_selector_color_button_cb(CellRendererColour * renderer, const gchar * path_string, gpointer data);
 static gboolean poi_selector_colour_changed_cb(PoiManager * poi_manager, int index, gpointer data);
+static gboolean poi_selector_layer_toggled_cb(PoiManager * poi_manager, int index, gpointer data);
 
 GtkWidget * poi_selector_new(PoiManager * poi_manager)
 {
 	PoiSelector * poi_selector = g_object_new(GOSM_TYPE_POI_SELECTOR, NULL);
 	poi_selector -> poi_manager = poi_manager;
-	poi_selector -> table = gtk_table_new(0, 4, FALSE);
-	poi_selector -> number_of_entries = 0;
-	poi_selector -> rows = g_array_new(FALSE, FALSE, sizeof(PoiSelectorRow*));
-	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
-	int poi;
-	for (poi = 0; poi < num_poi_sets; poi++){
-		StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, poi);
-		poi_selector_add_pair(poi_selector, poi_set);
-	}
-	gtk_box_pack_start(GTK_BOX(poi_selector), poi_selector -> table, FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(poi_manager),"layer-toggled", G_CALLBACK(poi_selector_layer_toggled_cb), (gpointer)poi_selector);
 	g_signal_connect(G_OBJECT(poi_manager),"colour-changed", G_CALLBACK(poi_selector_colour_changed_cb), (gpointer)poi_selector);
+	poi_selector -> view = poi_selector_create_view(poi_selector);
+	GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(scrolled), poi_selector -> view);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+	                                GTK_POLICY_AUTOMATIC,
+	                                GTK_POLICY_AUTOMATIC);
+	gtk_box_pack_start(GTK_BOX(poi_selector), scrolled, TRUE, TRUE, 0);
 	return GTK_WIDGET(poi_selector);
 }
 
 static void poi_selector_class_init(PoiSelectorClass *class)
 {
-        poi_selector_signals[POI_SELECTOR_TOGGLED] = g_signal_new(
-                "poi-selector-toggled",
-                G_OBJECT_CLASS_TYPE (class),
-                G_SIGNAL_RUN_FIRST,
-                G_STRUCT_OFFSET (PoiSelectorClass, poi_selector_toggled),
-                NULL, NULL,
-                g_cclosure_marshal_VOID__POINTER,
-                G_TYPE_NONE, 1, G_TYPE_POINTER);
 }
 
 static void poi_selector_init(PoiSelector *poi_selector)
 {
 }
 
-void poi_selector_add_pair(PoiSelector * poi_selector, StyledPoiSet * poi_set)
+static gboolean poi_selector_check_cb(GtkCellRendererToggle * renderer, const gchar * path_string, gpointer data)
 {
-	PoiSelectorRow * row = malloc(sizeof(PoiSelectorRow));
-	row -> poi_selector = poi_selector;
-	row -> index = poi_selector -> number_of_entries;
-	row -> poi_set = poi_set;
-	/* insert into table */
-	poi_selector -> number_of_entries ++;
-	int pos = poi_selector -> number_of_entries;
-	gtk_table_resize(GTK_TABLE(poi_selector -> table), poi_selector -> number_of_entries, 4);
-	row -> label_key = gtk_label_new(named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set)));
-	row -> label_val = gtk_label_new(named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set)));
-	row -> check_visible = gtk_check_button_new();
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(row -> check_visible), poi_set_get_visible(GOSM_POI_SET(poi_set)));
-	row -> color_button = color_button_new();
-	double r, g, b, a;
-	styled_poi_set_get_colour(poi_set, &r, &g, &b, &a);
-	color_button_set_color(GOSM_COLOR_BUTTON(row -> color_button), r, g, b, a);
-	gtk_widget_set_size_request(row -> color_button, 10, 10);
-	g_array_append_val(poi_selector -> rows, row);
-	g_signal_connect(G_OBJECT(row -> check_visible), "toggled", G_CALLBACK(poi_selector_check_cb), (gpointer)row);
-	g_signal_connect(G_OBJECT(row -> color_button), "button-press-event",
-		G_CALLBACK(poi_selector_color_button_cb), (gpointer)row);
-	gtk_misc_set_alignment(GTK_MISC(row -> label_key), 0.0, 0.0);
-	gtk_misc_set_alignment(GTK_MISC(row -> label_val), 0.0, 0.0);
-	gtk_table_attach(GTK_TABLE(poi_selector -> table), row -> check_visible, 0, 1, pos-1, pos, 0, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(poi_selector -> table), row -> color_button, 1, 2, pos-1, pos, 
-		GTK_EXPAND | GTK_FILL, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(poi_selector -> table), row -> label_key, 2, 3, pos-1, pos, GTK_EXPAND|GTK_FILL, 0, 2, 0);
-	gtk_table_attach(GTK_TABLE(poi_selector -> table), row -> label_val, 3, 4, pos-1, pos, GTK_EXPAND|GTK_FILL, 0, 2, 0);
-}
-
-static gboolean poi_selector_check_cb(GtkWidget *widget, gpointer data)
-{
-	PoiSelectorRow * row = (PoiSelectorRow*) data;
-	PoiSelector * poi_selector = row -> poi_selector;
-	StyledPoiSet * poi_set = row -> poi_set;
-	g_signal_emit (poi_selector, poi_selector_signals[POI_SELECTOR_TOGGLED], 0, (gpointer)poi_set);
+	PoiSelector * poi_selector = GOSM_POI_SELECTOR(data);
+	PoiManager * poi_manager = poi_selector -> poi_manager;
+	GtkTreePath * path = gtk_tree_path_new_from_string(path_string);
+	gint * indices = gtk_tree_path_get_indices(path); 
+	int activated = indices[0];
+	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, activated);
+	poi_manager_toggle_poi_set(poi_manager, activated);
 	return FALSE;
 }
 
-static gboolean poi_selector_color_button_cb(GtkWidget *widget, GdkEventButton * button, gpointer data)
+static gboolean poi_selector_color_button_cb(CellRendererColour * renderer, const gchar * path_string, gpointer data)
 {
-	PoiSelectorRow * row = (PoiSelectorRow*) data;
-	PoiSelector * poi_selector = row -> poi_selector;
-	StyledPoiSet * poi_set = row -> poi_set;
+	PoiSelector * poi_selector = GOSM_POI_SELECTOR(data);
+	PoiManager * poi_manager = poi_selector -> poi_manager;
+	GtkTreePath * path = gtk_tree_path_new_from_string(path_string);
+	gint * indices = gtk_tree_path_get_indices(path); 
+	int activated = indices[0];
+	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, activated);
 
 	GtkWidget * dialog = gtk_color_selection_dialog_new("Select color");
 	GtkColorSelection * sel = GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(dialog) -> colorsel);
@@ -165,16 +129,116 @@ static gboolean poi_selector_color_button_cb(GtkWidget *widget, GdkEventButton *
 	b = (double)color.blue / 65535; 
 	a = (double)opacity / 65535; 
 
-	poi_manager_set_poi_set_colour(poi_selector -> poi_manager, row -> index, r, g, b, a);
+	poi_manager_set_poi_set_colour(poi_selector -> poi_manager, activated, r, g, b, a);
 	return FALSE;
 }
 
 static gboolean poi_selector_colour_changed_cb(PoiManager * poi_manager, int index, gpointer data)
 {
-	PoiSelector * poi_selector = (PoiSelector*) data;
-	PoiSelectorRow * row = g_array_index(poi_selector -> rows, PoiSelectorRow*, index);
+	PoiSelector * poi_selector = GOSM_POI_SELECTOR(data);
+	GtkTreeView * view = GTK_TREE_VIEW(poi_selector -> view);
+	GtkTreeModel * model = gtk_tree_view_get_model(view);
+	GtkTreeIter iter;
+
+	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
+	gtk_tree_model_get_iter(model, &iter, path);
+	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, index);
 	double r, g, b, a;
-	styled_poi_set_get_colour(row -> poi_set, &r, &g, &b, &a);
-	color_button_set_color(GOSM_COLOR_BUTTON(row -> color_button), r, g, b, a);
+	styled_poi_set_get_colour(poi_set, &r, &g, &b, &a);
+	gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+				COL_R, r,
+				COL_G, g,
+				COL_B, b,
+				COL_A, a,
+				-1);
 	return FALSE;
+}
+
+static gboolean poi_selector_layer_toggled_cb(PoiManager * poi_manager, int index, gpointer data)
+{
+	PoiSelector * poi_selector = (PoiSelector*) data;
+	GtkTreeView * view = GTK_TREE_VIEW(poi_selector -> view);
+	GtkTreeModel * model = gtk_tree_view_get_model(view);
+	GtkTreeIter iter;
+
+	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
+	gtk_tree_model_get_iter(model, &iter, path);
+	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, index);
+	gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+				COL_ACTIVE, poi_set_get_visible(GOSM_POI_SET(poi_set)),
+				-1);
+	return FALSE;
+}
+
+static GtkTreeModel * poi_selector_create_model (PoiManager * poi_manager)
+{
+	GtkListStore	*store;
+	GtkTreeIter	  iter;
+	
+	store = gtk_list_store_new (NUM_COLS, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING,
+			 G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_DOUBLE);
+
+	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
+	int poi;
+	for (poi = 0; poi < num_poi_sets; poi++){
+		StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, poi);
+		gtk_list_store_append (store, &iter);
+		double r, g, b, a;
+		styled_poi_set_get_colour(poi_set, &r, &g, &b, &a);
+		gtk_list_store_set (store, &iter,
+					COL_ACTIVE, poi_set_get_visible(GOSM_POI_SET(poi_set)),
+					COL_KEY, named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set)),
+					COL_VALUE, named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set)),
+					COL_R, r, COL_G, g, COL_B, b, COL_A, a,
+					-1);
+	}
+
+	return GTK_TREE_MODEL (store);
+}
+
+static GtkWidget * poi_selector_create_view (PoiSelector * poi_selector)
+{
+	GtkCellRenderer     *renderer;
+	GtkTreeModel        *model;
+	GtkWidget           *view;
+
+	PoiManager * poi_manager = poi_selector -> poi_manager;
+	view = gtk_tree_view_new ();
+	renderer = gtk_cell_renderer_toggle_new ();
+	g_signal_connect(G_OBJECT(renderer), "toggled", G_CALLBACK(poi_selector_check_cb), poi_selector);
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (view),
+	                                             -1,
+	                                             "",
+	                                             renderer,
+	                                             "active", COL_ACTIVE,
+	                                             NULL);
+	renderer = cell_renderer_colour_new();
+	g_signal_connect(G_OBJECT(renderer), "edit-colour", G_CALLBACK(poi_selector_color_button_cb), poi_selector);
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (view),
+	                                             -1,
+	                                             "",
+	                                             renderer,
+	                                             "r", COL_R,
+	                                             "g", COL_G,
+	                                             "b", COL_B,
+	                                             "a", COL_A,
+	                                             NULL);
+	renderer = gtk_cell_renderer_text_new ();
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (view),
+	                                             -1,
+	                                             "Key",
+	                                             renderer,
+	                                             "text", COL_KEY,
+	                                             NULL);
+	renderer = gtk_cell_renderer_text_new ();
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (view),
+	                                             -1,
+	                                             "Value",
+	                                             renderer,
+	                                             "text", COL_VALUE,
+	                                             NULL);
+	model = poi_selector_create_model (poi_manager);
+	gtk_tree_view_set_model (GTK_TREE_VIEW (view), model);
+	g_object_unref (model);
+	return view;
 }

@@ -53,6 +53,7 @@ poi/poi_tool.c \
 poi/named_poi_set.c \
 poi/styled_poi_set.c \
 poi/poi_source_selector.c \
+poi/cell_renderer_colour.c \
 gosm.c
 
 OBJ = \
@@ -108,6 +109,7 @@ poi/poi_tool.o \
 poi/named_poi_set.o \
 poi/styled_poi_set.o \
 poi/poi_source_selector.o \
+poi/cell_renderer_colour.o \
 gosm.o
 
 CC  = /usr/bin/gcc
