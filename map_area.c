@@ -93,7 +93,8 @@ double map_area_get_poi_square_size(MapArea *map_area);
 
 GtkWidget * map_area_new()
 {
-	return g_object_new(GOSM_TYPE_MAP_AREA, NULL);
+	MapArea * map_area = g_object_new(GOSM_TYPE_MAP_AREA, NULL);
+	return GTK_WIDGET(map_area);
 }
 
 static void map_area_class_init(MapAreaClass *class)
