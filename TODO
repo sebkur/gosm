@@ -5,3 +5,7 @@ Other topics can be found in gosm.c
 - Provide Debian-packages
 - Do something with POIs on the map
 - Support Osmarender and OpenAreal
+
+tile_cache.c, line 88f, 16 -> 18???
+misc/dir.c, comment out main function
+tile_manager.c, prototype definitions lack arguments
