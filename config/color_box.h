@@ -29,7 +29,7 @@
 #define GOSM_TYPE_COLOR_BOX           (color_box_get_type ())
 #define GOSM_COLOR_BOX(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_COLOR_BOX, ColorBox))
 #define GOSM_COLOR_BOX_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_COLOR_BOX, ColorBoxClass))
-#define GOSM_IS_COLOR_BOX(obj)        (G_TYPE_CHECK_INSTANCE ((obj), GOSM_TYPE_COLOR_BOX))
+#define GOSM_IS_COLOR_BOX(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOSM_TYPE_COLOR_BOX))
 #define GOSM_IS_COLOR_BOX_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_COLOR_BOX))
 #define GOSM_COLOR_BOX_GET_CLASS      (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_COLOR_BOX, ColorBoxClass))
 

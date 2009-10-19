@@ -35,7 +35,7 @@
 #define GOSM_TYPE_POI_SET           (poi_set_get_type ())
 #define GOSM_POI_SET(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_POI_SET, PoiSet))
 #define GOSM_POI_SET_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_POI_SET, PoiSetClass))
-#define GOSM_IS_POI_SET(obj)        (G_TYPE_CHECK_INSTANCE ((obj), GOSM_TYPE_POI_SET))
+#define GOSM_IS_POI_SET(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOSM_TYPE_POI_SET))
 #define GOSM_IS_POI_SET_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_POI_SET))
 #define GOSM_POI_SET_GET_CLASS      (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_POI_SET, PoiSetClass))
 

@@ -58,7 +58,7 @@ def get_header(name, parent_mixed, type_return):
 	"#define GOSM_TYPE_"+names[1]+"           ("+names[0]+"_get_type ())\n" + \
 	"#define GOSM_"+names[1]+"(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_"+names[1]+", "+names[2]+"))\n" + \
 	"#define GOSM_"+names[1]+"_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_"+names[1]+", "+names[2]+"Class))\n" + \
-	"#define GOSM_IS_"+names[1]+"(obj)        (G_TYPE_CHECK_INSTANCE ((obj), GOSM_TYPE_"+names[1]+"))\n" + \
+	"#define GOSM_IS_"+names[1]+"(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOSM_TYPE_"+names[1]+"))\n" + \
 	"#define GOSM_IS_"+names[1]+"_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_"+names[1]+"))\n" + \
 	"#define GOSM_"+names[1]+"_GET_CLASS      (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_"+names[1]+", "+names[2]+"Class))\n" + \
 	"\n" + \

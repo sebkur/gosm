@@ -33,7 +33,7 @@
 #define GOSM_TYPE_IMAGE_GLUE           (image_glue_get_type ())
 #define GOSM_IMAGE_GLUE(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_IMAGE_GLUE, ImageGlue))
 #define GOSM_IMAGE_GLUE_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_IMAGE_GLUE, ImageGlueClass))
-#define GOSM_IS_IMAGE_GLUE(obj)        (G_TYPE_CHECK_INSTANCE ((obj), GOSM_TYPE_IMAGE_GLUE))
+#define GOSM_IS_IMAGE_GLUE(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOSM_TYPE_IMAGE_GLUE))
 #define GOSM_IS_IMAGE_GLUE_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_IMAGE_GLUE))
 #define GOSM_IMAGE_GLUE_GET_CLASS      (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_IMAGE_GLUE, ImageGlueClass))
 

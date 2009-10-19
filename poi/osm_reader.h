@@ -37,7 +37,7 @@
 #define GOSM_TYPE_OSM_READER           (osm_reader_get_type ())
 #define GOSM_OSM_READER(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_OSM_READER, OsmReader))
 #define GOSM_OSM_READER_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_OSM_READER, OsmReaderClass))
-#define GOSM_IS_OSM_READER(obj)        (G_TYPE_CHECK_INSTANCE ((obj), GOSM_TYPE_OSM_READER))
+#define GOSM_IS_OSM_READER(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOSM_TYPE_OSM_READER))
 #define GOSM_IS_OSM_READER_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_OSM_READER))
 #define GOSM_OSM_READER_GET_CLASS      (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_OSM_READER, OsmReaderClass))
 
