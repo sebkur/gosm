@@ -156,7 +156,7 @@ GtkWidget * 	web_legend;
 GtkWidget *	namefinder_cities;
 GtkWidget *	namefinder_countries;
 
-GtkWidget ** 	toolbar_buttons; // first 4 buttons; CURSOR_* is used as index
+GtkWidget ** 	toolbar_buttons; /* first 4 buttons; CURSOR_* is used as index */
 GtkWidget * 	button_network;
 GtkWidget * 	button_map_controls;
 GtkWidget * 	button_side_bar;
@@ -267,16 +267,19 @@ GtkWidget * menu_help_license;
 
 int main(int argc, char *argv[])
 {
-	// ensure, that we are in the dir, where the executable is
-	// i.e. set cwd to the executable's dir
+	/* ensure, that we are in the dir, where the executable is */
+	/* i.e. set cwd to the executable's dir */
 	chdir_to_bin(argv[0]);
 
-	// create config struct
+	/***************************************************************************
+	 * CONFIGURATION
+	 ***************************************************************************/
+	/* create config struct */
 	config = config_new();
-	// fill config struct from config file
+	/* fill config struct from config file */
 	config_load_config_file(config);
 
-	// use the configured values
+	/* use the configured values */
 	gboolean	set_position		= *(gboolean*)		config_get_entry_data(config, "set_position");
 	int		pos_x			= *(int*)		config_get_entry_data(config, "position_x");
 	int		pos_y			= *(int*)		config_get_entry_data(config, "position_y");
@@ -298,12 +301,12 @@ int main(int argc, char *argv[])
 	 		cache_dir		= 			config_get_entry_data(config, "cache_dir_mapnik");
 	 		cache_dir_mapnik	= 			config_get_entry_data(config, "cache_dir_mapnik");
 	 		cache_dir_osmarender	= 			config_get_entry_data(config, "cache_dir_osmarender");
-	 		cache_dir_cycle	= 			config_get_entry_data(config, "cache_dir_cycle");
+	 		cache_dir_cycle		= 			config_get_entry_data(config, "cache_dir_cycle");
 	ColorQuadriple	color_selection 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection");
 	ColorQuadriple	color_selection_out 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection_out");
 	ColorQuadriple	color_selection_pad 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection_pad");
 	ColorQuadriple	color_atlas_lines	= *(ColorQuadriple*)	config_get_entry_data(config, "color_atlas_lines");
-	tileset	= *(Tileset*)	config_get_entry_data(config, "tileset");
+	tileset					= *(Tileset*)		config_get_entry_data(config, "tileset");
 
 	if(!set_size){
 		width 	= 900;
@@ -316,37 +319,35 @@ int main(int argc, char *argv[])
 	cache_dirs[TILESET_OSMARENDER] = cache_dir_osmarender;
 	cache_dirs[TILESET_CYCLE] = cache_dir_cycle;
 
-	// ensure, that the tmp-directory for tiles exists
+	/* ensure, that the tmp-directory for tiles exists */
 	if (!check_for_cache_directory(cache_dir_mapnik)
 		|| !check_for_cache_directory(cache_dir_osmarender) 
 		|| !check_for_cache_directory(cache_dir_cycle) ){
 		return EXIT_FAILURE;
 	}
 
-	// init g_threads, gtk_threads, gtk
+	/* init g_threads, gtk_threads, gtk */
 	g_thread_init(NULL);
 	gdk_threads_init();
 	gtk_init(&argc, &argv);
 
-	/**
+	/***************************************************************************
 	 * GTK WIDGETS AND LAYOUT, CALLBACKS
-	 */
-	// main window
+	 ***************************************************************************/
+	/* main window */
 	main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(main_window), "GOsmView");
 	gtk_window_set_icon_from_file(GTK_WINDOW(main_window), GOSM_ICON_DIR "gosm.png", NULL);
 	gtk_window_set_default_size(GTK_WINDOW(main_window), width, height);
 	g_signal_connect(G_OBJECT(main_window), "hide", G_CALLBACK(close_cb), NULL);
 
-	// widget, that displays the map
+	/* widget, that displays the map */
 	area = GOSM_MAP_AREA(map_area_new());
-	// container for the area, showing the controls around it
+	/* container for the area, showing the controls around it */
 	navigator = GOSM_MAP_NAVIGATOR(map_navigator_new(GTK_WIDGET(area)));
 
-	// apply config to map_area
-	area -> map_position.lon = longitude;
-	area -> map_position.lat = lattitude;
-	area -> map_position.zoom = zoom;
+	/* apply config to map_area */
+	map_area_goto_lon_lat_zoom(area, longitude, lattitude, zoom);
 	//printf("network state: %d\n", network_state);
 	map_area_set_network_state(area, network_state);
 	map_area_set_cache_directory(area, TILESET_MAPNIK,	cache_dir_mapnik);
@@ -354,15 +355,14 @@ int main(int argc, char *argv[])
 	map_area_set_cache_directory(area, TILESET_CYCLE,	cache_dir_cycle);
 	map_area_set_color_selection(area, color_selection, color_selection_out, color_selection_pad, color_atlas_lines);
 
-	//TEST TEST TEST
+	/* add poi_manager to map-area */
 	poi_manager = poi_manager_new();
 	map_area_set_poi_manager(area, poi_manager);
 	g_signal_connect(G_OBJECT(poi_manager),"layer-toggled", G_CALLBACK(poi_manager_layer_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"colour-changed", G_CALLBACK(poi_manager_colour_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"source-activated", G_CALLBACK(poi_manager_source_cb), NULL);
-	//TEST TEST TEST*/
 
-	// Selection-Widget in sidebar
+	/* Selection-Widget in sidebar */
 	select_tool = select_tool_new();
 	GtkWidget *frame_select_tool= gtk_frame_new("Selection");
 	gtk_container_add(GTK_CONTAINER(frame_select_tool), GTK_WIDGET(select_tool));
@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(select_tool -> check_snap), "toggled", G_CALLBACK(selection_check_snap_cb), NULL);
 	g_signal_connect(G_OBJECT(select_tool -> check_show), "toggled", G_CALLBACK(selection_check_visible_cb), NULL);
 
-	// Atlas-Widget in sidebar
+	/* Atlas-Widget in sidebar */
 	atlas_tool = atlas_tool_new();
 	GtkWidget *frame_atlas_tool= gtk_frame_new("Atlas");
 	gtk_container_add(GTK_CONTAINER(frame_atlas_tool), GTK_WIDGET(atlas_tool));
@@ -395,13 +395,17 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(atlas_tool -> button_export), "clicked", G_CALLBACK(atlas_export_cb), NULL);
 	g_signal_connect(G_OBJECT(atlas_tool -> button_export_pdf), "clicked", G_CALLBACK(atlas_export_pdf_cb), NULL);
 
-	// Distance-Widget in sidebar
+	/* Distance-Widget in sidebar */
 	distance_tool = GOSM_DISTANCE_TOOL(distance_tool_new());
 	GtkWidget *frame_distance_tool= gtk_frame_new("Distance");
 	gtk_container_add(GTK_CONTAINER(frame_distance_tool), GTK_WIDGET(distance_tool));
 	g_signal_connect(G_OBJECT(distance_tool -> button_remove_last), "clicked", G_CALLBACK(distance_remove_last_cb), NULL);
 	g_signal_connect(G_OBJECT(distance_tool -> button_clear), "clicked", G_CALLBACK(distance_clear_cb), NULL);
 
+
+	/***************************************************************************
+	 * Menubar
+	 ***************************************************************************/
 	menubar = gtk_menu_bar_new();
 
 	/*
@@ -529,10 +533,9 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(menu_control_move_left), 	"activate", G_CALLBACK(button_move_cb), GINT_TO_POINTER(4));
 	g_signal_connect(G_OBJECT(menu_control_move_right), 	"activate", G_CALLBACK(button_move_cb), GINT_TO_POINTER(5));
 
-	/**
+	/***************************************************************************
 	 * Toolbar
-	 */
-
+	 ***************************************************************************/
 	toolbar = gtk_toolbar_new();
 	gtk_toolbar_set_style(GTK_TOOLBAR(toolbar), GTK_TOOLBAR_ICONS);
 	GtkWidget * icon1 = gtk_image_new_from_file(GOSM_ICON_DIR "navigate.png");
@@ -648,25 +651,21 @@ int main(int argc, char *argv[])
 
 	statusbar = gtk_statusbar_new();
 
-	/**
-	 * Sidebar on the right
-	 * (tools)
-	 */
-
+	/***************************************************************************
+	 * right sidebar (tools)
+	 ***************************************************************************/
 	side = gtk_vbox_new(FALSE, 0);
 	gtk_widget_set_size_request(side, 180, 0);
 	gtk_box_pack_start(GTK_BOX(side), frame_select_tool, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(side), frame_atlas_tool, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(side), frame_distance_tool, FALSE, FALSE, 0);
 
-	/**
-	 * Sidebar on the left
-	 * (legend)
-	 */
-
+	/***************************************************************************
+	 * left sidebar (legend, namefinder, pois, bookmarks)
+	 ***************************************************************************/
 	side_left = gtk_vbox_new(FALSE, 0);
 	notebook_side_left = gtk_notebook_new();
-	// legend
+	/* legend */
 	web_legend = webkit_web_view_new();
 	set_legend(
 		map_area_get_tileset(area),
@@ -679,13 +678,13 @@ int main(int argc, char *argv[])
                                         GTK_POLICY_AUTOMATIC);
         gtk_widget_set_size_request(scrolled, 180, -1);
 	gtk_box_pack_start(GTK_BOX(side_left), notebook_side_left, TRUE, TRUE, 0);
-	// this is a dummy to prevent the context-menu to appear
+	/* this is a dummy to prevent the context-menu to appear */
 	g_signal_connect(G_OBJECT(web_legend), 	"button-press-event", G_CALLBACK(legend_click_cb), NULL);
-	// pois
+	/* pois */
 	PoiTool * poi_tool = GOSM_POI_TOOL(poi_tool_new(poi_manager));
-	// bookmarks
+	/* bookmarks */
 	GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
-	// namefinder
+	/* namefinder */
 	GtkWidget * notebook_namefinder = gtk_notebook_new();
 	namefinder_cities = namefinder_cities_new();
 	namefinder_countries = namefinder_countries_new();
@@ -695,7 +694,7 @@ int main(int argc, char *argv[])
 	GtkWidget * label_namefinder_country = gtk_label_new("Countries");
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_namefinder), namefinder_cities, label_namefinder_city);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_namefinder), namefinder_countries, label_namefinder_country);
-	// --
+	/* -- */
 	GtkWidget * image_legend = gtk_image_new_from_file(GOSM_ICON_DIR "stock_chart-toggle-legend.png");
 	GtkWidget * image_pois = gtk_image_new_from_file(GOSM_ICON_DIR "stock_draw-cube.png");
 	GtkWidget * image_bookmarks = gtk_image_new_from_file(GOSM_ICON_DIR "stock_bookmark.png");
@@ -712,10 +711,10 @@ int main(int argc, char *argv[])
 		GTK_NOTEBOOK(notebook_side_left), GTK_WIDGET(poi_tool)), "points of interest");
 	gtk_widget_set_tooltip_text(gtk_notebook_get_tab_label(
 		GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks), "bookmarks (not implemented)");
-	/**
-	 * Other widgets
-	 */
 
+	/***************************************************************************
+	 * Other widgets
+	 ***************************************************************************/
 	GtkWidget *hbox = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), side_left, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), GTK_WIDGET(navigator), TRUE, TRUE, 0);
@@ -752,16 +751,21 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(toolbar_buttons[2]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 	g_signal_connect(G_OBJECT(toolbar_buttons[3]), 	"button-release-event", G_CALLBACK(focus_redirect_cb), NULL);
 
-	// config
-	if (!show_controls) toggle_map_controls();
-	if (show_grid) area -> show_grid = TRUE;;
-	if (show_tilenumbers) area -> show_font = TRUE;
-	if (!show_menubar) toggle_menu_bar();
-	if (!show_toolbar) toggle_tool_bar();
-	if (!show_statusbar) toggle_status_bar();
-	if (!show_sidebar) toggle_side_bar();
-	if (!show_sidebar_left) toggle_side_bar_left();
+	/***************************************************************************
+	 * apply configuration
+	 ***************************************************************************/
+	if (!show_controls) 	toggle_map_controls();
+	if (show_grid) 		area -> show_grid = TRUE;
+	if (show_tilenumbers) 	area -> show_font = TRUE;
+	if (!show_menubar) 	toggle_menu_bar();
+	if (!show_toolbar) 	toggle_tool_bar();
+	if (!show_statusbar) 	toggle_status_bar();
+	if (!show_sidebar) 	toggle_side_bar();
+	if (!show_sidebar_left)	toggle_side_bar_left();
 
+	/***************************************************************************
+	 * main loop
+	 ***************************************************************************/
 	gdk_threads_enter();	
 	gtk_main();
 	gdk_threads_leave();
@@ -799,14 +803,14 @@ gboolean check_for_cache_directory(char * fn)
 	return TRUE;
 }
 
-// called when close button is hit
+/* called when close button is hit */
 static gboolean close_cb(GtkWidget *widget)
 {
 	printf("main window has been closed\n");
 	gtk_main_quit();
 }
 
-// set cursor to CURSOR_*
+/* set cursor to CURSOR_* */
 void area_set_cursor(int id)
 {
 	//GdkCursor * cursor = gdk_cursor_new(GDK_HAND1);
@@ -819,7 +823,7 @@ void area_set_cursor(int id)
 	gdk_window_set_cursor(GTK_WIDGET(area)->window, cursor);
 }
 
-// toolbar: mode select
+/* toolbar: mode select */
 static gboolean action_select_cb(GtkWidget *widget, gpointer cursor_id_p)
 {
 	int cursor_id = GPOINTER_TO_INT(cursor_id_p);
@@ -840,14 +844,14 @@ static gboolean action_select_cb(GtkWidget *widget, gpointer cursor_id_p)
 	}
 }
 
-// toolbar: show fonts
+/* toolbar: show fonts */
 static gboolean button_font_cb(GtkWidget *widget)
 {
 	area -> show_font = !area -> show_font;
 	map_area_repaint(GOSM_MAP_AREA(area));
 }
 
-// toolbar: show grid
+/* toolbar: show grid */
 static gboolean button_grid_cb(GtkWidget *widget)
 {
 	area -> show_grid = !area -> show_grid;
@@ -901,28 +905,28 @@ void toggle_side_bar_left()
 	}
 }
 
-// toolbar: show map_controls
+/* toolbar: show map_controls */
 static gboolean button_map_controls_cb(GtkWidget *widget)
 {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_map_controls)) != show_map_controls)
 		toggle_map_controls();
 }
 
-// toolbar: show side_bar
+/* toolbar: show side_bar */
 static gboolean button_side_bar_cb(GtkWidget *widget)
 {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_side_bar)) != show_side_pane)
 		toggle_side_bar();
 }
 
-// toolbar: show side_bar
+/* toolbar: show side_bar */
 static gboolean button_side_bar_left_cb(GtkWidget *widget)
 {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_side_bar_left)) != show_side_pane_left)
 		toggle_side_bar_left();
 }
 
-// toolbar: zoom in/out
+/* toolbar: zoom in/out */
 static gboolean button_zoom_cb(GtkWidget *widget, gpointer direction)
 {
 	int dir = GPOINTER_TO_INT(direction);
@@ -934,14 +938,14 @@ static gboolean button_zoom_cb(GtkWidget *widget, gpointer direction)
 	}
 }
 
-// menu: move map
+/* menu: move map */
 static gboolean button_move_cb(GtkWidget *widget, gpointer direction)
 {
 	int dir = GPOINTER_TO_INT(direction);
 	map_area_move(area, dir);
 }
 
-// toolbar: tile selection
+/* toolbar: tile selection */
 static gboolean combo_tiles_cb(GtkWidget *widget)
 {
 	gint active = gtk_combo_box_get_active(GTK_COMBO_BOX(widget));
@@ -952,7 +956,7 @@ static gboolean combo_tiles_cb(GtkWidget *widget)
 	printf("tileset: %i\n", active);
 }
 
-// menubar: fullscreen
+/* menubar: fullscreen */
 static gboolean menubar_fullscreen_cb(GtkWidget *widget)
 {
 	if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menu_view_fullscreen))){
@@ -962,7 +966,7 @@ static gboolean menubar_fullscreen_cb(GtkWidget *widget)
 	}
 }
 
-// window events of main window
+/* window events of main window */
 static gboolean window_event_cb(GtkWidget *window, GdkEventWindowState *event)
 {
 	if ((event -> changed_mask & GDK_WINDOW_STATE_FULLSCREEN) != 0){
@@ -971,7 +975,7 @@ static gboolean window_event_cb(GtkWidget *window, GdkEventWindowState *event)
 	}
 }
 
-// map area appeared
+/* map area appeared */
 static gboolean map_area_map_cb(GtkWidget *widget, GdkEventConfigure *event)
 {
 	printf("map\n");
@@ -981,37 +985,37 @@ static gboolean map_area_map_cb(GtkWidget *widget, GdkEventConfigure *event)
 	}
 }
 
-// key press
+/* key press */
 static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event)
 {
-	//65470 - 65478 = F1 - F9
+	/*65470 - 65478 = F1 - F9 */
 	//printf("signal %d\n", event->keyval);
 	switch (event -> keyval){
-	case 65473:{ // F4 - toggle left sidebar
+	case 65473:{ /* F4 - toggle left sidebar */
 		toggle_side_bar_left();
 		break;
 	}
-	case 65474:{ // F5 - toggle controls
+	case 65474:{ /* F5 - toggle controls */
 		toggle_map_controls();
 		break;
 	}
-	case 65475:{ // F6 - toggle sidebar
+	case 65475:{ /* F6 - toggle sidebar */
 		toggle_side_bar();
 		break;
 	}
-	case 65476:{ // F7 - toggle statusbar
+	case 65476:{ /* F7 - toggle statusbar */
 		toggle_status_bar();
 		break;
 	}
-	case 65477:{ // F8 - toggle toolbar
+	case 65477:{ /* F8 - toggle toolbar */
 		toggle_tool_bar();
 		break;
 	}
-	case 65478:{ // F9 - toggle menubar
+	case 65478:{ /* F9 - toggle menubar */
 		toggle_menu_bar();
 		break;
 	}
-	case 65480:{ // F11 - toggle fullscreen
+	case 65480:{ /* F11 - toggle fullscreen */
 		gboolean is_fullscreen = (gdk_window_get_state(main_window -> window) & GDK_WINDOW_STATE_FULLSCREEN) != 0;
 		if (is_fullscreen){
 			gdk_window_unfullscreen(main_window->window);
@@ -1021,19 +1025,19 @@ static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event)
 		break;
 	}
 	/* mode select */
-	case 97:{ // a
+	case 97:{ /* a */
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toolbar_buttons[0]), TRUE);
 		break;
 	}
-	case 115:{ // s
+	case 115:{ /* s */
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toolbar_buttons[1]), TRUE);
 		break;
 	}
-	case 100:{ // d
+	case 100:{ /* d */
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toolbar_buttons[2]), TRUE);
 		break;
 	}
-	case 102:{ // f
+	case 102:{ /* f */
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toolbar_buttons[3]), TRUE);
 		break;
 	}
