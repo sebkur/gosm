@@ -51,6 +51,8 @@ enum
 	SOURCE_DEACTIVATED,
 	SOURCE_ADDED,
 	SOURCE_DELETED,
+	FILE_PARSING_STARTED,
+	FILE_PARSING_ENDED,
         LAST_SIGNAL
 };
 
@@ -149,6 +151,22 @@ static void poi_manager_class_init(PoiManagerClass *class)
                 G_OBJECT_CLASS_TYPE (class),
                 G_SIGNAL_RUN_FIRST,
                 G_STRUCT_OFFSET (PoiManagerClass, source_deleted),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[FILE_PARSING_STARTED] = g_signal_new(
+                "file-parsing-started",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, file_parsing_started),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[FILE_PARSING_ENDED] = g_signal_new(
+                "file-parsing-ended",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, file_parsing_ended),
                 NULL, NULL,
                 g_cclosure_marshal_VOID__INT,
                 G_TYPE_NONE, 1, G_TYPE_INT);
@@ -343,7 +361,9 @@ void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
 			StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
 			poi_set_clear(GOSM_POI_SET(poi_set));
 		}
+		g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_STARTED], 0, index);
 		osm_reader_parse_file(poi_manager -> osm_reader, poi_source -> filename);
+		g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_ENDED], 0, index);
 		for (n = 0; n < num_poi_sets; n++){
 			StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
 			poi_manager_fill_poi_set(poi_manager, poi_set);

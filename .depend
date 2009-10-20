@@ -128,6 +128,8 @@ poi_source_selector.o: poi/poi_source_selector.c \
   poi/styled_poi_set.h poi/osm_reader.h
 cell_renderer_colour.o: poi/cell_renderer_colour.c \
   poi/cell_renderer_colour.h
+poi_source_load_progress.o: poi/poi_source_load_progress.c \
+  poi/poi_source_load_progress.h poi/osm_reader.h poi/../map_types.h
 gosm.o: gosm.c uri.h customio.h paths.h config.h configuration.h \
   config_widget.h map_area.h map_types.h tile_manager.h tile_cache.h \
   ringbuffer.h tilesets.h poi/poi_set.h poi/RTree/index.h \
@@ -150,4 +152,5 @@ gosm.o: gosm.c uri.h customio.h paths.h config.h configuration.h \
   manual/manual.h tilemath.h imageglue/imageglue.h \
   imageglue/pdf_generator.h imageglue/../atlas.h imageglue/../map_types.h \
   poi/poi_tool.h poi/poi_manager.h poi/poi_selector.h \
-  poi/poi_source_selector.h poi/poi_selector.h
+  poi/poi_source_selector.h poi/poi_selector.h \
+  poi/poi_source_load_progress.h

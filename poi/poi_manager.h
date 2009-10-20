@@ -74,6 +74,8 @@ struct _PoiManagerClass
 	void (* source_deactivated) (PoiManager *poi_manager, int index);
 	void (* source_added) (PoiManager *poi_manager, int index);
 	void (* source_deleted) (PoiManager *poi_manager, int index);
+	void (* file_parsing_started) (PoiManager *poi_manager, int index);
+	void (* file_parsing_ended) (PoiManager *poi_manager, int index);
 };
 
 PoiManager * poi_manager_new();

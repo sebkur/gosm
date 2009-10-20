@@ -24,7 +24,7 @@
  *		- take care of memory. use free() more often!
  *
  * 	Besides:
- *	- use makefile for building
+ *	- DONE use makefile for building
  *	- PARTIALLY (only colors) update changed preferences without restart
  *	- DONE add color selection buttons in configuration window
  *	- DONE adjust paper size on exporting pdf via imagesize
@@ -105,6 +105,7 @@
 #include "poi/poi_manager.h"
 #include "poi/poi_tool.h"
 #include "poi/poi_selector.h"
+#include "poi/poi_source_load_progress.h"
 
 #include <unistd.h>
 #include <wait.h>
@@ -229,6 +230,8 @@ static gboolean namefinder_country_cb(GtkWidget *widget);
 static gboolean poi_manager_layer_cb(PoiSelector * poi_selector, int index);
 static gboolean poi_manager_colour_cb(PoiManager * poi_manager, int index);
 static gboolean poi_manager_source_cb(PoiManager * poi_manager, int index);
+static gboolean poi_manager_parse_start_cb(PoiManager * poi_manager, int index);
+static gboolean poi_manager_parse_end_cb(PoiManager * poi_manager, int index);
 static gboolean exit_cb(GtkWidget *widget);
        void     chdir_to_bin(char * arg0);
        void     add_pois(PoiSet * poi_set, char * key, char * value);
@@ -361,6 +364,8 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(poi_manager),"layer-toggled", G_CALLBACK(poi_manager_layer_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"colour-changed", G_CALLBACK(poi_manager_colour_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"source-activated", G_CALLBACK(poi_manager_source_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager),"file-parsing-started", G_CALLBACK(poi_manager_parse_start_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager),"file-parsing-ended", G_CALLBACK(poi_manager_parse_end_cb), NULL);
 
 	/* Selection-Widget in sidebar */
 	select_tool = select_tool_new();
@@ -1471,4 +1476,23 @@ static gboolean poi_manager_source_cb(PoiManager * poi_manager, int index)
 {
 	map_area_repaint(area);
 	return FALSE;
+}
+
+static gboolean foo_cb(OsmReader * osm_reader, int percent)
+{
+	printf("status: %d %%\n", percent);
+}
+
+static gboolean poi_manager_parse_start_cb(PoiManager * poi_manager, int index)
+{
+	printf("start\n");
+	gulong h_id = g_signal_connect(G_OBJECT(poi_manager -> osm_reader),"reading-progress", G_CALLBACK(foo_cb), NULL);
+	printf("handler id %ld\n", h_id);
+	PoiSourceLoadProgress * pslp = poi_source_load_progress_new();
+	poi_source_load_progress_show(pslp, GTK_WINDOW(main_window), poi_manager -> osm_reader);
+}
+
+static gboolean poi_manager_parse_end_cb(PoiManager * poi_manager, int index)
+{
+	printf("end\n");
 }

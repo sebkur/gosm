@@ -60,7 +60,7 @@ struct _OsmReaderClass
 {
 	GObjectClass parent_class;
 
-	void (* function_name) (OsmReader *osm_reader);
+	void (* reading_progress) (OsmReader *osm_reader, int percent);
 };
 
 OsmReader * osm_reader_new();
