@@ -3,10 +3,12 @@ BIN = gosm
 SRC = \
 main.c \
 tile_manager.c \
+foo_widget.c \
 
 OBJ = \
 main.o \
 tile_manager.o \
+foo_widget.o \
 
 CC  = /usr/bin/gcc
 DEPENDFILE = .depend

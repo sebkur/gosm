@@ -1,0 +1,3 @@
+main.o: main.c tile_manager.h
+tile_manager.o: tile_manager.c tile_manager.h
+foo_widget.o: foo_widget.c foo_widget.h

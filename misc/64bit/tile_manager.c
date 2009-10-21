@@ -81,61 +81,18 @@ static void tile_manager_class_init(TileManagerClass *class)
 
 static void tile_manager_init(TileManager *tile_manager)
 {
-
-	pthread_mutex_init(&(tile_manager -> mutex_load_from_disk), NULL);
-	pthread_mutex_init(&(tile_manager -> mutex_load_from_netw), NULL);
-	pthread_mutex_init(&(tile_manager -> mutex_wait_load_from_disk), NULL);
-	pthread_mutex_init(&(tile_manager -> mutex_wait_load_from_netw), NULL);
-	pthread_cond_init (&(tile_manager -> cond_wait_load_from_disk), NULL);
 	pthread_cond_init (&(tile_manager -> cond_wait_load_from_netw), NULL);
-
-	pthread_t thread_disk, thread_netw;
-	pthread_attr_t tattr;
-	int ret;
-	int newprio = 30; 
-	struct sched_param param;
-	ret = pthread_attr_init (&tattr);
-	ret = pthread_attr_getschedparam (&tattr, &param);
-	param.sched_priority = newprio;
-	ret = pthread_attr_setschedparam (&tattr, &param);
-	int x = 0; for (x = 0; x < 8; x++){
+	int x = 0; for (x = 0; x < 1; x++){
+		pthread_t thread_netw;
 		pthread_attr_t tattrn;
 		pthread_attr_init(&tattrn);
-		size_t stacksize;
-		pthread_attr_getstacksize(&tattrn, &stacksize);
-		pthread_attr_setstacksize(&tattrn, stacksize);
 		int p_netw = pthread_create(&thread_netw, &tattrn, (void *) function_load_from_netw, tile_manager);
 	}
 }
 
 void function_load_from_netw(TileManager * tile_manager)
 {
+	printf("thread\n");
 	CURL * easyhandle = curl_easy_init();
-	while(TRUE){
-		while(TRUE){	
-			pthread_mutex_lock(&(tile_manager -> mutex_load_from_netw));
-			if (tile_manager -> load_from_netw -> len == 0){
-				break;
-			}else{
-//				MapTile map_tile = g_array_index(tile_manager -> load_from_netw, MapTile, tile_manager -> load_from_netw -> len - 1);
-//				g_array_append_val(tile_manager -> actual_load_from_netw, map_tile);
-//				g_array_remove_index(tile_manager -> load_from_netw, tile_manager -> load_from_netw -> len - 1);
-//				pthread_mutex_unlock(&(tile_manager -> mutex_load_from_netw));
-//				// do actual work here
-//				tile_manager_download_tile(tile_manager, easyhandle, map_tile.zoom, map_tile.x, map_tile.y);
-//				
-//				pthread_mutex_lock(&(tile_manager -> mutex_load_from_netw));
-//				int pos = pos_in_list(tile_manager -> actual_load_from_netw, &map_tile);
-//				g_array_remove_index_fast(tile_manager -> actual_load_from_netw, pos);
-//				//printf("list len: %d\n", tile_manager -> actual_load_from_netw -> len);
-//				pthread_mutex_unlock(&(tile_manager -> mutex_load_from_netw));
-//
-//				g_signal_emit (tile_manager, tile_manager_signals[TILE_LOADED_FROM_DISK], 0);
-			}
-		}
-		pthread_mutex_lock(&(tile_manager -> mutex_wait_load_from_netw));
-		pthread_mutex_unlock(&(tile_manager -> mutex_load_from_netw));
-		pthread_cond_wait(&(tile_manager -> cond_wait_load_from_netw), &(tile_manager -> mutex_wait_load_from_netw));
-		pthread_mutex_unlock(&(tile_manager -> mutex_wait_load_from_netw));
-	}
+	pthread_cond_wait(&(tile_manager -> cond_wait_load_from_netw), &(tile_manager -> mutex_wait_load_from_netw));
 }
