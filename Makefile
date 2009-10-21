@@ -55,6 +55,7 @@ poi/styled_poi_set.c \
 poi/poi_source_selector.c \
 poi/cell_renderer_colour.c \
 poi/poi_source_load_progress.c \
+gtk_safety.c \
 gosm.c
 
 OBJ = \
@@ -112,6 +113,7 @@ poi/styled_poi_set.o \
 poi/poi_source_selector.o \
 poi/cell_renderer_colour.o \
 poi/poi_source_load_progress.o \
+gtk_safety.o \
 gosm.o
 
 CC  = /usr/bin/gcc

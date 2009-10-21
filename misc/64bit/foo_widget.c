@@ -39,5 +39,5 @@ static void foo_widget_class_init(FooWidgetClass *class)
 static void foo_widget_init(FooWidget *foo_widget)
 {
 	GtkWidget * button = gtk_button_new_with_label("Foo");
-	gtk_box_pack_start(GTK_BOX(foo_widget), button, TRUE, TRUE, 0);
+	//gtk_box_pack_start(GTK_BOX(foo_widget), button, TRUE, TRUE, 0);
 }

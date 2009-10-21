@@ -57,6 +57,7 @@ enum
 	LAST_SIGNAL
 };
 
+static pthread_mutex_t mutex_curl = PTHREAD_MUTEX_INITIALIZER;
 static guint tile_manager_signals[LAST_SIGNAL] = { 0 };
 
 /**
@@ -366,7 +367,9 @@ void tile_manager_download_tile(TileManager * tile_manager, CURL * easyhandle, i
 
 void function_load_from_netw(TileManager * tile_manager)
 {
+	pthread_mutex_lock(&mutex_curl);
 	CURL * easyhandle = curl_easy_init();
+	pthread_mutex_unlock(&mutex_curl);
 	while(TRUE){
 		while(TRUE){	
 			pthread_mutex_lock(&(tile_manager -> mutex_load_from_netw));

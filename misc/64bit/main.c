@@ -16,6 +16,7 @@ static gboolean close_cb(GtkWidget * widget);
 GtkWidget * main_window;
 pthread_cond_t  cond;
 pthread_mutex_t mutex;
+pthread_mutex_t mutex_curl;
 
 int main(int argc, char * argv[])
 {
@@ -24,6 +25,8 @@ int main(int argc, char * argv[])
 	gdk_threads_init();
 	gdk_threads_enter();
 	gtk_init(&argc, &argv);
+
+	volatile GType dummy = GOSM_TYPE_FOO_WIDGET;
 
 //	printf("gpointer has size %ld\n", sizeof(gpointer));
 //	printf("void* has size %ld\n", sizeof(void*));
@@ -36,6 +39,7 @@ int main(int argc, char * argv[])
 
 	int ic = pthread_cond_init (&cond, NULL);
 	int im = pthread_mutex_init(&mutex, NULL);
+	int icurl = pthread_mutex_init(&mutex_curl, NULL);
 	if (ic != 0) printf("error initializing condition variable\n");
 	if (im != 0) printf("error initializing mutex variable\n");
 	int x;
@@ -62,7 +66,9 @@ static gboolean close_cb(GtkWidget * widget)
 void * thread_fun(gpointer data)
 {
 	int i = GPOINTER_TO_INT(data);
+	pthread_mutex_lock(&mutex_curl);
 	CURL * easyhandle = curl_easy_init();
 	pthread_cond_wait(&cond, &mutex);
+	pthread_mutex_unlock(&mutex_curl);
 	return (NULL);
 }

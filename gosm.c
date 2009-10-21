@@ -110,6 +110,8 @@
 #include <unistd.h>
 #include <wait.h>
 
+#include "gtk_safety.h"
+
 #define CURSOR_HAND		0
 #define CURSOR_SELECT		1
 #define CURSOR_TARGET		2
@@ -334,6 +336,8 @@ int main(int argc, char *argv[])
 	g_thread_init(NULL);
 	gdk_threads_init();
 	gtk_init(&argc, &argv);
+
+	make_gtk_types_safe();
 
 	/***************************************************************************
 	 * GTK WIDGETS AND LAYOUT, CALLBACKS
