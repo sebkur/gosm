@@ -21,10 +21,6 @@
 #ifndef _FOO_WIDGET_H_
 #define _FOO_WIDGET_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
@@ -47,8 +43,6 @@ struct _FooWidget
 struct _FooWidgetClass
 {
 	GtkVBoxClass parent_class;
-
-	void (* function_name) (FooWidget *foo_widget);
 };
 
 GtkWidget * foo_widget_new();

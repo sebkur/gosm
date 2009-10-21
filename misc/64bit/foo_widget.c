@@ -18,10 +18,6 @@
  * along with Gosm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
@@ -29,16 +25,6 @@
 #include "foo_widget.h"
 
 G_DEFINE_TYPE (FooWidget, foo_widget, GTK_TYPE_VBOX);
-
-/*enum
-{
-        SIGNAL_NAME_1,
-        SIGNAL_NAME_n,
-        LAST_SIGNAL
-};*/
-
-//static guint foo_widget_signals[LAST_SIGNAL] = { 0 };
-//g_signal_emit (widget, foo_widget_signals[SIGNAL_NAME_n], 0);
 
 GtkWidget * foo_widget_new()
 {
@@ -48,14 +34,6 @@ GtkWidget * foo_widget_new()
 
 static void foo_widget_class_init(FooWidgetClass *class)
 {
-        /*foo_widget_signals[SIGNAL_NAME_n] = g_signal_new(
-                "signal-name-n",
-                G_OBJECT_CLASS_TYPE (class),
-                G_SIGNAL_RUN_FIRST,
-                G_STRUCT_OFFSET (FooWidgetClass, function_name),
-                NULL, NULL,
-                g_cclosure_marshal_VOID__VOID,
-                G_TYPE_NONE, 0);*/
 }
 
 static void foo_widget_init(FooWidget *foo_widget)

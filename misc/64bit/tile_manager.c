@@ -60,6 +60,7 @@ static void tile_manager_class_init(TileManagerClass *class)
 static void tile_manager_init(TileManager *tile_manager)
 {
 	pthread_cond_init (&(tile_manager -> cond_wait_load_from_netw), NULL);
+	pthread_mutex_init(&(tile_manager -> mutex_wait_load_from_netw), NULL);
 	int x = 0; for (x = 0; x < 10; x++){
 		pthread_t thread_netw;
 		pthread_attr_t tattrn;
