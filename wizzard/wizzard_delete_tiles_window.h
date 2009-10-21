@@ -18,6 +18,9 @@
  * along with Gosm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _WIZZARD_DELETE_TILES_WINDW_H_
+#define _WIZZARD_DELETE_TILES_WINDW_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -53,3 +56,5 @@ struct _WizzardDeleteTilesWindowClass
 };
 
 WizzardDeleteTilesWindow * wizzard_delete_tiles_window_new();
+
+#endif /* _WIZZARD_DELETE_TILES_WINDW_H_ */
