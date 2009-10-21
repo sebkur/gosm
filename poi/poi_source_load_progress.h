@@ -44,6 +44,11 @@ typedef struct _PoiSourceLoadProgressClass   PoiSourceLoadProgressClass;
 struct _PoiSourceLoadProgress
 {
 	GObject parent;
+
+	GtkWidget * dialog;	
+	GtkWidget * progress_bar;
+	OsmReader * osm_reader;
+	gulong h_id;
 };
 
 struct _PoiSourceLoadProgressClass

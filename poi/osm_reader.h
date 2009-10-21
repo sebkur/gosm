@@ -54,6 +54,7 @@ struct _OsmReader
 	int current_element;
 	int current_id;
 	LonLatTags * current_node;
+	char * filename;
 };
 
 struct _OsmReaderClass
@@ -61,6 +62,7 @@ struct _OsmReaderClass
 	GObjectClass parent_class;
 
 	void (* reading_progress) (OsmReader *osm_reader, int percent);
+	void (* reading_finished) (OsmReader *osm_reader, int status);
 };
 
 OsmReader * osm_reader_new();

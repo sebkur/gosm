@@ -62,6 +62,7 @@ gboolean poi_manager_create_default_poi_layers();
 gboolean poi_manager_read_poi_sources(PoiManager * poi_manager);
 gboolean poi_manager_read_poi_layers(PoiManager * poi_manager);
 void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set);
+static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int status, gpointer data);
 
 PoiManager * poi_manager_new()
 {
@@ -73,6 +74,8 @@ PoiManager * poi_manager_new()
 //	filename = GOSM_NAMEFINDER_DIR "res/berlin.short.osm";
 //	filename = GOSM_NAMEFINDER_DIR "res/vienna.50000.osm";
 	poi_manager -> osm_reader = osm_reader_new();
+	g_signal_connect(G_OBJECT(poi_manager -> osm_reader),"reading-finished",
+			 G_CALLBACK(poi_manager_osm_reader_finished_cb), (gpointer)poi_manager);
 //	osm_reader_parse_file(poi_manager -> osm_reader, filename);
 	gboolean layers = poi_manager_read_poi_layers(poi_manager);
 	if (!layers) {
@@ -363,13 +366,21 @@ void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
 		}
 		g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_STARTED], 0, index);
 		osm_reader_parse_file(poi_manager -> osm_reader, poi_source -> filename);
-		g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_ENDED], 0, index);
-		for (n = 0; n < num_poi_sets; n++){
-			StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
-			poi_manager_fill_poi_set(poi_manager, poi_set);
-		}
-		g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, index);
 	}
+}
+
+static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int status, gpointer data)
+{
+	PoiManager * poi_manager = GOSM_POI_MANAGER(data);
+	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
+	int n;
+	for (n = 0; n < num_poi_sets; n++){
+		StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
+		poi_manager_fill_poi_set(poi_manager, poi_set);
+	}
+	g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_ENDED], 0);
+	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, poi_manager -> active_poi_source);
+	return FALSE;
 }
 
 void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double r, double g, double b, double a)

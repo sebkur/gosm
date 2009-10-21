@@ -62,18 +62,45 @@ static void poi_source_load_progress_init(PoiSourceLoadProgress *poi_source_load
 {
 }
 
+static gboolean poi_source_load_progress_progress_cb(OsmReader * osm_reader, int percent, gpointer data);
+
 void poi_source_load_progress_show(
 	PoiSourceLoadProgress * poi_source_load_progress, 
 	GtkWindow * parent,
 	OsmReader * osm_reader
 )
 {
-
+	poi_source_load_progress -> dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	poi_source_load_progress -> osm_reader = osm_reader;
+	GtkWidget * dialog = poi_source_load_progress -> dialog;
+	gtk_window_set_decorated(GTK_WINDOW(dialog), FALSE);
+	gtk_window_set_title(GTK_WINDOW(dialog), "Importing OSM file");
+	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER_ON_PARENT);
+	gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(parent));
+	gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+	gtk_widget_set_size_request(dialog, 300, 20);
+	GtkWidget * vbox = gtk_vbox_new(FALSE, 0);
+	gtk_container_add(GTK_CONTAINER(dialog), vbox);
+	poi_source_load_progress -> progress_bar = gtk_progress_bar_new();
+	gtk_box_pack_start(GTK_BOX(vbox), poi_source_load_progress -> progress_bar, TRUE, TRUE, 0);
+	poi_source_load_progress -> h_id = g_signal_connect(
+		G_OBJECT(osm_reader),"reading-progress",
+		G_CALLBACK(poi_source_load_progress_progress_cb), (gpointer)poi_source_load_progress);
+	gtk_widget_show_all(dialog);
 }
 
 void poi_source_load_progress_destroy(
 	PoiSourceLoadProgress * poi_source_load_progress
 )
 {
+	g_signal_handler_disconnect(G_OBJECT(poi_source_load_progress -> osm_reader), poi_source_load_progress -> h_id);
+	gtk_widget_destroy(poi_source_load_progress -> dialog);
+}
 
+static gboolean poi_source_load_progress_progress_cb(OsmReader * osm_reader, int percent, gpointer data)
+{
+	gdk_threads_enter();
+	PoiSourceLoadProgress * pslp = GOSM_POI_SOURCE_LOAD_PROGRESS(data);
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pslp -> progress_bar), ((double)percent) / 100);
+	gdk_threads_leave();
 }

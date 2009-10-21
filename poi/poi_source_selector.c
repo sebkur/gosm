@@ -54,18 +54,12 @@ void poi_source_selector_list_cb(GtkTreeView	      *treeview,
 		    GtkTreePath        *path,
 		    GtkTreeViewColumn  *col,
 		    gpointer            poi_manager);
-static gboolean poi_source_selector_deactivated_cb(PoiManager * poi_manager, int index, gpointer data);
-static gboolean poi_source_selector_activated_cb(PoiManager * poi_manager, int index, gpointer data);
 static gboolean poi_source_selector_added_cb(PoiManager * poi_manager, int index, gpointer data);
 static gboolean poi_source_selector_deleted_cb(PoiManager * poi_manager, int index, gpointer data);
 
 PoiSourceSelector * poi_source_selector_new(PoiManager * poi_manager)
 {
 	PoiSourceSelector * poi_source_selector = g_object_new(GOSM_TYPE_POI_SOURCE_SELECTOR, NULL);
-	g_signal_connect(G_OBJECT(poi_manager),"source-deactivated", 
-		G_CALLBACK(poi_source_selector_deactivated_cb), (gpointer)poi_source_selector);
-	g_signal_connect(G_OBJECT(poi_manager),"source-activated", 
-		G_CALLBACK(poi_source_selector_activated_cb), (gpointer)poi_source_selector);
 	g_signal_connect(G_OBJECT(poi_manager),"source-added", 
 		G_CALLBACK(poi_source_selector_added_cb), (gpointer)poi_source_selector);
 	g_signal_connect(G_OBJECT(poi_manager),"source-deleted", 
@@ -153,48 +147,11 @@ static GtkWidget * poi_source_selector_create_view (PoiManager * poi_manager)
 	return view;
 }
 
-
-static gboolean poi_source_selector_deactivated_cb(PoiManager * poi_manager, int index, gpointer data)
-{
-	PoiSourceSelector * poi_source_selector = GOSM_POI_SOURCE_SELECTOR(data);
-	GtkTreeView * view = GTK_TREE_VIEW(poi_source_selector -> view);
-	GtkTreeModel * model = gtk_tree_view_get_model(view);
-	GtkTreeIter iter;
-
-	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
-	gtk_tree_model_get_iter(model, &iter, path);
-	PoiSource * poi_source = poi_manager_get_poi_source(poi_manager, index);
-	gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-				COL_ACTIVE, " ",
-				COL_NAME, poi_source -> basename,
-				COL_DIR, poi_source -> dirname,
-				-1);
-	return FALSE;
-}
-
-static gboolean poi_source_selector_activated_cb(PoiManager * poi_manager, int index, gpointer data)
-{
-	PoiSourceSelector * poi_source_selector = GOSM_POI_SOURCE_SELECTOR(data);
-	GtkTreeView * view = GTK_TREE_VIEW(poi_source_selector -> view);
-	GtkTreeModel * model = gtk_tree_view_get_model(view);
-	GtkTreeIter iter;
-
-	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
-	gtk_tree_model_get_iter(model, &iter, path);
-	PoiSource * poi_source = poi_manager_get_poi_source(poi_manager, index);
-	gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-				COL_ACTIVE, "x",
-				COL_NAME, poi_source -> basename,
-				COL_DIR, poi_source -> dirname,
-				-1);
-	return FALSE;
-}
-
 void poi_source_selector_list_cb(GtkTreeView	      *treeview,
 		    GtkTreePath        *path,
 		    GtkTreeViewColumn  *col,
 		    gpointer            poi_manager_p)
-{
+{	
 	GtkTreeModel *model;
 	GtkTreeIter	 iter;
 
@@ -208,7 +165,6 @@ void poi_source_selector_list_cb(GtkTreeView	      *treeview,
 		int activated = indices[0];
 		int old = poi_manager -> active_poi_source;
 		poi_manager_activate_poi_source(poi_manager, activated);
-		//poi_manager -> active_poi_source = activated;
 		if (old != activated){
 			PoiSource * poi_source_a = poi_manager_get_poi_source(poi_manager, activated);
 			gtk_list_store_set(GTK_LIST_STORE(model), &iter,
@@ -226,8 +182,6 @@ void poi_source_selector_list_cb(GtkTreeView	      *treeview,
 							COL_DIR, poi_source_o -> dirname,
 							-1);
 			}
-			//GOSM_NAMEFINDER_COUNTRIES(namefinder_countries) -> activated = indices[0];
-			//g_signal_emit (GOSM_NAMEFINDER_COUNTRIES(namefinder_countries), namefinder_countries_signals[CITY_ACTIVATED], 0);
 		}
 	}
 }

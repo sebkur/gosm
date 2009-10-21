@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <pthread.h>
 
 #include <bzlib.h>
 
@@ -44,6 +45,7 @@ G_DEFINE_TYPE (OsmReader, osm_reader, G_TYPE_OBJECT);
 enum
 {
         READING_PROGRESS,
+        READING_FINISHED,
         LAST_SIGNAL
 };
 
@@ -115,6 +117,14 @@ static void osm_reader_class_init(OsmReaderClass *class)
                 G_OBJECT_CLASS_TYPE (class),
                 G_SIGNAL_RUN_FIRST,
                 G_STRUCT_OFFSET (OsmReaderClass, reading_progress),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        osm_reader_signals[READING_FINISHED] = g_signal_new(
+                "reading-finished",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (OsmReaderClass, reading_finished),
                 NULL, NULL,
                 g_cclosure_marshal_VOID__INT,
                 G_TYPE_NONE, 1, G_TYPE_INT);
@@ -224,7 +234,16 @@ static void XMLCALL osm_reader_EndElementCallback(	void * userData,
 	}
 }
 
+void osm_reader_parse_file_thread_fun(OsmReader * osm_reader);
+
 int osm_reader_parse_file(OsmReader * osm_reader, char * filename)
+{
+	osm_reader -> filename = filename;
+	pthread_t thread;
+	int p_id = pthread_create(&thread, NULL, (void*) osm_reader_parse_file_thread_fun, osm_reader);
+}
+
+void osm_reader_parse_file_thread_fun(OsmReader * osm_reader)
 {
 	XML_Parser parser = XML_ParserCreate(NULL);
 	XML_SetUserData(parser, (void*)osm_reader);
@@ -232,22 +251,26 @@ int osm_reader_parse_file(OsmReader * osm_reader, char * filename)
 	XML_SetEndElementHandler(parser, osm_reader_EndElementCallback);
 
 	struct stat sb;
-	int s = stat(filename, &sb);
+	int s = stat(osm_reader -> filename, &sb);
 	if (s < 0){
 		// file not found
-		return -1;
+		g_signal_emit (osm_reader, osm_reader_signals[READING_FINISHED], 0, 1);
+		return;
 	}
 	int filesize = sb.st_size;
 	int done_bytes = 0;
 	int done_signaled = 0;
 	double done_percent = 0;
 
-	gboolean is_bz2 = g_str_has_suffix(filename, ".bz2");
+	gboolean is_bz2 = g_str_has_suffix(osm_reader -> filename, ".bz2");
 
 	if (!is_bz2){
 		// uncompressed .osm file
-		int f = open(filename, O_RDONLY);
-		if (f == 0) return -1;
+		int f = open(osm_reader -> filename, O_RDONLY);
+		if (f == 0) {
+			g_signal_emit (osm_reader, osm_reader_signals[READING_FINISHED], 0, 1);
+			return;
+		}
 		ssize_t size;
 		int n = 1000;
 		char buf[n];
@@ -266,7 +289,7 @@ int osm_reader_parse_file(OsmReader * osm_reader, char * filename)
 		XML_Parse(parser, NULL, 0, 1);
 	}else{
 		// compressed .osm.bz2 file
-		FILE * file = fopen(filename, "r");
+		FILE * file = fopen(osm_reader -> filename, "r");
 		int bzError;
 		int unused;
 		BZFILE * bz = BZ2_bzReadOpen(&bzError, file, 0, 0, &unused, 0);
@@ -294,7 +317,7 @@ int osm_reader_parse_file(OsmReader * osm_reader, char * filename)
 		fclose(file);
 		XML_Parse(parser, NULL, 0, 1);
 	}
-	return 0;
+	g_signal_emit (osm_reader, osm_reader_signals[READING_FINISHED], 0, 0);
 }
 GArray * osm_reader_find_ids_key_value(OsmReader * osm_reader, char * key, char * value)
 {

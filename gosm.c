@@ -165,6 +165,7 @@ GtkWidget * 	button_side_bar_left;
 GtkWidget * 	combo_tiles;
 
 PoiManager *	poi_manager;
+PoiSourceLoadProgress * pslp;
 
 typedef struct WidgetPlusPointer{
 	GtkWidget * widget;
@@ -1478,21 +1479,16 @@ static gboolean poi_manager_source_cb(PoiManager * poi_manager, int index)
 	return FALSE;
 }
 
-static gboolean foo_cb(OsmReader * osm_reader, int percent)
-{
-	printf("status: %d %%\n", percent);
-}
-
 static gboolean poi_manager_parse_start_cb(PoiManager * poi_manager, int index)
 {
-	printf("start\n");
-	gulong h_id = g_signal_connect(G_OBJECT(poi_manager -> osm_reader),"reading-progress", G_CALLBACK(foo_cb), NULL);
-	printf("handler id %ld\n", h_id);
-	PoiSourceLoadProgress * pslp = poi_source_load_progress_new();
+	pslp = poi_source_load_progress_new();
 	poi_source_load_progress_show(pslp, GTK_WINDOW(main_window), poi_manager -> osm_reader);
 }
 
 static gboolean poi_manager_parse_end_cb(PoiManager * poi_manager, int index)
 {
-	printf("end\n");
+	gdk_threads_enter();
+	poi_source_load_progress_destroy(pslp);
+	gtk_widget_queue_draw(main_window);
+	gdk_threads_leave();
 }
