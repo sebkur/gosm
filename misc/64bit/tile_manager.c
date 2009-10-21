@@ -46,21 +46,7 @@
 
 G_DEFINE_TYPE (TileManager, tile_manager, G_TYPE_OBJECT);
 
-enum
-{
-	TILE_LOADED_FROM_DISK,
-	TILE_LOADED_FROM_NETW,
-	LAST_SIGNAL
-};
-
-static guint tile_manager_signals[LAST_SIGNAL] = { 0 };
-
-
-void function_load_from_netw();
-
-void tile_manager_tile_load_function(TileManager *tile_manager);
-void get_tile_from_harddisk(TileManager * tile_manager, int x, int y, int zoom);
-
+void function_load_from_netw(TileManager * tile_manager);
 
 GObject * tile_manager_new()
 {
@@ -69,20 +55,12 @@ GObject * tile_manager_new()
 
 static void tile_manager_class_init(TileManagerClass *class)
 {
-	tile_manager_signals[TILE_LOADED_FROM_DISK] = g_signal_new(
-		"tile-loaded-from-disk",
-		G_OBJECT_CLASS_TYPE (class),
-		G_SIGNAL_RUN_FIRST,
-		G_STRUCT_OFFSET (TileManagerClass, tile_loaded_from_disk),
-		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
-		G_TYPE_NONE, 0);
 }
 
 static void tile_manager_init(TileManager *tile_manager)
 {
 	pthread_cond_init (&(tile_manager -> cond_wait_load_from_netw), NULL);
-	int x = 0; for (x = 0; x < 1; x++){
+	int x = 0; for (x = 0; x < 10; x++){
 		pthread_t thread_netw;
 		pthread_attr_t tattrn;
 		pthread_attr_init(&tattrn);

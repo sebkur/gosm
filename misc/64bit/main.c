@@ -16,6 +16,7 @@
 #include <wait.h>
 
 #include "tile_manager.h"
+#include "foo_widget.h"
 
 static gboolean close_cb(GtkWidget * widget);
 
@@ -38,8 +39,9 @@ int main(int argc, char * argv[])
 
 	gtk_widget_show_all(main_window);
 
-	TileManager * tile_manager = tile_manager_new();
+	TileManager * tile_manager = GOSM_TILE_MANAGER(tile_manager_new());
 	GtkWidget * foo_wid = foo_widget_new();
+	FooWidget * foo = GOSM_FOO_WIDGET(foo_wid);
 	gtk_container_add(GTK_CONTAINER(main_window), foo_wid);
 
 	gdk_threads_enter();	

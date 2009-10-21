@@ -18,7 +18,7 @@ failures = 0
 for i in range(n):
 	runs = runs + 1
 	proc = subprocess.Popen(["./main"]);
-	time.sleep(0.5)
+	time.sleep(0.25)
 	ret = proc.poll()
 	if ret  == None:
 		proc.terminate()

@@ -23,7 +23,7 @@ gosm: $(OBJ)
 	$(CC) $(CFLAGS) -o main $(OBJ) $(LDFLAGS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c -Wall $< -o $@
 
 dep: $(SRC)
 	$(CC) -MM $(SRC) > $(DEPENDFILE)

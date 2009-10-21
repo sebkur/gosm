@@ -44,37 +44,14 @@ typedef struct _TileManagerClass	TileManagerClass;
 struct _TileManager
 {
 	GObject parent;
-	/* public things? */
 
-	pthread_mutex_t mutex_tile_cache;
-
-	GArray *load_from_disk;
-	pthread_mutex_t mutex_load_from_disk;
-	pthread_cond_t  cond_wait_load_from_disk;
-	pthread_mutex_t mutex_wait_load_from_disk;
-
-	GArray *load_from_netw;
-	GArray *actual_load_from_netw;
-	pthread_mutex_t mutex_load_from_netw;
 	pthread_cond_t  cond_wait_load_from_netw;
 	pthread_mutex_t mutex_wait_load_from_netw;
-
-	gboolean network_state;
-	char * cache_dir;
-	char * cache_files_format;
-	char * format_url;
-	int cache_files_format_len;
-
-	CURL * easyhandle; // TODO: unused now, remove
 };
 
 struct _TileManagerClass
 {
 	GObjectClass parent_class;
-
-	void (* tile_loaded_from_disk) (TileManager *tile_manager);
-
-	void (* tile_loaded_from_netw) (TileManager *tile_manager);
 };
 
 GObject * tile_manager_new();
