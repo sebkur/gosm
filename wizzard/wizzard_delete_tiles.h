@@ -26,9 +26,9 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "../tilesets.h"
+#include "../tiles/tilesets.h"
 #include "../map_types.h"
-#include "../tile_manager.h"
+#include "../tiles/tile_manager.h"
 #include "../map_area.h"
 #include "wizzard_delete_tiles_window.h"
 

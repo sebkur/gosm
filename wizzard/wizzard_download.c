@@ -30,8 +30,8 @@
 #include "wizzard_download.h"
 #include "select_use_window.h"
 #include "tile_download_window.h"
-#include "../tilemath.h"
-#include "../tile_loader.h"
+#include "../tiles/tilemath.h"
+#include "../tiles/tile_loader.h"
 
 G_DEFINE_TYPE (WizzardDownload, wizzard_download, G_TYPE_OBJECT);
 

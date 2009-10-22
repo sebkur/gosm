@@ -26,7 +26,7 @@
 #include <sys/time.h>
 
 #include "tile_download_window.h"
-#include "../tilemath.h"
+#include "../tiles/tilemath.h"
 
 G_DEFINE_TYPE (TileDownloadWindow, tile_download_window, GTK_TYPE_WINDOW);
 

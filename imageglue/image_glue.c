@@ -31,9 +31,9 @@
 
 #include "imageglue.h"
 #include "image_glue.h"
-#include "../tilemath.h"
+#include "../tiles/tilemath.h"
 #include "../map_types.h"
-#include "../atlas.h"
+#include "../atlas/atlas.h"
 
 G_DEFINE_TYPE (ImageGlue, image_glue, G_TYPE_OBJECT);
 

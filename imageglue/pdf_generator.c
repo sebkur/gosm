@@ -32,9 +32,9 @@
 
 #include "pdf_generator.h"
 
-#include "../atlas.h" 
+#include "../atlas/atlas.h" 
 #include "../map_types.h"
-#include "../tilemath.h"
+#include "../tiles/tilemath.h"
 #include "../paths.h"
 #include "image_glue.h"
 

@@ -22,7 +22,7 @@
 #include "select_use_window.h"
 #include "tile_download_window.h"
 #include "../map_types.h"
-#include "../tile_loader.h"
+#include "../tiles/tile_loader.h"
 
 #define GOSM_TYPE_WIZZARD_DOWNLOAD		(wizzard_download_get_type ())
 #define GOSM_WIZZARD_DOWNLOAD(obj)		(G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_WIZZARD_DOWNLOAD, WizzardDownload))

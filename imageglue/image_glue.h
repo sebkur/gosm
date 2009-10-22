@@ -28,7 +28,7 @@
 #include <glib.h>
 
 #include "../map_types.h"
-#include "../atlas.h"
+#include "../atlas/atlas.h"
 
 #define GOSM_TYPE_IMAGE_GLUE           (image_glue_get_type ())
 #define GOSM_IMAGE_GLUE(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_IMAGE_GLUE, ImageGlue))

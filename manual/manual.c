@@ -28,7 +28,7 @@
 #include <string.h>
 
 #include "manual.h"
-#include "uri.h"
+#include "../tool.h"
 #include "../paths.h"
 
 G_DEFINE_TYPE (ManualDialog, manual_dialog, GTK_TYPE_WINDOW);
@@ -41,7 +41,6 @@ static void manual_dialog_class_init(ManualDialogClass *class)
 
 static void manual_dialog_init(ManualDialog *manual_dialog)
 {
-	printf("selection use window\n");
 }
 
 GtkWidget * manual_widget_new(ManualDialog *manual_dialog);

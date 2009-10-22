@@ -29,10 +29,10 @@
 
 #include "wizzard_delete_tiles.h"
 
-#include "../tilesets.h"
+#include "../tiles/tilesets.h"
 #include "../map_types.h"
-#include "../tile_manager.h"
-#include "../tilemath.h"
+#include "../tiles/tile_manager.h"
+#include "../tiles/tilemath.h"
 #include "../map_area.h"
 
 G_DEFINE_TYPE (WizzardDeleteTiles, wizzard_delete_tiles, G_TYPE_OBJECT);

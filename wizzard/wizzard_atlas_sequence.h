@@ -32,7 +32,7 @@
 #include "wizzard_atlas_sequence_window.h"
 #include "../imageglue/image_glue.h"
 #include "../map_types.h"
-#include "../atlas.h"
+#include "../atlas/atlas.h"
 
 #define GOSM_TYPE_WIZZARD_ATLAS_SEQUENCE           (wizzard_atlas_sequence_get_type ())
 #define GOSM_WIZZARD_ATLAS_SEQUENCE(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_WIZZARD_ATLAS_SEQUENCE, WizzardAtlasSequence))

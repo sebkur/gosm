@@ -29,7 +29,7 @@
 #include <curl/curl.h>
 
 #include "tile_cache.h"
-#include "map_types.h"
+#include "../map_types.h"
 
 #ifndef _TILE_MANAGER_H_
 #define _TILE_MANAGER_H_

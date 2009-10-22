@@ -28,12 +28,12 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "map_types.h"
-#include "customio.h"
 #include "config.h"
 #include "configuration.h"
 #include "config_widget.h"
-#include "config/color_box.h"
+#include "color_box.h"
+#include "../map_types.h"
+#include "../customio.h"
 
 G_DEFINE_TYPE (ConfigWidget, config_widget, GTK_TYPE_VBOX);
 

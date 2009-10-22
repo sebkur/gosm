@@ -30,7 +30,7 @@
 #include <unistd.h>
 
 #include "select_tool.h"
-#include "paths.h"
+#include "../paths.h"
 
 G_DEFINE_TYPE (SelectTool, select_tool, GTK_TYPE_VBOX);
 

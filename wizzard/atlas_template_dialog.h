@@ -26,7 +26,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "../atlas.h"
+#include "../atlas/atlas.h"
 
 #define GOSM_TYPE_ATLAS_TEMPLATE_DIALOG           (atlas_template_dialog_get_type ())
 #define GOSM_ATLAS_TEMPLATE_DIALOG(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_ATLAS_TEMPLATE_DIALOG, AtlasTemplateDialog))

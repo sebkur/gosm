@@ -32,8 +32,8 @@
 #include "../imageglue/image_glue.h"
 #include "../imageglue/pdf_generator.h"
 #include "../map_types.h"
-#include "../atlas.h"
-#include "../config.h"
+#include "../atlas/atlas.h"
+#include "../config/config.h"
 
 G_DEFINE_TYPE (WizzardAtlasPdf, wizzard_atlas_pdf, G_TYPE_OBJECT);
 

@@ -26,7 +26,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "../atlas.h"
+#include "../atlas/atlas.h"
 #include "atlas_template_dialog.h"
 
 G_DEFINE_TYPE (AtlasTemplateDialog, atlas_template_dialog, GTK_TYPE_DIALOG);

@@ -31,7 +31,7 @@
 
 #include "atlas_tool.h"
 #include "page_math.h"
-#include "paths.h"
+#include "../paths.h"
 
 G_DEFINE_TYPE (AtlasTool, atlas_tool, GTK_TYPE_VBOX);
 

@@ -28,7 +28,7 @@
 #include <string.h>
 
 #include "select_use_window.h"
-#include "../tilemath.h"
+#include "../tiles/tilemath.h"
 
 G_DEFINE_TYPE (SelectUseWindow, select_use_window, GTK_TYPE_WINDOW);
 

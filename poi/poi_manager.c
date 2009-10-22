@@ -36,7 +36,7 @@
 #include "poi_manager.h"
 #include "osm_reader.h"
 #include "../paths.h"
-#include "../config.h"
+#include "../config/config.h"
 #include "../customio.h"
 
 G_DEFINE_TYPE (PoiManager, poi_manager, G_TYPE_OBJECT);

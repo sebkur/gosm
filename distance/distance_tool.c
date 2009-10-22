@@ -27,7 +27,7 @@
 #include <glib.h>
 #include <unistd.h>
 
-#include "paths.h"
+#include "../paths.h"
 #include "distance_tool.h"
 
 G_DEFINE_TYPE (DistanceTool, distance_tool, GTK_TYPE_VBOX);

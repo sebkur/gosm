@@ -71,21 +71,20 @@
 #include <gdk/gdk.h>
 #include <glib.h>
 
-#include "uri.h"
 #include <webkit/webkit.h>
 
 #include "customio.h"
 #include "tool.h"
 #include "paths.h"
-#include "config.h"
-#include "config_widget.h"
-#include "configuration.h"
+#include "config/config.h"
+#include "config/config_widget.h"
+#include "config/configuration.h"
 #include "map_area.h"
 #include "map_navigator.h"
-#include "select_tool.h"
-#include "distance_tool.h"
-#include "atlas.h"
-#include "atlas_tool.h"
+#include "select/select_tool.h"
+#include "distance/distance_tool.h"
+#include "atlas/atlas.h"
+#include "atlas/atlas_tool.h"
 #include "namefinder/namefinder_cities.h"
 #include "namefinder/namefinder_countries.h"
 #include "wizzard/wizzard_download.h"
@@ -96,8 +95,8 @@
 #include "wizzard/wizzard_delete_tiles.h"
 #include "about/about.h"
 #include "manual/manual.h"
-#include "tilemath.h"
-#include "tilesets.h"
+#include "tiles/tilemath.h"
+#include "tiles/tilesets.h"
 
 #include "imageglue/imageglue.h"
 #include "imageglue/pdf_generator.h"

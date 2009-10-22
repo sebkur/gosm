@@ -32,10 +32,10 @@
 #include "map_area.h"
 #include "map_types.h"
 #include "tool.h"
-#include "tilemath.h"
-#include "tile_cache.h"
-#include "tile_manager.h"
-#include "tilesets.h"
+#include "tiles/tilemath.h"
+#include "tiles/tile_cache.h"
+#include "tiles/tile_manager.h"
+#include "tiles/tilesets.h"
 #include "paths.h"
 
 #define MATCHES(a,b)	((a & b) == b)

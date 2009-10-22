@@ -35,7 +35,7 @@
 #include <sys/time.h>
 
 #include "tile_loader.h"
-#include "tool.h"
+#include "../tool.h"
 #include "tilemath.h"
 #include "tile_cache.h"
 

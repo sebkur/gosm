@@ -37,8 +37,8 @@
 #include <string.h>
 
 #include "tile_manager.h"
-#include "map_types.h"
-#include "tool.h"
+#include "../map_types.h"
+#include "../tool.h"
 #include "tilemath.h"
 #include "tile_cache.h"
 

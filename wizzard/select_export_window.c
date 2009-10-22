@@ -29,7 +29,7 @@
 
 #include "select_export_window.h"
 #include "../paths.h"
-#include "../tilemath.h"
+#include "../tiles/tilemath.h"
 
 G_DEFINE_TYPE (SelectExportWindow, select_export_window, GTK_TYPE_WINDOW);
 

@@ -28,7 +28,7 @@
 #include <glib/gthread.h>
 #include <unistd.h>
 
-#include "map_types.h"
+#include "../map_types.h"
 
 #ifndef _GOSM_TILE_LOADER_H_
 #define _GOSM_TILE_LOADER_H_

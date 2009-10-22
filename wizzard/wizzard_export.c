@@ -29,8 +29,8 @@
 
 #include "wizzard_export.h"
 #include "select_export_window.h"
-#include "../tilemath.h"
-#include "../tile_loader.h"
+#include "../tiles/tilemath.h"
+#include "../tiles/tile_loader.h"
 #include "../imageglue/image_glue.h"
 
 G_DEFINE_TYPE (WizzardExport, wizzard_export, G_TYPE_OBJECT);

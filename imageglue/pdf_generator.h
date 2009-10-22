@@ -26,7 +26,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "../atlas.h"
+#include "../atlas/atlas.h"
 #include "../map_types.h"
 
 #define GOSM_TYPE_PDF_GENERATOR           (pdf_generator_get_type ())

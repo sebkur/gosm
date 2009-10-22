@@ -37,10 +37,10 @@
 
 #include <glib.h>
 
-#include "customio.h"
 #include "config.h"
 #include "configuration.h"
-#include "map_types.h"
+#include "../customio.h"
+#include "../map_types.h"
 
 ConfEntry ConfEntries[] = {
 	{"online_on_startup",	TYPE_BOOLEAN,	"TRUE",			NULL},

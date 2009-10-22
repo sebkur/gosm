@@ -25,7 +25,7 @@
 #include <string.h>
 #include <glib.h>
 
-#include "../tilemath.h"
+#include "../tiles/tilemath.h"
 
 int create_read_structs(FILE * fp, png_structp * png_ptr, png_infop * info_ptr)
 {

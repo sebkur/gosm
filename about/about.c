@@ -28,7 +28,7 @@
 #include <string.h>
 
 #include "about.h"
-#include "uri.h"
+#include "../tool.h"
 #include "../map_area.h"
 #include "../paths.h"
 
@@ -45,7 +45,6 @@ static void about_dialog_class_init(AboutDialogClass *class)
 
 static void about_dialog_init(AboutDialog *about_dialog)
 {
-	printf("selection use window\n");
 }
 
 GtkWidget * about_widget_new(AboutDialog *about_dialog);

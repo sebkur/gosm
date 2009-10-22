@@ -26,8 +26,8 @@
 #include <cairo/cairo.h>
 #include <glib.h>
 #include "map_types.h"
-#include "tile_manager.h"
-#include "tilesets.h"
+#include "tiles/tile_manager.h"
+#include "tiles/tilesets.h"
 #include "poi/poi_set.h"
 #include "poi/poi_manager.h"
 
