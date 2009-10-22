@@ -20,4 +20,10 @@
 
 #include <sys/time.h>
 
+#include <gtk/gtk.h>
+#include <gdk/gdk.h>
+#include <glib.h>
+
 int time_diff(struct timeval * t1, struct timeval * t2);
+
+GtkWidget * find_containing_gtk_window(GtkWidget * widget);

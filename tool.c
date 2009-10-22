@@ -19,6 +19,7 @@
  */
 
 #include <sys/time.h>
+#include "tool.h"
 
 int time_diff(struct timeval * t1, struct timeval * t2)
 {
@@ -27,3 +28,13 @@ int time_diff(struct timeval * t1, struct timeval * t2)
 	return msec;
 }
 
+GtkWidget * find_containing_gtk_window(GtkWidget * widget)
+{
+	GtkWidget * current = widget;
+	GtkWidget * cparent = gtk_widget_get_parent(current);
+	while(cparent != NULL && !GTK_IS_WINDOW(cparent)){
+		current = cparent;
+		cparent = gtk_widget_get_parent(current);
+	}
+	return cparent;
+}

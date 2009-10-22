@@ -75,6 +75,7 @@
 #include <webkit/webkit.h>
 
 #include "customio.h"
+#include "tool.h"
 #include "paths.h"
 #include "config.h"
 #include "config_widget.h"
@@ -169,11 +170,6 @@ GtkWidget * 	combo_tiles;
 PoiManager *	poi_manager;
 PoiSourceLoadProgress * pslp;
 
-typedef struct WidgetPlusPointer{
-	GtkWidget * widget;
-	gpointer * pointer;
-} WidgetPlusPointer;
-
 gboolean	check_for_cache_directory(char * fn);
 static gboolean close_cb(GtkWidget *widget);
 void		area_set_cursor(int id);
@@ -223,7 +219,7 @@ static gboolean show_manual_cb(GtkWidget *widget);
 static gboolean show_about_cb(GtkWidget *widget, gpointer nump);
 static void 	set_button_network();
 static gboolean button_network_cb(GtkWidget *widget);
-static gboolean preferences_confirm_cb(GtkWidget * widget, WidgetPlusPointer * wpp);
+static gboolean preferences_confirm_cb(GtkWidget * widget, ConfigWidget * config_widget);
 static gboolean preferences_cancel_cb(GtkWidget * widget, GtkWindow *window);
 static gboolean show_preferences_cb(GtkWidget *widget);
 static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton *event);
@@ -275,6 +271,7 @@ int main(int argc, char *argv[])
 {
 	/* ensure, that we are in the dir, where the executable is */
 	/* i.e. set cwd to the executable's dir */
+	// TODO: don't do this for distro-builds
 	chdir_to_bin(argv[0]);
 
 	/***************************************************************************
@@ -314,18 +311,21 @@ int main(int argc, char *argv[])
 	ColorQuadriple	color_atlas_lines	= *(ColorQuadriple*)	config_get_entry_data(config, "color_atlas_lines");
 	tileset					= *(Tileset*)		config_get_entry_data(config, "tileset");
 
+	/* if the config doesn't tell to SET size, use a default size, even if width and height are saved */
 	if(!set_size){
 		width 	= 900;
 		height	= 600;
 	}
 
-	printf("tileset: %i\n", tileset);
+	/* the url where images for the current tileset can be found */
 	format_url = urls[tileset];
+	/* where to save cached tile-images */
 	cache_dirs[TILESET_MAPNIK] = cache_dir_mapnik;
 	cache_dirs[TILESET_OSMARENDER] = cache_dir_osmarender;
 	cache_dirs[TILESET_CYCLE] = cache_dir_cycle;
 
 	/* ensure, that the tmp-directory for tiles exists */
+	/* this function attempts to create non-existant directories */
 	if (!check_for_cache_directory(cache_dir_mapnik)
 		|| !check_for_cache_directory(cache_dir_osmarender) 
 		|| !check_for_cache_directory(cache_dir_cycle) ){
@@ -337,6 +337,8 @@ int main(int argc, char *argv[])
 	gdk_threads_init();
 	gtk_init(&argc, &argv);
 
+	/* the compiler may optimize boilerplate-macro-defined functions away,
+	 * to avoid resulting failures every macro is used here once with a volatile variable*/
 	make_gtk_types_safe();
 
 	/***************************************************************************
@@ -655,9 +657,9 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(main_window),		"window-state-event", G_CALLBACK(window_event_cb), NULL);
 	g_signal_connect(G_OBJECT(combo_tiles), 	"changed", G_CALLBACK(combo_tiles_cb), NULL);
 
-	/**
+	/***************************************************************************
 	 * Statusbar
-	 */
+	 ***************************************************************************/
 
 	statusbar = gtk_statusbar_new();
 
@@ -688,7 +690,7 @@ int main(int argc, char *argv[])
                                         GTK_POLICY_AUTOMATIC);
         gtk_widget_set_size_request(scrolled, 180, -1);
 	gtk_box_pack_start(GTK_BOX(side_left), notebook_side_left, TRUE, TRUE, 0);
-	/* this is a dummy to prevent the context-menu to appear */
+	/* this is a dummy-callback to prevent the context-menu to appear */
 	g_signal_connect(G_OBJECT(web_legend), 	"button-press-event", G_CALLBACK(legend_click_cb), NULL);
 	/* pois */
 	PoiTool * poi_tool = GOSM_POI_TOOL(poi_tool_new(poi_manager));
@@ -802,7 +804,7 @@ gboolean check_for_cache_directory(char * fn)
         struct stat info;
         int r_stat = stat(fn, &info);
         if (r_stat){
-                printf("creating directory: %s\n", fn);
+                printf("creating cache directory: %s\n", fn);
                 int r_mkdir = g_mkdir_with_parents(fn, 0777);
         }
         r_stat = stat(fn, &info);
@@ -1385,13 +1387,12 @@ static void button_savemaptype_cb()
 	config_save_config_file(config);
 }
 
-static gboolean preferences_confirm_cb(GtkWidget * widget, WidgetPlusPointer * wpp)
+static gboolean preferences_confirm_cb(GtkWidget * widget, ConfigWidget * conf_widget)
 {
-	ConfigWidget * conf_widget = GOSM_CONFIG_WIDGET(wpp -> pointer);
 	gboolean ** changed = config_widget_get_new_configuration(conf_widget);
 	config_save_config_file(config);
-	gtk_widget_destroy(wpp -> widget);
-	free(wpp);
+	GtkWidget * window = find_containing_gtk_window(GTK_WIDGET(conf_widget));
+	gtk_widget_destroy(window);
 	apply_new_config();
 }
 
@@ -1412,12 +1413,8 @@ static gboolean show_preferences_cb(GtkWidget *widget)
 	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(config_widget));
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 300);
 
-	WidgetPlusPointer * wpp = malloc(sizeof(WidgetPlusPointer));
-	wpp -> widget = GTK_WIDGET(window);
-	wpp -> pointer = (gpointer)config_widget;
-
 	g_signal_connect(G_OBJECT(config_widget -> button_cancel), "clicked", G_CALLBACK(preferences_cancel_cb), window);
-	g_signal_connect(G_OBJECT(config_widget -> button_confirm), "clicked", G_CALLBACK(preferences_confirm_cb), wpp);
+	g_signal_connect(G_OBJECT(config_widget -> button_confirm), "clicked", G_CALLBACK(preferences_confirm_cb), config_widget);
 
 	gtk_widget_show_all(window);
 }
