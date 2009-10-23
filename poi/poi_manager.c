@@ -55,6 +55,7 @@ enum
 	SOURCE_DELETED,
 	FILE_PARSING_STARTED,
 	FILE_PARSING_ENDED,
+	NETWORK_SOURCE_ACTIVATED,
         LAST_SIGNAL
 };
 
@@ -175,6 +176,14 @@ static void poi_manager_class_init(PoiManagerClass *class)
                 NULL, NULL,
                 g_cclosure_marshal_VOID__INT,
                 G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[NETWORK_SOURCE_ACTIVATED] = g_signal_new(
+                "network-source-activated",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, file_parsing_ended),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__VOID,
+                G_TYPE_NONE, 0);
 }
 
 static void poi_manager_init(PoiManager *poi_manager)

@@ -30,16 +30,6 @@
 
 G_DEFINE_TYPE (PoiSourceSelector, poi_source_selector, GTK_TYPE_VBOX);
 
-/*enum
-{
-        SIGNAL_NAME_1,
-        SIGNAL_NAME_n,
-        LAST_SIGNAL
-};*/
-
-//static guint poi_source_selector_signals[LAST_SIGNAL] = { 0 };
-//g_signal_emit (widget, poi_source_selector_signals[SIGNAL_NAME_n], 0);
-
 enum
 {
 	COL_ACTIVE = 0,
@@ -50,54 +40,65 @@ enum
 
 static GtkTreeModel * poi_source_selector_create_model (PoiManager * poi_manager);
 static GtkWidget * poi_source_selector_create_view (PoiManager * poi_manager);
-void poi_source_selector_list_cb(GtkTreeView	      *treeview,
-		    GtkTreePath        *path,
-		    GtkTreeViewColumn  *col,
-		    gpointer            poi_manager);
+void poi_source_selector_list_cb(
+		GtkTreeView		*treeview,
+		GtkTreePath		*path,
+		GtkTreeViewColumn	*col,
+		gpointer		poi_manager_p);
 static gboolean poi_source_selector_added_cb(PoiManager * poi_manager, int index, gpointer data);
 static gboolean poi_source_selector_deleted_cb(PoiManager * poi_manager, int index, gpointer data);
+static gboolean poi_source_selector_activated_cb(PoiManager * poi_manager, int index, gpointer data);
+static gboolean poi_source_selector_deactivated_cb(PoiManager * poi_manager, int index, gpointer data);
 
 PoiSourceSelector * poi_source_selector_new(PoiManager * poi_manager)
 {
 	PoiSourceSelector * poi_source_selector = g_object_new(GOSM_TYPE_POI_SOURCE_SELECTOR, NULL);
-	g_signal_connect(G_OBJECT(poi_manager),"source-added", 
+	/* connect to the poi_manager signals, so that this class acts as a view */
+	g_signal_connect(
+		G_OBJECT(poi_manager), "source-added", 
 		G_CALLBACK(poi_source_selector_added_cb), (gpointer)poi_source_selector);
-	g_signal_connect(G_OBJECT(poi_manager),"source-deleted", 
+	g_signal_connect(
+		G_OBJECT(poi_manager), "source-deleted", 
 		G_CALLBACK(poi_source_selector_deleted_cb), (gpointer)poi_source_selector);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "source-activated",
+		G_CALLBACK(poi_source_selector_activated_cb), (gpointer)poi_source_selector);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "source-deactivated",
+		G_CALLBACK(poi_source_selector_deactivated_cb), (gpointer)poi_source_selector);
+	/* create tree view */
 	poi_source_selector -> view = poi_source_selector_create_view(poi_manager);
-	g_signal_connect(poi_source_selector -> view, "row-activated", (GCallback) poi_source_selector_list_cb, poi_manager);
+	/* take care of activation of rows (double-click, ...) */
+	g_signal_connect(
+		G_OBJECT(poi_source_selector -> view), "row-activated",
+		G_CALLBACK(poi_source_selector_list_cb), (gpointer)poi_manager);
+	/* insert into a scrollarea */
 	GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(scrolled), GTK_WIDGET(poi_source_selector -> view));
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
 	                                GTK_POLICY_AUTOMATIC,
 	                                GTK_POLICY_AUTOMATIC);
+	/* add scrollarea to this widget itself */
 	gtk_box_pack_start(GTK_BOX(poi_source_selector), scrolled, TRUE, TRUE, 0);
 	return poi_source_selector;
 }
 
 static void poi_source_selector_class_init(PoiSourceSelectorClass *class)
 {
-        /*poi_source_selector_signals[SIGNAL_NAME_n] = g_signal_new(
-                "signal-name-n",
-                G_OBJECT_CLASS_TYPE (class),
-                G_SIGNAL_RUN_FIRST,
-                G_STRUCT_OFFSET (PoiSourceSelectorClass, function_name),
-                NULL, NULL,
-                g_cclosure_marshal_VOID__VOID,
-                G_TYPE_NONE, 0);*/
 }
 
 static void poi_source_selector_init(PoiSourceSelector *poi_source_selector)
 {
 }
 
+/****************************************************************************************************
+* creates the model and fills it with the poi_managers' current sources
+****************************************************************************************************/
 static GtkTreeModel * poi_source_selector_create_model (PoiManager * poi_manager)
 {
-	GtkListStore	*store;
-	GtkTreeIter	  iter;
-	
+	GtkListStore * store;
+	GtkTreeIter iter;
 	store = gtk_list_store_new (NUM_COLS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-
 	int count = poi_manager_get_number_of_poi_sources(poi_manager);
 	int c;
 	for (c = 0; c < count; c++){
@@ -109,10 +110,12 @@ static GtkTreeModel * poi_source_selector_create_model (PoiManager * poi_manager
 					COL_DIR, poi_source -> dirname,
 					-1);
 	}
-
 	return GTK_TREE_MODEL (store);
 }
 
+/****************************************************************************************************
+* creates the view with three columns (active, basename, directory)
+****************************************************************************************************/
 static GtkWidget * poi_source_selector_create_view (PoiManager * poi_manager)
 {
 	GtkCellRenderer     *renderer;
@@ -147,45 +150,31 @@ static GtkWidget * poi_source_selector_create_view (PoiManager * poi_manager)
 	return view;
 }
 
-void poi_source_selector_list_cb(GtkTreeView	      *treeview,
-		    GtkTreePath        *path,
-		    GtkTreeViewColumn  *col,
-		    gpointer            poi_manager_p)
+/****************************************************************************************************
+* this callback is invoked, when an item in the list is activated (i.e. double-click)
+* and then tells the poi_manager to open this file
+****************************************************************************************************/
+void poi_source_selector_list_cb(
+		GtkTreeView		*treeview,
+		GtkTreePath		*path,
+		GtkTreeViewColumn	*col,
+		gpointer		poi_manager_p)
 {	
-	GtkTreeModel *model;
-	GtkTreeIter	 iter;
-
-	model = gtk_tree_view_get_model(treeview);
-
 	PoiManager * poi_manager = GOSM_POI_MANAGER(poi_manager_p);
-
+	GtkTreeModel * model = gtk_tree_view_get_model(treeview);
+	GtkTreeIter iter;
 	if (gtk_tree_model_get_iter(model, &iter, path))
 	{
 		gint * indices = gtk_tree_path_get_indices(path); 
 		int activated = indices[0];
 		int old = poi_manager -> active_poi_source;
 		poi_manager_activate_poi_source(poi_manager, activated);
-		if (old != activated){
-			PoiSource * poi_source_a = poi_manager_get_poi_source(poi_manager, activated);
-			gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-						COL_ACTIVE, "x",
-						COL_NAME, poi_source_a -> basename,
-						COL_DIR, poi_source_a -> dirname,
-						-1);
-			if (old >= 0){
-				GtkTreePath * path = gtk_tree_path_new_from_indices(old, -1);
-				gtk_tree_model_get_iter(model, &iter, path);
-				PoiSource * poi_source_o = poi_manager_get_poi_source(poi_manager, old);
-				gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-							COL_ACTIVE, " ",
-							COL_NAME, poi_source_o -> basename,
-							COL_DIR, poi_source_o -> dirname,
-							-1);
-			}
-		}
 	}
 }
 
+/****************************************************************************************************
+* this callback adds a row to the view
+****************************************************************************************************/
 static gboolean poi_source_selector_added_cb(PoiManager * poi_manager, int index, gpointer data)
 {
 	PoiSourceSelector * poi_source_selector = GOSM_POI_SOURCE_SELECTOR(data);
@@ -202,9 +191,13 @@ static gboolean poi_source_selector_added_cb(PoiManager * poi_manager, int index
 				COL_NAME, poi_source -> basename,
 				COL_DIR, poi_source -> dirname,
 				-1);
+	gtk_tree_path_free(path);
 	return FALSE;
 }
 
+/****************************************************************************************************
+* this callback deletes the row with given index from the view
+****************************************************************************************************/
 static gboolean poi_source_selector_deleted_cb(PoiManager * poi_manager, int index, gpointer data)
 {
 	PoiSourceSelector * poi_source_selector = GOSM_POI_SOURCE_SELECTOR(data);
@@ -215,9 +208,13 @@ static gboolean poi_source_selector_deleted_cb(PoiManager * poi_manager, int ind
 	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
 	gtk_tree_model_get_iter(model, &iter, path);
 	gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+	gtk_tree_path_free(path);
 	return FALSE;
 }
 
+/****************************************************************************************************
+* this function returns the currently selected rows' index, or -1 if none is selected
+****************************************************************************************************/
 int poi_source_selector_get_active_item_index(PoiSourceSelector * poi_source_selector)
 {
 	GtkTreeView * view = GTK_TREE_VIEW(poi_source_selector -> view);
@@ -231,4 +228,45 @@ int poi_source_selector_get_active_item_index(PoiSourceSelector * poi_source_sel
 		return index;
 	}
 	return -1;
+}
+
+/****************************************************************************************************
+* this callback marks this (indictated by index) poi-source as active
+* at the moment, this is a "x" character in the left-most column
+* -1 may be given as index to activate none
+****************************************************************************************************/
+static gboolean poi_source_selector_activated_cb(PoiManager * poi_manager, int index, gpointer data)
+{
+	if (index >= 0){
+		PoiSourceSelector * poi_source_selector = GOSM_POI_SOURCE_SELECTOR(data);
+		GtkTreeView * view = GTK_TREE_VIEW(poi_source_selector -> view);
+		GtkTreeModel * model = gtk_tree_view_get_model(view);
+		GtkTreeIter iter;
+		GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
+		gtk_tree_model_get_iter(model, &iter, path);
+		gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+					COL_ACTIVE, "x",
+					-1);
+	}
+	return FALSE;
+}
+
+/****************************************************************************************************
+* this callback marks this (indicated by index) poi-source as deactive
+* -1 may be given as index to deactivate none
+****************************************************************************************************/
+static gboolean poi_source_selector_deactivated_cb(PoiManager * poi_manager, int index, gpointer data)
+{
+	if (index >= 0){
+		PoiSourceSelector * poi_source_selector = GOSM_POI_SOURCE_SELECTOR(data);
+		GtkTreeView * view = GTK_TREE_VIEW(poi_source_selector -> view);
+		GtkTreeModel * model = gtk_tree_view_get_model(view);
+		GtkTreeIter iter;
+		GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
+		gtk_tree_model_get_iter(model, &iter, path);
+		gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+					COL_ACTIVE, " ",
+					-1);
+	}
+	return FALSE;
 }
