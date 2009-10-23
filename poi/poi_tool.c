@@ -43,6 +43,7 @@ G_DEFINE_TYPE (PoiTool, poi_tool, GTK_TYPE_VBOX);
 
 static gboolean poi_tool_button_layers_save_cb(GtkWidget * button, gpointer data);
 static gboolean poi_tool_button_layers_revert_cb(GtkWidget * button, gpointer data);
+static gboolean poi_tool_button_api_request_cb(GtkWidget * button, gpointer data);
 static gboolean poi_tool_button_sources_add_cb(GtkWidget * button, gpointer data);
 static gboolean poi_tool_button_sources_delete_cb(GtkWidget * button, gpointer data);
 static gboolean poi_tool_button_sources_save_cb(GtkWidget * button, gpointer data);
@@ -61,14 +62,17 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	GtkWidget * tool_bar_layers = gtk_hbox_new(FALSE, 0);
 	GtkWidget * button_layers_save = gtk_button_new();
 	GtkWidget * button_layers_revert = gtk_button_new();
+	GtkWidget * button_api = gtk_button_new_with_label("API");
 	GtkWidget * icon_save = gtk_image_new_from_stock("gtk-save", GTK_ICON_SIZE_BUTTON);
 	GtkWidget * icon_revert = gtk_image_new_from_stock("gtk-revert-to-saved", GTK_ICON_SIZE_BUTTON);
 	gtk_button_set_image(GTK_BUTTON(button_layers_save), icon_save);
 	gtk_button_set_image(GTK_BUTTON(button_layers_revert), icon_revert);
 	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_layers_save, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_layers_revert, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(tool_bar_layers), button_api, FALSE, FALSE, 0);
 	gtk_widget_set_tooltip_text(button_layers_save, "save layers");
 	gtk_widget_set_tooltip_text(button_layers_revert, "revert to saved");
+	gtk_widget_set_tooltip_text(button_api, "request api for pois");
 	/* layers, layout */
 	gtk_box_pack_start(GTK_BOX(box_layers), tool_bar_layers, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_layers), GTK_WIDGET(poi_tool -> poi_selector), TRUE, TRUE, 0);
@@ -77,6 +81,8 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 		G_CALLBACK(poi_tool_button_layers_save_cb), (gpointer)poi_tool);
 	g_signal_connect(G_OBJECT(button_layers_revert), "clicked",
 		G_CALLBACK(poi_tool_button_layers_revert_cb), (gpointer)poi_tool);
+	g_signal_connect(G_OBJECT(button_api), "clicked",
+		G_CALLBACK(poi_tool_button_api_request_cb), (gpointer)poi_tool);
 	/* BOX sources */
 	/* sources, source_selector widget */
 	poi_tool -> poi_source_selector = poi_source_selector_new(poi_manager);
@@ -152,6 +158,13 @@ static gboolean poi_tool_button_layers_revert_cb(GtkWidget * button, gpointer da
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
 	poi_manager_layers_revert(poi_tool -> poi_manager);
+	return FALSE;
+}
+
+static gboolean poi_tool_button_api_request_cb(GtkWidget * button, gpointer data)
+{
+	PoiTool * poi_tool = GOSM_POI_TOOL(data);
+	poi_manager_api_request(poi_tool -> poi_manager);
 	return FALSE;
 }
 

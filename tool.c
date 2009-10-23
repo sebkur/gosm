@@ -55,3 +55,21 @@ char * get_abs_uri(char * filename)
 	free(abs);
 	return uri;
 }
+
+char * get_api_url_get(double min_lon, double min_lat, double max_lon, double max_lat)
+{
+	char * api_prefix = "http://api.openstreetmap.org/api/0.6/map?bbox=";
+	int len = 60 + strlen(api_prefix);
+
+	char * buf = malloc(sizeof(char) * len);
+	sprintf(buf, "%s", api_prefix);
+	sprintdouble(buf+strlen(buf), min_lon, 7);
+	sprintf(buf+strlen(buf), "%s", ",");
+	sprintdouble(buf+strlen(buf), min_lat, 7); 
+	sprintf(buf+strlen(buf), "%s", ",");
+	sprintdouble(buf+strlen(buf), max_lon, 7); 
+	sprintf(buf+strlen(buf), "%s", ",");
+	sprintdouble(buf+strlen(buf), max_lat, 7); 
+	
+	return buf;
+}

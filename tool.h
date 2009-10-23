@@ -29,3 +29,5 @@ int time_diff(struct timeval * t1, struct timeval * t2);
 GtkWidget * find_containing_gtk_window(GtkWidget * widget);
 
 char * get_abs_uri(char * filename);
+
+char * get_api_url_get(double min_lon, double min_lat, double max_lon, double max_lat);

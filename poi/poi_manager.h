@@ -29,10 +29,14 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
+typedef struct _PoiManager        PoiManager;
+typedef struct _PoiManagerClass   PoiManagerClass;
+
 #include "poi_set.h"
 #include "named_poi_set.h"
 #include "styled_poi_set.h"
 #include "osm_reader.h"
+#include "../map_area.h"
 
 #define GOSM_TYPE_POI_MANAGER           (poi_manager_get_type ())
 #define GOSM_POI_MANAGER(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_POI_MANAGER, PoiManager))
@@ -40,9 +44,6 @@
 #define GOSM_IS_POI_MANAGER(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOSM_TYPE_POI_MANAGER))
 #define GOSM_IS_POI_MANAGER_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_POI_MANAGER))
 #define GOSM_POI_MANAGER_GET_CLASS      (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_POI_MANAGER, PoiManagerClass))
-
-typedef struct _PoiManager        PoiManager;
-typedef struct _PoiManagerClass   PoiManagerClass;
 
 typedef struct {
 	char * filename;
@@ -60,6 +61,8 @@ struct _PoiManager
 	OsmReader * osm_reader;
 
 	int active_poi_source;
+
+	MapArea * map_area;
 };
 
 struct _PoiManagerClass
@@ -99,5 +102,9 @@ gboolean poi_manager_sources_save(PoiManager * poi_manager);
 int poi_manager_get_number_of_poi_sources(PoiManager * poi_manager);
 PoiSource * poi_manager_get_poi_source(PoiManager * poi_manager, int index);
 void poi_manager_activate_poi_source(PoiManager * poi_manager, int index);
+
+void poi_manager_api_request(PoiManager * poi_manager);
+
+void poi_manager_set_map_area(PoiManager * poi_manager, MapArea * map_area);
 
 #endif /* _GOSM_POI_MANAGER_H */

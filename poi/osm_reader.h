@@ -72,4 +72,6 @@ int osm_reader_parse_file(OsmReader * osm_reader, char * filename);
 
 GArray * osm_reader_find_ids_key_value(OsmReader * osm_reader, char * key, char * value);
 
+void osm_reader_parse_api_url(OsmReader * osm_reader, char * url);
+
 #endif /* _GOSM_OSM_READER_H_ */

@@ -21,6 +21,9 @@
 #ifndef _MAP_AREA_H_
 #define _MAP_AREA_H_
 
+typedef struct _MapArea		MapArea;
+typedef struct _MapAreaClass	MapAreaClass;
+
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <cairo/cairo.h>
@@ -38,8 +41,6 @@
 #define GOSM_IS_MAP_AREA_CLASS(obj)	(G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_MAP_AREA))
 #define GOSM_MAP_AREA_GET_CLASS		(G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_MAP_AREA, MapAreaClass))
 
-typedef struct _MapArea		MapArea;
-typedef struct _MapAreaClass	MapAreaClass;
 
 struct _MapArea
 {

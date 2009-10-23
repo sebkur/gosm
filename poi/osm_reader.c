@@ -35,6 +35,8 @@
 
 #include <bzlib.h>
 
+#include <curl/curl.h>
+
 #include "osm_reader.h"
 #include "../map_types.h"
 #include "../customio.h"
@@ -341,3 +343,36 @@ GArray * osm_reader_find_ids_key_value(OsmReader * osm_reader, char * key, char 
 //	osm_reader_find_ids_key_value(osm_reader, "shop", "supermarket");
 //	g_tree_foreach(osm_reader->tree_ids, traverse, NULL);
 //}
+
+size_t curl_cb(void * data, size_t size, size_t nmemb, void * parser)
+{
+	char * buf = malloc(sizeof(char) * (size * nmemb + 1));
+	strncpy(buf, data, size * nmemb);
+	buf[size * nmemb] = '\0';
+	//printf("%s\n", buf);
+	XML_Parse((XML_Parser)parser, buf, size * nmemb, 0);
+	return size * nmemb;
+}
+
+void osm_reader_parse_api_url(OsmReader * osm_reader, char * url)
+{
+	XML_Parser parser = XML_ParserCreate(NULL);
+	XML_SetUserData(parser, (void*)osm_reader);
+	XML_SetStartElementHandler(parser, osm_reader_StartElementCallback);
+	XML_SetEndElementHandler(parser, osm_reader_EndElementCallback);
+
+	CURL * handle = curl_easy_init();
+	//curl_easy_setopt(handle, CURLOPT_VERBOSE, 1);
+	curl_easy_setopt(handle, CURLOPT_URL, url);
+	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_cb);
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, (gpointer)parser);
+	curl_easy_setopt(handle, CURLOPT_USERAGENT, "Pure Data");
+	int perform = curl_easy_perform(handle);
+	if (perform != 0){
+		printf("unable to receive data\n");
+		return;
+	}
+	printf("succesfully got data\n");
+	XML_Parse(parser, NULL, 0, 1);
+	g_signal_emit (osm_reader, osm_reader_signals[READING_FINISHED], 0, 0);
+}

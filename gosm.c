@@ -367,6 +367,7 @@ int main(int argc, char *argv[])
 	/* add poi_manager to map-area */
 	poi_manager = poi_manager_new();
 	map_area_set_poi_manager(area, poi_manager);
+	poi_manager_set_map_area(poi_manager, area);
 	g_signal_connect(G_OBJECT(poi_manager),"layer-toggled", G_CALLBACK(poi_manager_layer_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"colour-changed", G_CALLBACK(poi_manager_colour_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"source-activated", G_CALLBACK(poi_manager_source_cb), NULL);
@@ -1104,29 +1105,18 @@ static gboolean selection_export_cb(GtkWidget *widget)
 
 static gboolean selection_xml_cb(GtkWidget *widget)
 {
-	char * api_prefix = "http://api.openstreetmap.org/api/0.6/map?bbox=";
-	int len = 60 + strlen(api_prefix);
-
+	// TODO: clipboard memory management?
 	Selection s = area -> selection;
 	double lon1, lon2, lat1, lat2;
 	lon1 = s.lon1 < s.lon2 ? s.lon1 : s.lon2;
 	lon2 = s.lon1 > s.lon2 ? s.lon1 : s.lon2;
 	lat1 = s.lat1 < s.lat2 ? s.lat1 : s.lat2;
 	lat2 = s.lat1 > s.lat2 ? s.lat1 : s.lat2;
-
-	char buf[len];
-	sprintf(buf, "%s", api_prefix);
-	sprintdouble(buf+strlen(buf), lon1, 7);
-	sprintf(buf+strlen(buf), "%s", ",");
-	sprintdouble(buf+strlen(buf), lat1, 7); 
-	sprintf(buf+strlen(buf), "%s", ",");
-	sprintdouble(buf+strlen(buf), lon2, 7); 
-	sprintf(buf+strlen(buf), "%s", ",");
-	sprintdouble(buf+strlen(buf), lat2, 7); 
-
+	char * buf = get_api_url_get(lon1, lat1, lon2, lat2);
 	GtkClipboard * cb = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
 	gtk_clipboard_set_text(cb, buf, strlen(buf));
 	printf("%s\n", buf);
+
 }
 
 static gboolean selection_clipboard_cb(GtkWidget *widget)

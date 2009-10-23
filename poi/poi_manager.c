@@ -38,6 +38,8 @@
 #include "../paths.h"
 #include "../config/config.h"
 #include "../customio.h"
+#include "../map_area.h"
+#include "../tool.h"
 
 G_DEFINE_TYPE (PoiManager, poi_manager, G_TYPE_OBJECT);
 
@@ -356,7 +358,6 @@ void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
 		g_signal_emit (poi_manager, poi_manager_signals[SOURCE_DEACTIVATED], 0, old);
 	}
 	if (old != index){
-		PoiSource * poi_source = poi_manager_get_poi_source(poi_manager, index);
 		int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
 		osm_reader_clear(poi_manager -> osm_reader);
 		int n;
@@ -364,8 +365,11 @@ void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
 			StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
 			poi_set_clear(GOSM_POI_SET(poi_set));
 		}
-		g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_STARTED], 0, index);
-		osm_reader_parse_file(poi_manager -> osm_reader, poi_source -> filename);
+		if (index >= 0){
+			PoiSource * poi_source = poi_manager_get_poi_source(poi_manager, index);
+			g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_STARTED], 0, index);
+			osm_reader_parse_file(poi_manager -> osm_reader, poi_source -> filename);
+		}
 	}
 }
 
@@ -378,7 +382,9 @@ static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int s
 		StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
 		poi_manager_fill_poi_set(poi_manager, poi_set);
 	}
-	g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_ENDED], 0);
+	if (poi_manager -> active_poi_source >= 0){
+		g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_ENDED], 0);
+	}
 	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, poi_manager -> active_poi_source);
 	return FALSE;
 }
@@ -489,3 +495,18 @@ gboolean poi_manager_sources_delete(PoiManager * poi_manager, int index)
 	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_DELETED], 0, index);
 }
 
+void poi_manager_set_map_area(PoiManager * poi_manager, MapArea * map_area)
+{
+	poi_manager -> map_area = map_area;
+}
+
+void poi_manager_api_request(PoiManager * poi_manager)
+{
+	double min_lon, min_lat, max_lon, max_lat;
+	map_area_get_visible_area(poi_manager -> map_area, &min_lon, &min_lat, &max_lon, &max_lat);
+	char * buf = get_api_url_get(min_lon, min_lat, max_lon, max_lat);
+	printf("getting osm-eata for bbox: %e %e %e %e\n", min_lon, min_lat, max_lon, max_lat);
+	printf("%s\n", buf);
+	poi_manager_activate_poi_source(poi_manager, -1);
+	osm_reader_parse_api_url(poi_manager -> osm_reader, buf);
+}
