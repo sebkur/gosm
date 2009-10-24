@@ -48,6 +48,7 @@ enum
 {
         READING_PROGRESS,
         READING_FINISHED,
+	API_FINISHED,
         LAST_SIGNAL
 };
 
@@ -127,6 +128,14 @@ static void osm_reader_class_init(OsmReaderClass *class)
                 G_OBJECT_CLASS_TYPE (class),
                 G_SIGNAL_RUN_FIRST,
                 G_STRUCT_OFFSET (OsmReaderClass, reading_finished),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        osm_reader_signals[API_FINISHED] = g_signal_new(
+                "api-finished",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (OsmReaderClass, api_finished),
                 NULL, NULL,
                 g_cclosure_marshal_VOID__INT,
                 G_TYPE_NONE, 1, G_TYPE_INT);
@@ -354,7 +363,16 @@ size_t curl_cb(void * data, size_t size, size_t nmemb, void * parser)
 	return size * nmemb;
 }
 
+void osm_reader_parse_api_url_thread_fun(OsmReader * osm_reader);
+
 void osm_reader_parse_api_url(OsmReader * osm_reader, char * url)
+{
+	osm_reader -> url = url;
+	pthread_t thread;
+	int p_id = pthread_create(&thread, NULL, (void*) osm_reader_parse_api_url_thread_fun, osm_reader);
+}
+
+void osm_reader_parse_api_url_thread_fun(OsmReader * osm_reader)
 {
 	XML_Parser parser = XML_ParserCreate(NULL);
 	XML_SetUserData(parser, (void*)osm_reader);
@@ -363,16 +381,17 @@ void osm_reader_parse_api_url(OsmReader * osm_reader, char * url)
 
 	CURL * handle = curl_easy_init();
 	//curl_easy_setopt(handle, CURLOPT_VERBOSE, 1);
-	curl_easy_setopt(handle, CURLOPT_URL, url);
+	curl_easy_setopt(handle, CURLOPT_URL, osm_reader -> url);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_cb);
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, (gpointer)parser);
 	curl_easy_setopt(handle, CURLOPT_USERAGENT, "Pure Data");
 	int perform = curl_easy_perform(handle);
 	if (perform != 0){
 		printf("unable to receive data\n");
+		g_signal_emit (osm_reader, osm_reader_signals[API_FINISHED], 0, 1);
 		return;
 	}
 	printf("succesfully got data\n");
 	XML_Parse(parser, NULL, 0, 1);
-	g_signal_emit (osm_reader, osm_reader_signals[READING_FINISHED], 0, 0);
+	g_signal_emit (osm_reader, osm_reader_signals[API_FINISHED], 0, 0);
 }

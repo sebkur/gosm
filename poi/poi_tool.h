@@ -50,6 +50,8 @@ struct _PoiTool
 	PoiManager * poi_manager;
 	PoiSelector * poi_selector;
 	PoiSourceSelector * poi_source_selector;
+
+	GtkWidget * button_api;
 };
 
 struct _PoiToolClass

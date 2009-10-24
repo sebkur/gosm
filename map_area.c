@@ -1045,6 +1045,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			cairo_set_source(cr_marker, pat_dots);
 			/* n_active is the one, where mouse is over */
 			int p;
+			//printf("%d\n", map_area -> poi_active_id);
 			for (p = 0; p < marker_count; p++){
 				int x = map_area_lon_to_area_x(map_area, points[p].lon);
 				int y = map_area_lat_to_area_y(map_area, points[p].lat);

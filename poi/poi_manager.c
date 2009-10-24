@@ -55,7 +55,8 @@ enum
 	SOURCE_DELETED,
 	FILE_PARSING_STARTED,
 	FILE_PARSING_ENDED,
-	NETWORK_SOURCE_ACTIVATED,
+	API_REQUEST_STARTED,
+	API_REQUEST_ENDED,
         LAST_SIGNAL
 };
 
@@ -66,6 +67,7 @@ gboolean poi_manager_read_poi_sources(PoiManager * poi_manager);
 gboolean poi_manager_read_poi_layers(PoiManager * poi_manager);
 void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set);
 static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int status, gpointer data);
+static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, int status, gpointer data);
 
 PoiManager * poi_manager_new()
 {
@@ -79,6 +81,8 @@ PoiManager * poi_manager_new()
 	poi_manager -> osm_reader = osm_reader_new();
 	g_signal_connect(G_OBJECT(poi_manager -> osm_reader),"reading-finished",
 			 G_CALLBACK(poi_manager_osm_reader_finished_cb), (gpointer)poi_manager);
+	g_signal_connect(G_OBJECT(poi_manager -> osm_reader),"api-finished",
+			 G_CALLBACK(poi_manager_osm_reader_api_finished_cb), (gpointer)poi_manager);
 //	osm_reader_parse_file(poi_manager -> osm_reader, filename);
 	gboolean layers = poi_manager_read_poi_layers(poi_manager);
 	if (!layers) {
@@ -176,14 +180,22 @@ static void poi_manager_class_init(PoiManagerClass *class)
                 NULL, NULL,
                 g_cclosure_marshal_VOID__INT,
                 G_TYPE_NONE, 1, G_TYPE_INT);
-        poi_manager_signals[NETWORK_SOURCE_ACTIVATED] = g_signal_new(
-                "network-source-activated",
+        poi_manager_signals[API_REQUEST_STARTED] = g_signal_new(
+                "api-request-started",
                 G_OBJECT_CLASS_TYPE (class),
                 G_SIGNAL_RUN_FIRST,
-                G_STRUCT_OFFSET (PoiManagerClass, file_parsing_ended),
+                G_STRUCT_OFFSET (PoiManagerClass, api_request_started),
                 NULL, NULL,
                 g_cclosure_marshal_VOID__VOID,
                 G_TYPE_NONE, 0);
+        poi_manager_signals[API_REQUEST_ENDED] = g_signal_new(
+                "api-request-ended",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, api_request_ended),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
 }
 
 static void poi_manager_init(PoiManager *poi_manager)
@@ -398,6 +410,20 @@ static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int s
 	return FALSE;
 }
 
+static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, int status, gpointer data)
+{
+	PoiManager * poi_manager = GOSM_POI_MANAGER(data);
+	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
+	int n;
+	for (n = 0; n < num_poi_sets; n++){
+		StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
+		poi_manager_fill_poi_set(poi_manager, poi_set);
+	}
+	g_signal_emit (poi_manager, poi_manager_signals[API_REQUEST_ENDED], 0, status);
+	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, poi_manager -> active_poi_source);
+	return FALSE;
+}
+
 void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double r, double g, double b, double a)
 {
 	StyledPoiSet * poi_set = g_array_index(poi_manager -> poi_sets, StyledPoiSet*, index);
@@ -517,5 +543,6 @@ void poi_manager_api_request(PoiManager * poi_manager)
 	printf("getting osm-eata for bbox: %e %e %e %e\n", min_lon, min_lat, max_lon, max_lat);
 	printf("%s\n", buf);
 	poi_manager_activate_poi_source(poi_manager, -1);
+	g_signal_emit (poi_manager, poi_manager_signals[API_REQUEST_STARTED], 0);
 	osm_reader_parse_api_url(poi_manager -> osm_reader, buf);
 }

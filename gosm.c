@@ -230,6 +230,8 @@ static gboolean poi_manager_colour_cb(PoiManager * poi_manager, int index);
 static gboolean poi_manager_source_cb(PoiManager * poi_manager, int index);
 static gboolean poi_manager_parse_start_cb(PoiManager * poi_manager, int index);
 static gboolean poi_manager_parse_end_cb(PoiManager * poi_manager, int index);
+static gboolean poi_manager_api_start_cb(PoiManager * poi_manager);
+static gboolean poi_manager_api_end_cb(PoiManager * poi_manager, int index);
 static gboolean exit_cb(GtkWidget *widget);
        void     chdir_to_bin(char * arg0);
        void     add_pois(PoiSet * poi_set, char * key, char * value);
@@ -373,6 +375,8 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(poi_manager),"source-activated", G_CALLBACK(poi_manager_source_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"file-parsing-started", G_CALLBACK(poi_manager_parse_start_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"file-parsing-ended", G_CALLBACK(poi_manager_parse_end_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager),"api-request-started", G_CALLBACK(poi_manager_api_start_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager),"api-request-ended", G_CALLBACK(poi_manager_api_end_cb), NULL);
 
 	/* Selection-Widget in sidebar */
 	select_tool = select_tool_new();
@@ -1479,6 +1483,18 @@ static gboolean poi_manager_parse_end_cb(PoiManager * poi_manager, int index)
 {
 	gdk_threads_enter();
 	poi_source_load_progress_destroy(pslp);
+	gtk_widget_queue_draw(main_window);
+	gdk_threads_leave();
+}
+
+static gboolean poi_manager_api_start_cb(PoiManager * poi_manager)
+{
+}
+
+static gboolean poi_manager_api_end_cb(PoiManager * poi_manager, int index)
+{
+	gdk_threads_enter();
+	gtk_widget_queue_draw(GTK_WIDGET(area));
 	gtk_widget_queue_draw(main_window);
 	gdk_threads_leave();
 }

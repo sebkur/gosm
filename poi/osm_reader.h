@@ -55,6 +55,7 @@ struct _OsmReader
 	int current_id;
 	LonLatTags * current_node;
 	char * filename;
+	char * url;
 };
 
 struct _OsmReaderClass
@@ -63,6 +64,7 @@ struct _OsmReaderClass
 
 	void (* reading_progress) (OsmReader *osm_reader, int percent);
 	void (* reading_finished) (OsmReader *osm_reader, int status);
+	void (* api_finished) (OsmReader *osm_reader, int status);
 };
 
 OsmReader * osm_reader_new();
