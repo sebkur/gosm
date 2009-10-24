@@ -540,9 +540,21 @@ void poi_manager_api_request(PoiManager * poi_manager)
 	double min_lon, min_lat, max_lon, max_lat;
 	map_area_get_visible_area(poi_manager -> map_area, &min_lon, &min_lat, &max_lon, &max_lat);
 	char * buf = get_api_url_get(min_lon, min_lat, max_lon, max_lat);
-	printf("getting osm-eata for bbox: %e %e %e %e\n", min_lon, min_lat, max_lon, max_lat);
+	printf("getting osm-data for bbox: %e %e %e %e\n", min_lon, min_lat, max_lon, max_lat);
 	printf("%s\n", buf);
 	poi_manager_activate_poi_source(poi_manager, -1);
 	g_signal_emit (poi_manager, poi_manager_signals[API_REQUEST_STARTED], 0);
 	osm_reader_parse_api_url(poi_manager -> osm_reader, buf);
+}
+
+void poi_manager_print_node_information(PoiManager * poi_manager, int node_id)
+{
+	printf("Node id = %d\n", node_id);
+	LonLatTags * llt = (LonLatTags*) g_tree_lookup(poi_manager -> osm_reader -> tree_ids, &node_id);
+	GHashTableIter iter;
+	g_hash_table_iter_init(&iter, llt -> tags);
+	gpointer key, val;
+	while(g_hash_table_iter_next(&iter, &key, &val)){
+		printf("%s:%s\n", (char*)key, (char*)val);
+	}
 }

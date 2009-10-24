@@ -519,7 +519,11 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 	}
 	// TODO: put action_state (== gosm.c.CURSOR) somewhere else
 	if (event -> type == GDK_BUTTON_PRESS){
-		if (map_area -> action_state == 2){
+		if (map_area -> action_state == 0){
+			if (map_area -> poi_active_id != 0){
+				poi_manager_print_node_information(map_area -> poi_manager, map_area -> poi_active_id);
+			}
+		}else if (map_area -> action_state == 2){
 			path_add_point(map_area, lon, lat);
 		}else if(map_area -> action_state == 3){
 			map_area_add_marker(map_area, lon, lat);
