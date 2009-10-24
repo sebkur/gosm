@@ -31,7 +31,11 @@
 void sprintdouble(char * buf, double d, int precision)
 {
 	int z = (int)d;
-	sprintf(buf, "%d.", z);
+	if (d < 0 && d > -1){
+		sprintf(buf, "%s%d.", "-", z);
+	}else{
+		sprintf(buf, "%d.", z);	
+	}
 	int pos = strlen(buf);
 	double x = fabs(d - z);
 	int i; int y;
