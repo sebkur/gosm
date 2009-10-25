@@ -155,6 +155,7 @@ char 		status_bar_buffer[50];
 SelectTool * 	select_tool;
 DistanceTool * 	distance_tool;
 AtlasTool * 	atlas_tool;
+GtkWidget * 	node_tool;
 
 GtkWidget * 	web_legend;
 GtkWidget *	namefinder_cities;
@@ -425,6 +426,11 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(distance_tool -> button_remove_last), "clicked", G_CALLBACK(distance_remove_last_cb), NULL);
 	g_signal_connect(G_OBJECT(distance_tool -> button_clear), "clicked", G_CALLBACK(distance_clear_cb), NULL);
 
+	/* Node-Properties-Widget in sidebar */
+//	node_tool = node_tool_new();
+	node_tool = gtk_event_box_new();
+	GtkWidget * frame_node_tool = gtk_custom_frame_new("Nodes");
+	gtk_custom_frame_add(GOSM_GTK_CUSTOM_FRAME(frame_node_tool), GTK_WIDGET(node_tool));
 
 	/***************************************************************************
 	 * Menubar
@@ -682,6 +688,7 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start(GTK_BOX(side), frame_select_tool, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(side), frame_atlas_tool, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(side), frame_distance_tool, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(side), frame_node_tool, FALSE, FALSE, 0);
 
 	/***************************************************************************
 	 * left sidebar (legend, namefinder, pois, bookmarks)
