@@ -111,6 +111,7 @@
 #include <wait.h>
 
 #include "gtk_safety.h"
+#include "widget/gtk_custom_frame.h"
 
 #define CURSOR_HAND		0
 #define CURSOR_SELECT		1
@@ -380,8 +381,10 @@ int main(int argc, char *argv[])
 
 	/* Selection-Widget in sidebar */
 	select_tool = select_tool_new();
-	GtkWidget *frame_select_tool= gtk_frame_new("Selection");
-	gtk_container_add(GTK_CONTAINER(frame_select_tool), GTK_WIDGET(select_tool));
+	GtkWidget * frame_select_tool = gtk_custom_frame_new("Selection");
+	gtk_custom_frame_add(GOSM_GTK_CUSTOM_FRAME(frame_select_tool), GTK_WIDGET(select_tool));
+//	GtkWidget *frame_select_tool= gtk_frame_new("Selection");
+//	gtk_container_add(GTK_CONTAINER(frame_select_tool), GTK_WIDGET(select_tool));
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(select_tool -> check_snap), area -> snap_selection);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(select_tool -> check_show), area -> show_selection);
 	g_signal_connect(G_OBJECT(select_tool -> button_action), "clicked", G_CALLBACK(selection_use_cb), NULL);
@@ -395,8 +398,10 @@ int main(int argc, char *argv[])
 
 	/* Atlas-Widget in sidebar */
 	atlas_tool = atlas_tool_new();
-	GtkWidget *frame_atlas_tool= gtk_frame_new("Atlas");
-	gtk_container_add(GTK_CONTAINER(frame_atlas_tool), GTK_WIDGET(atlas_tool));
+	GtkWidget * frame_atlas_tool = gtk_custom_frame_new("Atlas");
+	gtk_custom_frame_add(GOSM_GTK_CUSTOM_FRAME(frame_atlas_tool), GTK_WIDGET(atlas_tool));
+//	GtkWidget *frame_atlas_tool= gtk_frame_new("Atlas");
+//	gtk_container_add(GTK_CONTAINER(frame_atlas_tool), GTK_WIDGET(atlas_tool));
 	PageInformation page_info = {
 		PAPERSIZE_A4,
 		ORIENTATION_PORTRAIT,
@@ -411,10 +416,12 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(atlas_tool -> button_export), "clicked", G_CALLBACK(atlas_export_cb), NULL);
 	g_signal_connect(G_OBJECT(atlas_tool -> button_export_pdf), "clicked", G_CALLBACK(atlas_export_pdf_cb), NULL);
 
-	/* Distance-Widget in sidebar */
+	/* Distantce-Widget in sidebar */
 	distance_tool = GOSM_DISTANCE_TOOL(distance_tool_new());
-	GtkWidget *frame_distance_tool= gtk_frame_new("Distance");
-	gtk_container_add(GTK_CONTAINER(frame_distance_tool), GTK_WIDGET(distance_tool));
+	GtkWidget * frame_distance_tool = gtk_custom_frame_new("Distance");
+	gtk_custom_frame_add(GOSM_GTK_CUSTOM_FRAME(frame_distance_tool), GTK_WIDGET(distance_tool));
+//	GtkWidget *frame_distance_tool= gtk_frame_new("Distance");
+//	gtk_container_add(GTK_CONTAINER(frame_distance_tool), GTK_WIDGET(distance_tool));
 	g_signal_connect(G_OBJECT(distance_tool -> button_remove_last), "clicked", G_CALLBACK(distance_remove_last_cb), NULL);
 	g_signal_connect(G_OBJECT(distance_tool -> button_clear), "clicked", G_CALLBACK(distance_clear_cb), NULL);
 

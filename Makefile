@@ -55,6 +55,8 @@ poi/poi_source_selector.c \
 poi/cell_renderer_colour.c \
 poi/poi_source_load_progress.c \
 gtk_safety.c \
+widget/gtk_custom_frame.c \
+widget/gtk_rollup_button.c \
 gosm.c
 
 OBJ = \
@@ -112,6 +114,8 @@ poi/poi_source_selector.o \
 poi/cell_renderer_colour.o \
 poi/poi_source_load_progress.o \
 gtk_safety.o \
+widget/gtk_custom_frame.o \
+widget/gtk_rollup_button.o \
 gosm.o
 
 CC  = /usr/bin/gcc

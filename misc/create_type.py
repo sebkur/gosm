@@ -74,7 +74,7 @@ def get_header(name, parent_mixed, type_return):
 	"{\n" + \
 	"	"+parent_mixed+"Class parent_class;\n" + \
 	"\n" + \
-	"	void (* function_name) ("+names[2]+" *"+names[0]+");\n" + \
+	"	//void (* function_name) ("+names[2]+" *"+names[0]+");\n" + \
 	"};\n" + \
 	"\n" + \
 	type_return+" * "+names[0]+"_new();\n" + \
