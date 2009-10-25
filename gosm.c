@@ -693,7 +693,7 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start(GTK_BOX(side), frame_select_tool, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(side), frame_atlas_tool, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(side), frame_distance_tool, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(side), frame_node_tool, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(side), frame_node_tool, TRUE, TRUE, 0);
 
 	/***************************************************************************
 	 * left sidebar (legend, namefinder, pois, bookmarks)
