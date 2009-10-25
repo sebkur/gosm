@@ -432,6 +432,9 @@ int main(int argc, char *argv[])
 	GtkWidget * frame_node_tool = gtk_custom_frame_new("Nodes");
 	gtk_custom_frame_add(GOSM_GTK_CUSTOM_FRAME(frame_node_tool), GTK_WIDGET(node_tool));
 
+	gtk_custom_frame_set_child_visible(GOSM_GTK_CUSTOM_FRAME(frame_select_tool), TRUE);
+	gtk_custom_frame_set_child_visible(GOSM_GTK_CUSTOM_FRAME(frame_node_tool), TRUE);
+
 	/***************************************************************************
 	 * Menubar
 	 ***************************************************************************/

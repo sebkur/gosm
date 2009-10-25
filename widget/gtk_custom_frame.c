@@ -67,18 +67,19 @@ GtkWidget * gtk_custom_frame_new(char * title)
 	gtk_container_add(GTK_CONTAINER(box), hbox);
 	/* the title's elements */
 	GtkWidget * label_title = gtk_label_new(title);
-	GtkWidget * button_rollup = gtk_rollup_button_new();
+	gtk_custom_frame -> button_rollup = gtk_rollup_button_new();
 	/* the button into another vbox, so that it won't be higher than needed */
 	GtkWidget * box_button = gtk_vbox_new(FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(box_button), button_rollup, FALSE, FALSE, 5);
+	gtk_box_pack_start(GTK_BOX(box_button), gtk_custom_frame -> button_rollup, FALSE, FALSE, 5);
 	/* put label and button into hbox */
 	gtk_box_pack_start(GTK_BOX(hbox), label_title, FALSE, FALSE, 5);
 	gtk_box_pack_end(GTK_BOX(hbox), box_button, FALSE, FALSE, 5);
 	/* initialize state of the rollup button */
-	gtk_rollup_button_set_active(GOSM_GTK_ROLLUP_BUTTON(button_rollup), TRUE);
+	gtk_rollup_button_set_active(GOSM_GTK_ROLLUP_BUTTON(gtk_custom_frame -> button_rollup), TRUE);
 	g_signal_connect(
-		G_OBJECT(button_rollup), "toggled",
+		G_OBJECT(gtk_custom_frame -> button_rollup), "toggled",
 		G_CALLBACK(button_toggled_cb), (gpointer)gtk_custom_frame);
+	gtk_custom_frame_set_child_visible(gtk_custom_frame, FALSE);
 	return GTK_WIDGET(gtk_custom_frame);
 }
 
@@ -102,6 +103,24 @@ void gtk_custom_frame_add(GtkCustomFrame * gtk_custom_frame, GtkWidget * widget)
 {
 	gtk_custom_frame -> child = widget;
 	gtk_container_add(GTK_CONTAINER(gtk_custom_frame -> frame_child), widget);
+	gtk_widget_show_all(widget);
+}
+
+gboolean gtk_custom_frame_get_child_visible(GtkCustomFrame * gtk_custom_frame)
+{
+	return gtk_custom_frame -> child_visible;
+}
+
+void gtk_custom_frame_set_child_visible(GtkCustomFrame * gtk_custom_frame, gboolean visible)
+{
+	gtk_widget_set_no_show_all(gtk_custom_frame -> frame_child, !visible);
+	gtk_custom_frame -> child_visible = visible;
+	gtk_rollup_button_set_active(GOSM_GTK_ROLLUP_BUTTON(gtk_custom_frame -> button_rollup), visible);
+	if (visible){
+		gtk_widget_show(gtk_custom_frame -> frame_child);
+	}else{
+		gtk_widget_hide(gtk_custom_frame -> frame_child);
+	}
 }
 
 static gboolean button_toggled_cb(GtkRollupButton * button, gpointer data)
@@ -109,9 +128,11 @@ static gboolean button_toggled_cb(GtkRollupButton * button, gpointer data)
 	GtkCustomFrame * frame = GOSM_GTK_CUSTOM_FRAME(data);
 	if (frame -> child != NULL){
 		if (gtk_rollup_button_get_active(button)){
+			gtk_widget_set_no_show_all(frame -> frame_child, FALSE);
 			gtk_widget_show(frame -> frame_child);
 		}else{
 			gtk_widget_hide(frame -> frame_child);
+			gtk_widget_set_no_show_all(frame -> frame_child, TRUE);
 		}
 	}
 	return FALSE;

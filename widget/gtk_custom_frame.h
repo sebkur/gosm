@@ -43,8 +43,10 @@ struct _GtkCustomFrame
 {
 	GtkVBox parent;
 
+	GtkWidget * button_rollup;
 	GtkWidget * frame_child;
 	GtkWidget * child;
+	gboolean child_visible;
 };
 
 struct _GtkCustomFrameClass
@@ -57,5 +59,8 @@ struct _GtkCustomFrameClass
 GtkWidget * gtk_custom_frame_new(char * title);
 
 void gtk_custom_frame_add(GtkCustomFrame * gtk_custom_frame, GtkWidget * widget);
+
+gboolean gtk_custom_frame_get_child_visible(GtkCustomFrame * gtk_custom_frame);
+void gtk_custom_frame_set_child_visible(GtkCustomFrame * gtk_custom_frame, gboolean visible);
 
 #endif /* _GTK_CUSTOM_FRAME_H_ */
