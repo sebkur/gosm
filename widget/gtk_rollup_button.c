@@ -99,8 +99,14 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 //				widget->style->white_gc,
 //				TRUE, x, y, BUTTONSIZE, BUTTONSIZE);
 	cairo_t * cr = gdk_cairo_create(widget->window);
-	cairo_pattern_t * pat_sel = cairo_pattern_create_rgb(0.0, 0.0, 0.0);
-	cairo_set_source(cr, pat_sel);
+	GdkColor * color = &(gtk_widget_get_style(widget) -> fg[GTK_STATE_NORMAL]);
+	cairo_pattern_t * pat = cairo_pattern_create_rgb(
+		(double)color -> red / (double)G_MAXUINT16,
+		(double)color -> green / (double)G_MAXUINT16,
+		(double)color -> blue / (double)G_MAXUINT16
+	);
+//	cairo_pattern_t * pat = cairo_pattern_create_rgb(0.0, 0.0, 0.0);
+	cairo_set_source(cr, pat);
 	if (button -> active){
 		cairo_move_to(cr, 0 * BUTTONSIZE, 1.0/4.0 * BUTTONSIZE);
 		cairo_line_to(cr, 1.0/2.0 * BUTTONSIZE, 3.0/4.0 * BUTTONSIZE);
