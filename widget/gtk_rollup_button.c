@@ -25,6 +25,7 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#include <cairo/cairo.h>
 
 #include "gtk_rollup_button.h"
 
@@ -89,13 +90,27 @@ void gtk_rollup_button_set_active(GtkRollupButton * button, gboolean active)
 
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 {
+	GtkRollupButton * button = GOSM_GTK_ROLLUP_BUTTON(widget);
 	int width  = widget -> allocation.width;
 	int height = widget -> allocation.height;
 	int x = (width - BUTTONSIZE)/2;
 	int y = (height - BUTTONSIZE)/2;
-	gdk_draw_rectangle(widget -> window,
-				widget->style->white_gc,
-				TRUE, x, y, BUTTONSIZE, BUTTONSIZE);
+//	gdk_draw_rectangle(widget -> window,
+//				widget->style->white_gc,
+//				TRUE, x, y, BUTTONSIZE, BUTTONSIZE);
+	cairo_t * cr = gdk_cairo_create(widget->window);
+	cairo_pattern_t * pat_sel = cairo_pattern_create_rgb(0.0, 0.0, 0.0);
+	cairo_set_source(cr, pat_sel);
+	if (button -> active){
+		cairo_move_to(cr, 0 * BUTTONSIZE, 1.0/4.0 * BUTTONSIZE);
+		cairo_line_to(cr, 1.0/2.0 * BUTTONSIZE, 3.0/4.0 * BUTTONSIZE);
+		cairo_line_to(cr, 1.0 * BUTTONSIZE, 1.0/4.0 * BUTTONSIZE);
+	}else{
+		cairo_move_to(cr, 3.0/4.0 * BUTTONSIZE, 0 * BUTTONSIZE);
+		cairo_line_to(cr, 1.0/4.0 * BUTTONSIZE, 1.0/2.0 * BUTTONSIZE);
+		cairo_line_to(cr, 3.0/4.0 * BUTTONSIZE, 1.0 * BUTTONSIZE);
+	}
+	cairo_fill(cr);
 	return FALSE;
 }
 
@@ -104,6 +119,7 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 	GtkRollupButton * button = GOSM_GTK_ROLLUP_BUTTON(widget);
 	if (event -> type == GDK_BUTTON_RELEASE){
 		button -> active = !button -> active;
+		gtk_widget_queue_draw(widget);
 		g_signal_emit (widget, gtk_rollup_button_signals[TOGGLED], 0);
 	}
 	return FALSE;
