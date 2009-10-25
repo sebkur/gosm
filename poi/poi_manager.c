@@ -558,3 +558,9 @@ void poi_manager_print_node_information(PoiManager * poi_manager, int node_id)
 		printf("%s:%s\n", (char*)key, (char*)val);
 	}
 }
+
+LonLatTags * poi_manager_get_node(PoiManager * poi_manager, int node_id)
+{
+	LonLatTags * llt = (LonLatTags*) g_tree_lookup(poi_manager -> osm_reader -> tree_ids, &node_id);
+	return llt;
+}

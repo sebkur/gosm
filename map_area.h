@@ -97,6 +97,8 @@ struct _MapAreaClass
 	void (* map_selection_changed) (MapArea *map_area);
 	
 	void (* map_path_changed) (MapArea *map_area);
+
+	void (* map_node_selected) (MapArea *map_area, gpointer llt_p);
 };
 
 GtkWidget * map_area_new();

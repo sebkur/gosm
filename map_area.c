@@ -64,6 +64,7 @@ enum
 	MAP_TILESET_CHANGED,
 	MAP_SELECTION_CHANGED,
 	MAP_PATH_CHANGED,
+	MAP_NODE_SELECTED,
 	LAST_SIGNAL
 };
 
@@ -149,6 +150,14 @@ static void map_area_class_init(MapAreaClass *class)
 		G_TYPE_NONE, 0);
 
 	
+	map_area_signals[MAP_NODE_SELECTED] = g_signal_new(
+		"map-node-selected",
+		G_OBJECT_CLASS_TYPE (class),
+		G_SIGNAL_RUN_FIRST,
+		G_STRUCT_OFFSET (MapAreaClass, map_node_selected),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__POINTER,
+		G_TYPE_NONE, 1, G_TYPE_POINTER);
 }
 
 void map_area_set_tileset(MapArea *map_area, Tileset tileset)
@@ -522,6 +531,8 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 		if (map_area -> action_state == 0){
 			if (map_area -> poi_active_id != 0){
 				poi_manager_print_node_information(map_area -> poi_manager, map_area -> poi_active_id);
+				LonLatTags * llt = poi_manager_get_node(map_area -> poi_manager, map_area -> poi_active_id);
+				g_signal_emit (map_area, map_area_signals[MAP_NODE_SELECTED], 0, (gpointer)llt);
 			}
 		}else if (map_area -> action_state == 2){
 			path_add_point(map_area, lon, lat);

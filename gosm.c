@@ -106,6 +106,7 @@
 #include "poi/poi_tool.h"
 #include "poi/poi_selector.h"
 #include "poi/poi_source_load_progress.h"
+#include "poi/node_tool.h"
 
 #include <unistd.h>
 #include <wait.h>
@@ -155,7 +156,7 @@ char 		status_bar_buffer[50];
 SelectTool * 	select_tool;
 DistanceTool * 	distance_tool;
 AtlasTool * 	atlas_tool;
-GtkWidget * 	node_tool;
+NodeTool * 	node_tool;
 
 GtkWidget * 	web_legend;
 GtkWidget *	namefinder_cities;
@@ -216,6 +217,7 @@ static gboolean map_tileset_cb(GtkWidget *widget);
 static void	set_legend(Tileset tileset, int zoom);
 static gboolean map_selection_changed_cb(GtkWidget *widget);
 static gboolean map_path_cb(GtkWidget *widget);
+static gboolean map_node_cb(GtkWidget *widget, gpointer llt_p);
 static gboolean show_manual_cb(GtkWidget *widget);
 static gboolean show_about_cb(GtkWidget *widget, gpointer nump);
 static void 	set_button_network();
@@ -427,10 +429,10 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(distance_tool -> button_clear), "clicked", G_CALLBACK(distance_clear_cb), NULL);
 
 	/* Node-Properties-Widget in sidebar */
-//	node_tool = node_tool_new();
-	node_tool = gtk_event_box_new();
+	node_tool = GOSM_NODE_TOOL(node_tool_new());
 	GtkWidget * frame_node_tool = gtk_custom_frame_new("Nodes");
 	gtk_custom_frame_add(GOSM_GTK_CUSTOM_FRAME(frame_node_tool), GTK_WIDGET(node_tool));
+//	node_tool_set_tags(node_tool, NULL);
 
 	gtk_custom_frame_set_child_visible(GOSM_GTK_CUSTOM_FRAME(frame_select_tool), TRUE);
 	gtk_custom_frame_set_child_visible(GOSM_GTK_CUSTOM_FRAME(frame_node_tool), TRUE);
@@ -766,6 +768,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(area), "map-tileset-changed", G_CALLBACK(map_tileset_cb), NULL);
 	g_signal_connect(G_OBJECT(area), "map-selection-changed", G_CALLBACK(map_selection_changed_cb), NULL);
 	g_signal_connect(G_OBJECT(area), "map-path-changed", G_CALLBACK(map_path_cb), NULL);
+	g_signal_connect(G_OBJECT(area), "map-node-selected", G_CALLBACK(map_node_cb), NULL);
 
 	gtk_container_add(GTK_CONTAINER(main_window), vbox);
 	gtk_widget_show_all(main_window);
@@ -1515,3 +1518,10 @@ static gboolean poi_manager_api_end_cb(PoiManager * poi_manager, int index)
 	gtk_widget_queue_draw(main_window);
 	gdk_threads_leave();
 }
+
+static gboolean map_node_cb(GtkWidget *widget, gpointer llt_p)
+{
+	LonLatTags * llt = (LonLatTags*) llt_p;
+	node_tool_set_tags(node_tool, llt);
+}
+
