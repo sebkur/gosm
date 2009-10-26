@@ -40,6 +40,7 @@
 #include "../customio.h"
 #include "../map_area.h"
 #include "../tool.h"
+#include "poi_statistics.h"
 
 G_DEFINE_TYPE (PoiManager, poi_manager, G_TYPE_OBJECT);
 

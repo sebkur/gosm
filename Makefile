@@ -58,6 +58,7 @@ poi/poi_source_selector.c \
 poi/cell_renderer_colour.c \
 poi/poi_source_load_progress.c \
 poi/node_tool.c \
+poi/poi_statistics.c \
 gtk_safety.c \
 widget/gtk_custom_frame.c \
 widget/gtk_rollup_button.c \
@@ -121,6 +122,7 @@ poi/poi_source_selector.o \
 poi/cell_renderer_colour.o \
 poi/poi_source_load_progress.o \
 poi/node_tool.o \
+poi/poi_statistics.o \
 gtk_safety.o \
 widget/gtk_custom_frame.o \
 widget/gtk_rollup_button.o \

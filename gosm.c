@@ -70,6 +70,7 @@
 #include "poi/poi_selector.h"
 #include "poi/poi_source_load_progress.h"
 #include "poi/node_tool.h"
+#include "poi/poi_statistics.h"
 
 #include <unistd.h>
 #include <wait.h>
@@ -113,6 +114,8 @@ GtkWidget *	namefinder_countries;
 
 PoiManager *	poi_manager;
 PoiSourceLoadProgress * pslp;
+
+void foo();
 
 int main(int argc, char *argv[])
 {
@@ -494,6 +497,10 @@ static gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event)
 		}else{
 			gdk_window_fullscreen(main_window->window);
 		}
+		break;
+	}
+	case 65481:{ /* F12 */
+		foo();
 		break;
 	}
 	/* mode select */
@@ -1025,3 +1032,9 @@ static gboolean map_node_cb(GtkWidget *widget, gpointer llt_p)
 	return FALSE;
 }
 
+void foo()
+{
+	PoiStatistics * poi_stats = poi_statistics_new();
+	poi_statistics_analyze(poi_stats, poi_manager -> osm_reader);
+	poi_statistics_show_window(poi_stats);
+}
