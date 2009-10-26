@@ -46,6 +46,8 @@ G_DEFINE_TYPE (PoiManager, poi_manager, G_TYPE_OBJECT);
 enum
 {
 	LAYER_TOGGLED,
+	LAYER_ADDED,
+	LAYER_DELETED,
         COLOUR_CHANGED,
         KEY_CHANGED,
 	VALUE_CHANGED,
@@ -105,6 +107,22 @@ static void poi_manager_class_init(PoiManagerClass *class)
                 G_OBJECT_CLASS_TYPE (class),
                 G_SIGNAL_RUN_FIRST,
                 G_STRUCT_OFFSET (PoiManagerClass, layer_toggled),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[LAYER_ADDED] = g_signal_new(
+                "layer-added",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, layer_added),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[LAYER_DELETED] = g_signal_new(
+                "layer-deleted",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, layer_deleted),
                 NULL, NULL,
                 g_cclosure_marshal_VOID__INT,
                 G_TYPE_NONE, 1, G_TYPE_INT);
@@ -318,6 +336,15 @@ void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value,
 	poi_set_set_visible(GOSM_POI_SET(poi_set), active);
 	g_array_append_val(poi_manager -> poi_sets, poi_set);
 	poi_manager_fill_poi_set(poi_manager, poi_set);
+	g_signal_emit (poi_manager, poi_manager_signals[LAYER_ADDED], 0, poi_manager -> poi_sets -> len - 1);
+}
+
+void poi_manager_delete_poi_set(PoiManager * poi_manager, int index)
+{
+	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, index);
+	poi_set_clear(GOSM_POI_SET(poi_set));
+	g_array_remove_index(poi_manager -> poi_sets, index);
+	g_signal_emit (poi_manager, poi_manager_signals[LAYER_DELETED], 0, index);
 }
 
 void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set)

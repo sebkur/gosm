@@ -44,6 +44,7 @@
 #include "select/select_tool.h"
 #include "about/about.h"
 #include "config/color_button.h"
+#include "config/color_button_auto.h"
 #include "config/config.h"
 #include "config/color_box.h"
 #include "config/config_widget.h"
@@ -95,6 +96,7 @@ void make_gtk_types_safe()
 	dummy = GOSM_TYPE_SELECT_TOOL;
 	dummy = GOSM_TYPE_ABOUT_DIALOG;
 	dummy = GOSM_TYPE_COLOR_BUTTON;
+	dummy = GOSM_TYPE_COLOR_BUTTON_AUTO;
 	dummy = GOSM_TYPE_CONFIG;
 	dummy = GOSM_TYPE_COLOR_BOX;
 	dummy = GOSM_TYPE_CONFIG_WIDGET;

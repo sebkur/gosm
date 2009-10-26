@@ -54,13 +54,25 @@ static gboolean poi_selector_check_cb(GtkCellRendererToggle * renderer, const gc
 static gboolean poi_selector_color_button_cb(CellRendererColour * renderer, const gchar * path_string, gpointer data);
 static gboolean poi_selector_colour_changed_cb(PoiManager * poi_manager, int index, gpointer data);
 static gboolean poi_selector_layer_toggled_cb(PoiManager * poi_manager, int index, gpointer data);
+static gboolean poi_selector_layer_added_cb(PoiManager * poi_manager, int index, gpointer data);
+static gboolean poi_selector_layer_deleted_cb(PoiManager * poi_manager, int index, gpointer data);
 
 GtkWidget * poi_selector_new(PoiManager * poi_manager)
 {
 	PoiSelector * poi_selector = g_object_new(GOSM_TYPE_POI_SELECTOR, NULL);
 	poi_selector -> poi_manager = poi_manager;
-	g_signal_connect(G_OBJECT(poi_manager),"layer-toggled", G_CALLBACK(poi_selector_layer_toggled_cb), (gpointer)poi_selector);
-	g_signal_connect(G_OBJECT(poi_manager),"colour-changed", G_CALLBACK(poi_selector_colour_changed_cb), (gpointer)poi_selector);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "layer-added", 
+		G_CALLBACK(poi_selector_layer_added_cb), (gpointer)poi_selector);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "layer-deleted", 
+		G_CALLBACK(poi_selector_layer_deleted_cb), (gpointer)poi_selector);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "layer-toggled", 
+		G_CALLBACK(poi_selector_layer_toggled_cb), (gpointer)poi_selector);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "colour-changed",
+		G_CALLBACK(poi_selector_colour_changed_cb), (gpointer)poi_selector);
 	poi_selector -> view = poi_selector_create_view(poi_selector);
 	GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(scrolled), poi_selector -> view);
@@ -154,6 +166,43 @@ static gboolean poi_selector_colour_changed_cb(PoiManager * poi_manager, int ind
 	return FALSE;
 }
 
+static gboolean poi_selector_layer_added_cb(PoiManager * poi_manager, int index, gpointer data)
+{
+	PoiSelector * poi_selector = (PoiSelector*) data;
+	GtkTreeView * view = GTK_TREE_VIEW(poi_selector -> view);
+	GtkTreeModel * model = gtk_tree_view_get_model(view);
+	GtkTreeIter iter;
+
+	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
+	gtk_tree_model_get_iter(model, &iter, path);
+
+	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, index);
+	gtk_list_store_append (GTK_LIST_STORE(model), &iter);
+	double r, g, b, a;
+	styled_poi_set_get_colour(poi_set, &r, &g, &b, &a);
+	gtk_list_store_set (GTK_LIST_STORE(model), &iter,
+				COL_ACTIVE, poi_set_get_visible(GOSM_POI_SET(poi_set)),
+				COL_KEY, named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set)),
+				COL_VALUE, named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set)),
+				COL_R, r, COL_G, g, COL_B, b, COL_A, a,
+				-1);
+	return FALSE;
+}
+
+static gboolean poi_selector_layer_deleted_cb(PoiManager * poi_manager, int index, gpointer data)
+{
+	PoiSelector * poi_selector = (PoiSelector*) data;
+	GtkTreeView * view = GTK_TREE_VIEW(poi_selector -> view);
+	GtkTreeModel * model = gtk_tree_view_get_model(view);
+	GtkTreeIter iter;
+
+	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
+	gtk_tree_model_get_iter(model, &iter, path);
+
+	gtk_list_store_remove (GTK_LIST_STORE(model), &iter);
+	return FALSE;
+}
+
 static gboolean poi_selector_layer_toggled_cb(PoiManager * poi_manager, int index, gpointer data)
 {
 	PoiSelector * poi_selector = (PoiSelector*) data;
@@ -241,4 +290,22 @@ static GtkWidget * poi_selector_create_view (PoiSelector * poi_selector)
 	gtk_tree_view_set_model (GTK_TREE_VIEW (view), model);
 	g_object_unref (model);
 	return view;
+}
+
+/****************************************************************************************************
+* this function returns the currently selected rows' index, or -1 if none is selected
+****************************************************************************************************/
+int poi_selector_get_active_item_index(PoiSelector * poi_selector)
+{
+	GtkTreeView * view = GTK_TREE_VIEW(poi_selector -> view);
+	GtkTreePath * path;
+	GtkTreeViewColumn * cols;
+	gtk_tree_view_get_cursor(view, &path, &cols);
+	if (path != NULL){
+		int * indices = gtk_tree_path_get_indices(path);
+		int index = indices[0];
+		gtk_tree_path_free(path);
+		return index;
+	}
+	return -1;
 }

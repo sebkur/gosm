@@ -215,6 +215,8 @@ int main(int argc, char *argv[])
 	poi_manager = poi_manager_new();
 	map_area_set_poi_manager(map_area, poi_manager);
 	poi_manager_set_map_area(poi_manager, map_area);
+	g_signal_connect(G_OBJECT(poi_manager),"layer-added", G_CALLBACK(poi_manager_layer_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager),"layer-deleted", G_CALLBACK(poi_manager_layer_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"layer-toggled", G_CALLBACK(poi_manager_layer_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"colour-changed", G_CALLBACK(poi_manager_colour_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager),"source-activated", G_CALLBACK(poi_manager_source_cb), NULL);

@@ -116,6 +116,9 @@ config_widget.o: config/config_widget.c config/config.h \
 color_box.o: config/color_box.c config/color_box.h config/color_button.h \
   config/../map_types.h config/../customio.h
 color_button.o: config/color_button.c config/color_button.h
+color_button_auto.o: config/color_button_auto.c \
+  config/color_button_auto.h config/color_button.h config/../map_types.h \
+  config/../customio.h
 customio.o: customio.c
 page_math.o: atlas/page_math.c atlas/page_math.h atlas/atlas.h
 namefinder_cities.o: namefinder/namefinder_cities.c namefinder/../paths.h \
@@ -158,7 +161,7 @@ poi_tool.o: poi/poi_tool.c poi/poi_tool.h poi/poi_manager.h poi/poi_set.h \
   poi/../tiles/tile_cache.h poi/../tiles/ringbuffer.h \
   poi/../tiles/../map_types.h poi/../tiles/tilesets.h \
   poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/poi_selector.h \
-  poi/poi_source_selector.h
+  poi/poi_source_selector.h poi/../config/color_button_auto.h
 named_poi_set.o: poi/named_poi_set.c poi/named_poi_set.h poi/poi_set.h \
   poi/RTree/index.h poi/../map_types.h
 styled_poi_set.o: poi/styled_poi_set.c poi/styled_poi_set.h \
@@ -212,7 +215,8 @@ gtk_safety.o: gtk_safety.c namefinder/namefinder_countries.h \
   imageglue/pdf_generator.h imageglue/../atlas/atlas.h \
   imageglue/../map_types.h imageglue/image_glue.h select/select_tool.h \
   about/about.h about/../map_area.h config/color_button.h \
-  config/color_box.h config/config_widget.h config/config.h
+  config/color_button_auto.h config/color_box.h config/config_widget.h \
+  config/config.h
 gtk_custom_frame.o: widget/gtk_custom_frame.c widget/gtk_custom_frame.h \
   widget/gtk_rollup_button.h
 gtk_rollup_button.o: widget/gtk_rollup_button.c \

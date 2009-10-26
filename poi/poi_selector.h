@@ -62,4 +62,6 @@ struct _PoiSelectorClass
 
 GtkWidget * poi_selector_new(PoiManager * poi_manager);
 
+int poi_selector_get_active_item_index(PoiSelector * poi_selector);
+
 #endif /* _POI_SELECTOR_H_ */

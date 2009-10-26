@@ -70,6 +70,8 @@ struct _PoiManagerClass
 	GObjectClass parent_class;
 
 	void (* layer_toggled) (PoiManager *poi_manager, int index);
+	void (* layer_added) (PoiManager *poi_manager, int index);
+	void (* layer_deleted) (PoiManager *poi_manager, int index);
 	void (* colour_changed) (PoiManager *poi_manager, int index);
 	void (* key_changed) (PoiManager *poi_manager, int index);
 	void (* value_changed) (PoiManager *poi_manager, int index);
@@ -87,6 +89,7 @@ PoiManager * poi_manager_new();
 
 void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active,
 	double r, double g, double b, double a);
+void poi_manager_delete_poi_set(PoiManager * poi_manager, int index);
 
 void poi_manager_toggle_poi_set(PoiManager * poi_manager, int index);
 

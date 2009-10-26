@@ -35,6 +35,7 @@ config/config.c \
 config/config_widget.c \
 config/color_box.c \
 config/color_button.c \
+config/color_button_auto.c \
 customio.c \
 atlas/page_math.c \
 namefinder/namefinder_cities.c \
@@ -97,6 +98,7 @@ config/config.o \
 config/config_widget.o \
 config/color_box.o \
 config/color_button.o \
+config/color_button_auto.o \
 customio.o \
 atlas/page_math.o \
 namefinder/namefinder_cities.o \
