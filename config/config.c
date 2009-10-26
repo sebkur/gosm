@@ -20,94 +20,111 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <errno.h>
 
+#include <glib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include <glib.h>
-#include <unistd.h>
-#include <string.h>
-#include <strings.h>
-#include <errno.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-
-#include <glib.h>
-
 #include "config.h"
-#include "configuration.h"
 #include "../customio.h"
 #include "../map_types.h"
 
-ConfEntry ConfEntries[] = {
-	{"online_on_startup",	TYPE_BOOLEAN,	"TRUE",			NULL},
-        {"longitude",           TYPE_DOUBLE,    "13.4",         	NULL},
-        {"lattitude",           TYPE_DOUBLE,    "52.52",        	NULL},
-        {"zoom",                TYPE_INT,       "6",	           	NULL},
-        {"show_grid",           TYPE_BOOLEAN,   "FALSE",        	NULL},
-	{"show_tilenumbers",	TYPE_BOOLEAN,	"FALSE",		NULL},
-	{"show_menubar",	TYPE_BOOLEAN,	"TRUE",			NULL},
-	{"show_toolbar",	TYPE_BOOLEAN,	"TRUE",			NULL},
-	{"show_statusbar",	TYPE_BOOLEAN,	"TRUE",			NULL},
-	{"show_controls",	TYPE_BOOLEAN,	"TRUE",			NULL},
-	{"show_sidebar",	TYPE_BOOLEAN,	"TRUE",			NULL},
-	{"show_left_sidebar",	TYPE_BOOLEAN,	"TRUE",			NULL},
-        {"set_position",        TYPE_BOOLEAN,   "FALSE",        	NULL},
-        {"position_x",          TYPE_INT,       "0",            	NULL},
-        {"position_y",          TYPE_INT,       "0",            	NULL},
-        {"tileset",				TYPE_INT,       "0",            	NULL},
-        {"set_size",            TYPE_BOOLEAN,   "TRUE",         	NULL},
-        {"size_width",          TYPE_INT,       "800",          	NULL},
-        {"size_height",         TYPE_INT,       "600",          	NULL},
-        {"fullscreen",          TYPE_BOOLEAN,   "FALSE",        	NULL},
-        {"cache_dir_mapnik",    TYPE_DIR,       "/tmp/osm_mapnik",     	NULL},
-        {"cache_dir_osmarender",TYPE_DIR,       "/tmp/osm_osmarender",	NULL},
-        {"cache_dir_cycle",		TYPE_DIR,       "/tmp/osm_cycle",	NULL},
-        {"cache_size",          TYPE_INT,       "120",          	NULL},
-        {"java_binary",         TYPE_STRING,    "/usr/bin/java",     	NULL},
-        {"color_selection",     TYPE_COLOR,     "1.0,1.0,0.5,0.4",	NULL},
-        {"color_selection_out", TYPE_COLOR,     "1.0,1.0,0.8,0.9",	NULL},
-        {"color_selection_pad", TYPE_COLOR,     "1.0,0.8,0.3,0.4",	NULL},
-        {"color_atlas_lines",   TYPE_COLOR,     "0.5,0.0,0.5,0.7",	NULL},
-        {"use_proxy",           TYPE_BOOLEAN,   "FALSE",		NULL},
-        {"proxy_host",          TYPE_IP,        "proxy.ip.add",		NULL},
-        {"proxy_port",          TYPE_INT,       "80",			NULL}
+G_DEFINE_TYPE (Config, config, G_TYPE_OBJECT);
+
+enum
+{
+        CONFIG_CHANGED,
+        LAST_SIGNAL
 };
 
-gboolean config_set_entry_data(ConfEntry * ce, char * data_str);
-gboolean config_set_entry(Configuration * configuration, char *name, char *data);
+static guint config_signals[LAST_SIGNAL] = { 0 };
 
-Configuration * config_new()
+gboolean config_set_entry(Config * config, char *name, char *data);
+
+GObject * config_new()
 {
-	Configuration * configuration = malloc(sizeof(Configuration));
-	configuration -> entries = malloc(sizeof(ConfEntries));
-	configuration -> count = sizeof(ConfEntries) / sizeof(ConfEntry);
-	//memcpy(configuration -> entries, ConfEntries, sizeof(ConfEntries));
+	Config * config = g_object_new(GOSM_TYPE_CONFIG, NULL);
+	ConfEntry ConfEntries[] = {
+		{"online_on_startup",	TYPE_BOOLEAN,	"TRUE",			NULL},
+		{"longitude",           TYPE_DOUBLE,    "13.4",         	NULL},
+		{"lattitude",           TYPE_DOUBLE,    "52.52",        	NULL},
+		{"zoom",                TYPE_INT,       "6",	           	NULL},
+		{"show_grid",           TYPE_BOOLEAN,   "FALSE",        	NULL},
+		{"show_tilenumbers",	TYPE_BOOLEAN,	"FALSE",		NULL},
+		{"show_menubar",	TYPE_BOOLEAN,	"TRUE",			NULL},
+		{"show_toolbar",	TYPE_BOOLEAN,	"TRUE",			NULL},
+		{"show_statusbar",	TYPE_BOOLEAN,	"TRUE",			NULL},
+		{"show_controls",	TYPE_BOOLEAN,	"TRUE",			NULL},
+		{"show_sidebar",	TYPE_BOOLEAN,	"TRUE",			NULL},
+		{"show_left_sidebar",	TYPE_BOOLEAN,	"TRUE",			NULL},
+		{"set_position",        TYPE_BOOLEAN,   "FALSE",        	NULL},
+		{"position_x",          TYPE_INT,       "0",            	NULL},
+		{"position_y",          TYPE_INT,       "0",            	NULL},
+		{"tileset",		TYPE_INT,       "0",            	NULL},
+		{"set_size",            TYPE_BOOLEAN,   "TRUE",         	NULL},
+		{"size_width",          TYPE_INT,       "800",          	NULL},
+		{"size_height",         TYPE_INT,       "600",          	NULL},
+		{"fullscreen",          TYPE_BOOLEAN,   "FALSE",        	NULL},
+		{"cache_dir_mapnik",    TYPE_DIR,       "/tmp/osm_mapnik",     	NULL},
+		{"cache_dir_osmarender",TYPE_DIR,       "/tmp/osm_osmarender",	NULL},
+		{"cache_dir_cycle",	TYPE_DIR,       "/tmp/osm_cycle",	NULL},
+		{"cache_size",          TYPE_INT,       "120",          	NULL},
+		{"java_binary",         TYPE_STRING,    "/usr/bin/java",     	NULL},
+		{"color_selection",     TYPE_COLOR,     "1.0,1.0,0.5,0.4",	NULL},
+		{"color_selection_out", TYPE_COLOR,     "1.0,1.0,0.8,0.9",	NULL},
+		{"color_selection_pad", TYPE_COLOR,     "1.0,0.8,0.3,0.4",	NULL},
+		{"color_atlas_lines",   TYPE_COLOR,     "0.5,0.0,0.5,0.7",	NULL},
+		{"use_proxy",           TYPE_BOOLEAN,   "FALSE",		NULL},
+		{"proxy_host",          TYPE_IP,        "proxy.ip.add",		NULL},
+		{"proxy_port",          TYPE_INT,       "80",			NULL}
+	};
+	config -> entries = malloc(sizeof(ConfEntries));
+	config -> num_entries = sizeof(ConfEntries) / sizeof(ConfEntry);
 	int i;
-	for (i = 0; i < configuration -> count; i++){
-		memcpy(&(configuration -> entries[i]), &(ConfEntries[i]), sizeof(ConfEntry));
+	for (i = 0; i < config -> num_entries; i++){
+		memcpy(&(config -> entries[i]), &(ConfEntries[i]), sizeof(ConfEntry));
 	}
-	for (i = 0; i < configuration -> count; i++){
-		ConfEntry * ce = &(configuration -> entries[i]);
+	for (i = 0; i < config -> num_entries; i++){
+		ConfEntry * ce = &(config -> entries[i]);
 		config_set_entry_data(ce, ce -> data_str);
 	}	
-	return configuration;
+	return G_OBJECT(config);
 }
 
-gpointer config_get_entry_data(Configuration * configuration, char * name)
+static void config_class_init(ConfigClass *class)
+{
+        config_signals[CONFIG_CHANGED] = g_signal_new(
+                "config-changed",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (ConfigClass, config_changed),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__VOID,
+                G_TYPE_NONE, 0);
+}
+
+static void config_init(Config *config)
+{
+}
+
+gpointer config_get_entry_data(Config * config, char * name)
 {
 	int i;
-	for (i = 0; i < configuration -> count; i++){
-		ConfEntry * ce = &(configuration -> entries[i]);
+	for (i = 0; i < config -> num_entries; i++){
+		ConfEntry * ce = &(config -> entries[i]);
 		if (strcmp(ce -> name, name) == 0){
 			return ce -> data;
 		}
 	}	
 	return NULL;
 }
+
 //TODO: use g_build_filename instead of self-made string-concat
 char * config_get_config_dir()
 {
@@ -141,7 +158,8 @@ char * config_get_poi_layers_file()
 {
 	return config_get_config_dir_sub_file("poi_layers");
 }
-gboolean config_load_config_file(Configuration * configuration)
+
+gboolean config_load_config_file(Config * config)
 {
 	char * filepath = config_get_config_file();
 
@@ -173,7 +191,7 @@ gboolean config_load_config_file(Configuration * configuration)
 			if (splitline[0] != NULL && splitline[1] != NULL){
 	                        gchar * part1 = g_strstrip(splitline[0]);
 	                        gchar * part2 = g_strstrip(splitline[1]);
-				config_set_entry(configuration, part1, part2);
+				config_set_entry(config, part1, part2);
 			}
                 }
                 current = splitted[++i];
@@ -181,7 +199,7 @@ gboolean config_load_config_file(Configuration * configuration)
 	//TODO: free ?
 }
 
-gboolean config_save_config_file(Configuration * configuration)
+gboolean config_save_config_file(Config * config)
 {
 	char * filename = "configuration";
 	char * gosmdir = config_get_config_dir();
@@ -202,22 +220,24 @@ gboolean config_save_config_file(Configuration * configuration)
 
 	int fd = open(filepath, O_RDWR | O_CREAT | O_TRUNC, 0644);
 	int i;
-	for (i = 0; i < configuration -> count; i++){
-		ConfEntry * ce = &(configuration -> entries[i]);
+	for (i = 0; i < config -> num_entries; i++){
+		ConfEntry * ce = &(config -> entries[i]);
 		write(fd, ce -> name, strlen(ce->name));
 		write(fd, "\t\t", 2);
 		write(fd, ce -> data_str, strlen(ce->data_str));
 		write(fd, "\n", 1);
 	}
 	close(fd); 
+	g_signal_emit (config, config_signals[CONFIG_CHANGED], 0);
+	return TRUE;
 }
 
-gboolean config_set_entry(Configuration * configuration, char *name, char *data)
+gboolean config_set_entry(Config * config, char *name, char *data)
 {	
 	printf("%s = %s\n", name, data);
 	int i;
-	for (i = 0; i < configuration -> count; i++){
-		ConfEntry * ce = &(configuration -> entries[i]);
+	for (i = 0; i < config -> num_entries; i++){
+		ConfEntry * ce = &(config -> entries[i]);
 		if (strcmp(ce -> name, name) == 0){
 			config_set_entry_data(ce, data);
 		}

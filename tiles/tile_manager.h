@@ -88,6 +88,7 @@ gpointer tile_manager_request_tile(TileManager * tile_manager, int x, int y, int
 void tile_manager_delete_tile(TileManager * tile_manager, int x, int y, int zoom);
 
 void tile_manager_set_network_state(TileManager * tile_manager, gboolean state);
+gboolean tile_manager_get_network_state(TileManager * tile_manager);
 void tile_manager_set_cache_directory(TileManager * tile_manager, char * directory);
 void tile_manager_set_url_format(TileManager * tile_manager, char * format);
 

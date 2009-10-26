@@ -18,6 +18,9 @@ name_menu_bar = "menubar"
 name_menu_item = "item"
 name_menu_menu = "menu"
 
+prespace1 = "	"
+prespace2 = "	"
+
 radios = dict()
 
 def print_item(label, path, has_subs, part):
@@ -33,8 +36,8 @@ def print_item(label, path, has_subs, part):
 		name_item += "_"+ str(p)
 		name_menu += "_"+ str(p)
 	if part == 1:
-		text_item = "GtkWidget *" + name_item
-		text_menu = "GtkWidget *" + name_menu
+		text_item = prespace1 + "GtkWidget *" + name_item
+		text_menu = prespace1 + "GtkWidget *" + name_menu
 		text_item += fill1 * ' '
 		text_menu += fill2 * ' '
 		if len(label) <= 2:
@@ -56,7 +59,7 @@ def print_item(label, path, has_subs, part):
 			print text_menu
 	if part == 2:
 		if has_subs:
-			print "gtk_menu_item_set_submenu(GTK_MENU_ITEM(" + name_item + ")," + fill3 * ' ' + name_menu + ");"
+			print prespace2 + "gtk_menu_item_set_submenu(GTK_MENU_ITEM(" + name_item + ")," + fill3 * ' ' + name_menu + ");"
 	if part == 3:
 		fill = 0
 		if len(path) == 1:
@@ -65,13 +68,13 @@ def print_item(label, path, has_subs, part):
 		else:
 			parent_menu = name_menu[:-2]
 			fill = fill4
-		print "gtk_menu_shell_append(GTK_MENU_SHELL("+ parent_menu + "), " + fill * ' ' + name_item +");" 
+		print prespace2 + "gtk_menu_shell_append(GTK_MENU_SHELL("+ parent_menu + "), " + fill * ' ' + name_item +");" 
 	if part == 4:
 		if label[1] != '':
-			print label[1] + fill6 * ' '  + " = " + name_item + ";"
+			print prespace2 + "menubar -> " + label[1] + fill6 * ' '  + " = " + name_item + ";"
 	if part == 5:
 		if label[1] != '':
-			print "GtkWidget * " + label[1] + ";"
+			print prespace2 + "GtkWidget * " + label[1] + ";"
 
 def print_rek(structure, path, part):
 	if path != []:

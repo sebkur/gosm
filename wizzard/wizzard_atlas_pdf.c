@@ -47,7 +47,7 @@ G_DEFINE_TYPE (WizzardAtlasPdf, wizzard_atlas_pdf, G_TYPE_OBJECT);
 //static guint wizzard_atlas_pdf_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, wizzard_atlas_pdf_signals[SIGNAL_NAME_n], 0);
 
-extern Configuration * config;
+extern Config * config;
 
 static gboolean wizzard_atlas_pdf_export_cb(GtkWidget * button, WizzardAtlasPdf * wap);
 static gboolean wizzard_atlas_pdf_cancel_cb(GtkWidget * button, WizzardAtlasPdf * wap);

@@ -31,3 +31,6 @@ GtkWidget * find_containing_gtk_window(GtkWidget * widget);
 char * get_abs_uri(char * filename);
 
 char * get_api_url_get(double min_lon, double min_lat, double max_lon, double max_lat);
+
+void toggle_widget_visibility(GtkWidget * widget);
+void set_widget_visibility(GtkWidget * widget, gboolean show);

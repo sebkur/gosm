@@ -65,6 +65,10 @@ enum
 	MAP_SELECTION_CHANGED,
 	MAP_PATH_CHANGED,
 	MAP_NODE_SELECTED,
+	MAP_MOUSE_MODE_CHANGED,
+	MAP_NETWORK_STATE_CHANGED,
+	MAP_GRID_TOGGLED,
+	MAP_FONT_TOGGLED,
 	LAST_SIGNAL
 };
 
@@ -148,7 +152,6 @@ static void map_area_class_init(MapAreaClass *class)
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0);
-
 	
 	map_area_signals[MAP_NODE_SELECTED] = g_signal_new(
 		"map-node-selected",
@@ -158,13 +161,70 @@ static void map_area_class_init(MapAreaClass *class)
 		NULL, NULL,
 		g_cclosure_marshal_VOID__POINTER,
 		G_TYPE_NONE, 1, G_TYPE_POINTER);
+
+	map_area_signals[MAP_MOUSE_MODE_CHANGED] = g_signal_new(
+		"map-mouse-mode-changed",
+		G_OBJECT_CLASS_TYPE (class),
+		G_SIGNAL_RUN_FIRST,
+		G_STRUCT_OFFSET (MapAreaClass, map_mouse_mode_changed),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0);
+
+	map_area_signals[MAP_NETWORK_STATE_CHANGED] = g_signal_new(
+		"map-network-state-changed",
+		G_OBJECT_CLASS_TYPE (class),
+		G_SIGNAL_RUN_FIRST,
+		G_STRUCT_OFFSET (MapAreaClass, map_network_state_changed),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0);
+
+	map_area_signals[MAP_GRID_TOGGLED] = g_signal_new(
+		"map-grid-toggled",
+		G_OBJECT_CLASS_TYPE (class),
+		G_SIGNAL_RUN_FIRST,
+		G_STRUCT_OFFSET (MapAreaClass, map_grid_toggled),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0);
+
+	map_area_signals[MAP_FONT_TOGGLED] = g_signal_new(
+		"map-font-toggled",
+		G_OBJECT_CLASS_TYPE (class),
+		G_SIGNAL_RUN_FIRST,
+		G_STRUCT_OFFSET (MapAreaClass, map_font_toggled),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0);
+}
+
+void map_area_set_mouse_mode(MapArea *map_area, MouseMode mouse_mode)
+{
+	map_area -> mouse_mode = mouse_mode;
+	GdkCursor * cursor; 
+	switch(mouse_mode){
+		case MAP_MODE_SELECT:	cursor = gdk_cursor_new(GDK_CROSS); break;
+		case MAP_MODE_PATH:	cursor = gdk_cursor_new(GDK_TARGET); break;
+		case MAP_MODE_POI:	cursor = gdk_cursor_new(GDK_TARGET); break;
+		default: 		cursor = gdk_cursor_new(GDK_ARROW); break;
+	}
+	gdk_window_set_cursor(GTK_WIDGET(map_area)->window, cursor);
+	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_MOUSE_MODE_CHANGED], 0);
+}
+
+MouseMode map_area_get_mouse_mode(MapArea *map_area)
+{
+	return map_area -> mouse_mode;
 }
 
 void map_area_set_tileset(MapArea *map_area, Tileset tileset)
 {
-	map_area -> tileset = tileset;
-	map_area_repaint(map_area);
-	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_TILESET_CHANGED], 0);
+	if (map_area -> tileset != tileset){
+		map_area -> tileset = tileset;
+		map_area_repaint(map_area);
+		g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_TILESET_CHANGED], 0);
+	}
 }
 
 Tileset map_area_get_tileset(MapArea *map_area)
@@ -189,6 +249,12 @@ void map_area_set_network_state(MapArea *map_area, gboolean state)
 		tile_manager_set_network_state(map_area -> tile_manager[i], state);
 		// TODO change state of tileloader
 	}
+	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_NETWORK_STATE_CHANGED], 0);
+}
+
+gboolean map_area_get_network_state(MapArea * map_area)
+{
+	return tile_manager_get_network_state(map_area -> tile_manager[0]);
 }
 
 static void tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
@@ -216,7 +282,7 @@ static void map_area_init(MapArea *map_area)
 	map_area -> map_position.tile_count_x 	= 2;
 	map_area -> map_position.tile_count_y 	= 2;
 
-	map_area -> action_state		= -1;
+	map_area -> mouse_mode			= -1;
 	map_area -> show_grid			= FALSE;
 	map_area -> show_font			= FALSE;
 	map_area -> show_selection		= TRUE;
@@ -528,15 +594,15 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 	}
 	// TODO: put action_state (== gosm.c.CURSOR) somewhere else
 	if (event -> type == GDK_BUTTON_PRESS){
-		if (map_area -> action_state == 0){
+		if (map_area -> mouse_mode == MAP_MODE_MOVE){
 			if (map_area -> poi_active_id != 0){
 				poi_manager_print_node_information(map_area -> poi_manager, map_area -> poi_active_id);
 				LonLatTags * llt = poi_manager_get_node(map_area -> poi_manager, map_area -> poi_active_id);
 				g_signal_emit (map_area, map_area_signals[MAP_NODE_SELECTED], 0, (gpointer)llt);
 			}
-		}else if (map_area -> action_state == 2){
+		}else if (map_area -> mouse_mode == MAP_MODE_PATH){
 			path_add_point(map_area, lon, lat);
-		}else if(map_area -> action_state == 3){
+		}else if(map_area -> mouse_mode == MAP_MODE_POI){
 			map_area_add_marker(map_area, lon, lat);
 		}
 	}
@@ -547,7 +613,7 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 	MapArea *map_area = GOSM_MAP_AREA(widget);
 	MapPosition *map_position = &(map_area -> map_position);
 	// NAVIGATION mode
-	if (map_area -> action_state == 0){
+	if (map_area -> mouse_mode == MAP_MODE_MOVE){
 		if (MATCHES(event->state, GDK_BUTTON1_MASK)){
 			//printf("motion %d\n", event->state);
 			//printf("x: %d, y: %d\n", (int)event->x, (int)event->y);
@@ -612,7 +678,7 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 		}
 	}
 	// SELECTION mode
-	if (map_area -> action_state == 1){
+	if (map_area -> mouse_mode == MAP_MODE_SELECT){
 		/* RESCALE */
 		Selection selection = map_area -> selection;
 		int s_width = selection.x2 - selection.x1;
@@ -1208,4 +1274,32 @@ double map_area_get_poi_square_size(MapArea *map_area)
 	case(18): return 10;
 	default: return 2;
 	}
+}
+
+void map_area_set_show_grid(MapArea * map_area, gboolean show)
+{
+	if (map_area -> show_grid != show){
+		map_area -> show_grid = show;
+		map_area_repaint(map_area);
+		g_signal_emit (map_area, map_area_signals[MAP_GRID_TOGGLED], 0);
+	}
+}
+
+gboolean map_area_get_show_grid(MapArea * map_area)
+{
+	return map_area -> show_grid;
+}
+
+void map_area_set_show_font(MapArea * map_area, gboolean show)
+{
+	if (map_area -> show_font != show){
+		map_area -> show_font = show;
+		map_area_repaint(map_area);
+		g_signal_emit (map_area, map_area_signals[MAP_FONT_TOGGLED], 0);
+	}
+}
+
+gboolean map_area_get_show_font(MapArea * map_area)
+{
+	return map_area -> show_font;
 }

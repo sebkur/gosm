@@ -18,29 +18,72 @@
  * along with Gosm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gtk/gtk.h>
-#include <glib.h>
-#include "configuration.h"
-
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-//static Configuration * global_config;
-//static gboolean network_state = FALSE;
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-Configuration * config_new();
+#include <glib.h>
+#include <gtk/gtk.h>
+#include <gdk/gdk.h>
+
+#define GOSM_TYPE_CONFIG           (config_get_type ())
+#define GOSM_CONFIG(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_CONFIG, Config))
+#define GOSM_CONFIG_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_CONFIG, ConfigClass))
+#define GOSM_IS_CONFIG(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOSM_TYPE_CONFIG))
+#define GOSM_IS_CONFIG_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_CONFIG))
+#define GOSM_CONFIG_GET_CLASS      (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_CONFIG, ConfigClass))
+
+typedef struct _Config        Config;
+typedef struct _ConfigClass   ConfigClass;
+
+typedef struct ConfEntry{
+	char * name;
+	int type;
+	gpointer data_str;
+	gpointer data;
+} ConfEntry;
+
+enum {
+        TYPE_BOOLEAN,
+        TYPE_INT,
+        TYPE_DOUBLE,
+        TYPE_STRING,
+        TYPE_COLOR,
+	TYPE_DIR,
+	TYPE_IP
+};
+
+struct _Config
+{
+	GObject parent;
+
+	ConfEntry * entries;
+	int num_entries;
+};
+
+struct _ConfigClass
+{
+	GObjectClass parent_class;
+
+	void (* config_changed) (Config *config);
+};
+
+GObject * config_new();
 
 char * config_get_config_dir();
 char * config_get_config_file();
 char * config_get_poi_sources_file();
 char * config_get_poi_layers_file();
 
-gpointer config_get_entry_data(Configuration * configuration, char * name);
+gpointer config_get_entry_data(Config * config, char * name);
 
-gboolean config_load_config_file(Configuration * configuration);
+gboolean config_load_config_file(Config * config);
 
-gboolean config_save_config_file(Configuration * configuration);
+gboolean config_save_config_file(Config * config);
 
 gboolean config_set_entry_data(ConfEntry * ce, char * data_str);
 
-#endif
+#endif /* _CONFIG_H_ */

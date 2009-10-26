@@ -18,6 +18,9 @@
  * along with Gosm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _MAP_NAVIGATOR_H_
+#define _MAP_NAVIGATOR_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -39,17 +42,23 @@ typedef struct _MapNavigatorClass   MapNavigatorClass;
 struct _MapNavigator
 {
 	GtkVBox parent;
+
 	GtkWidget * area;
 	GtkWidget * buttons[8];
+	gboolean controls_visible;
 };
 
 struct _MapNavigatorClass
 {
 	GtkVBoxClass parent_class;
 
-	void (* function_name) (MapNavigator *map_navigator);
+	void (* controls_toggled) (MapNavigator *map_navigator);
 };
 
 GtkWidget * map_navigator_new(GtkWidget * area);
 
 void map_navigator_show_controls(MapNavigator * map_navigator, gboolean show);
+void map_navigator_toggle_controls(MapNavigator *map_navigator);
+gboolean map_navigator_get_controls_visible(MapNavigator * map_navigator);
+
+#endif /* _MAP_NAVIGATOR_H_ */

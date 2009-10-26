@@ -73,3 +73,22 @@ char * get_api_url_get(double min_lon, double min_lat, double max_lon, double ma
 	
 	return buf;
 }
+
+void toggle_widget_visibility(GtkWidget * widget)
+{
+	gboolean visible = GTK_WIDGET_VISIBLE(widget);
+	if (visible){
+		gtk_widget_hide(widget);
+	}else{
+		gtk_widget_show(widget);
+	}
+}
+
+void set_widget_visibility(GtkWidget * widget, gboolean show)
+{
+	if (show){
+		gtk_widget_show(widget);
+	}else{
+		gtk_widget_hide(widget);
+	}
+}

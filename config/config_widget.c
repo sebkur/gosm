@@ -29,11 +29,11 @@
 #include <gdk/gdk.h>
 
 #include "config.h"
-#include "configuration.h"
 #include "config_widget.h"
 #include "color_box.h"
 #include "../map_types.h"
 #include "../customio.h"
+#include "../tool.h"
 
 G_DEFINE_TYPE (ConfigWidget, config_widget, GTK_TYPE_VBOX);
 
@@ -47,11 +47,11 @@ G_DEFINE_TYPE (ConfigWidget, config_widget, GTK_TYPE_VBOX);
 //static guint config_widget_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, config_widget_signals[SIGNAL_NAME_n], 0);
 
-GtkWidget * config_widget_new(Configuration * configuration)
+GtkWidget * config_widget_new(Config * config)
 {
 	ConfigWidget * config_widget = g_object_new(GOSM_TYPE_CONFIG_WIDGET, NULL);
-	config_widget -> configuration = configuration;
-	config_widget_construct(config_widget, configuration);
+	config_widget -> config = config;
+	config_widget_construct(config_widget, config);
 	return GTK_WIDGET(config_widget);
 }
 
@@ -71,14 +71,47 @@ static void config_widget_init(ConfigWidget *config_widget)
 {
 }
 
+static gboolean preferences_confirm_cb(GtkWidget * widget, ConfigWidget * conf_widget)
+{
+	gboolean ** changed = config_widget_get_new_configuration(conf_widget);
+	GtkWidget * window = find_containing_gtk_window(GTK_WIDGET(conf_widget));
+	gtk_widget_destroy(window);
+	config_save_config_file(conf_widget -> config);
+}
+
+static gboolean preferences_cancel_cb(GtkWidget * widget, GtkWindow *window)
+{
+	gtk_widget_destroy(GTK_WIDGET(window));
+}
+
+void config_widget_show_in_window(ConfigWidget * config_widget, GtkWindow * parent)
+{
+	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title(GTK_WINDOW(window), "Preferences");
+	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER_ON_PARENT);
+	gtk_window_set_transient_for(GTK_WINDOW(window), GTK_WINDOW(parent));
+	gtk_window_set_modal(GTK_WINDOW(window), TRUE);
+	//TODO: reconnect this signal
+	//g_signal_connect(G_OBJECT(window), "hide", G_CALLBACK(close_cb), NULL);
+	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(config_widget));
+	gtk_window_set_default_size(GTK_WINDOW(window), 400, 300);
+	g_signal_connect(
+		G_OBJECT(config_widget -> button_cancel), "clicked", 
+		G_CALLBACK(preferences_cancel_cb), window);
+        g_signal_connect(
+		G_OBJECT(config_widget -> button_confirm), "clicked", 
+		G_CALLBACK(preferences_confirm_cb), config_widget);
+        gtk_widget_show_all(window);
+}
+
 // TODO: this function returns nothing???
 gboolean ** config_widget_get_new_configuration(ConfigWidget * config_widget)
 {
-	Configuration * configuration = config_widget -> configuration;
-	gboolean * changed = malloc(sizeof(gboolean) * configuration -> count);
+	Config * config = config_widget -> config;
+	gboolean * changed = malloc(sizeof(gboolean) * config -> num_entries);
 	int i;
-	for (i = 0; i < configuration -> count; i++){
-		ConfEntry * ce = &(configuration -> entries[i]);
+	for (i = 0; i < config -> num_entries; i++){
+		ConfEntry * ce = &(config -> entries[i]);
 		switch(ce -> type){
 		case TYPE_BOOLEAN:{
 			if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widget -> entries[i]))){
@@ -107,16 +140,16 @@ gboolean ** config_widget_get_new_configuration(ConfigWidget * config_widget)
 		}
 		}
 	}
-	for (i = 0; i < configuration -> count; i++){
+	for (i = 0; i < config -> num_entries; i++){
 		printf("%d\n", changed[i]);
 	}
 }
 
-config_widget_construct(ConfigWidget * config_widget, Configuration * configuration)
+config_widget_construct(ConfigWidget * config_widget, Config * config)
 {
 	GtkWidget *box_v = GTK_WIDGET(config_widget); 
 
-	int count = configuration -> count; 
+	int count = config -> num_entries; 
 
 	GtkWidget * labels[count];
 	config_widget -> entries = malloc(sizeof(GtkWidget*) * count);
@@ -124,7 +157,7 @@ config_widget_construct(ConfigWidget * config_widget, Configuration * configurat
 
 	int i; char buf[100];
 	for (i = 0; i < count; i++){
-		ConfEntry ce = configuration -> entries[i];
+		ConfEntry ce = config -> entries[i];
 		labels[i] = gtk_label_new(ce.name);
 		switch (ce.type){
 		case TYPE_DIR:

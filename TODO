@@ -1,11 +1,54 @@
-This file is a more general TODO-List.
-Other topics can be found in gosm.c
+####################################################################################################
+General things
+####################################################################################################
 
 - Provide seperate binary packages
 - Provide Debian-packages
 - Do something with POIs on the map
 - Support Osmarender and OpenAreal
 
+####################################################################################################
+found bugs
+####################################################################################################
+
 tile_cache.c, line 88f, 16 -> 18???
 misc/dir.c, comment out main function
 tile_manager.c, prototype definitions lack arguments
+
+####################################################################################################
+TODO list
+####################################################################################################
+
+There is a of work to do in general:
+	- clean up!!!
+	- take care of memory. use free() more often!
+
+- DONE use makefile for building
+- PARTIALLY (only colors) update changed preferences without restart
+- DONE add color selection buttons in configuration window
+- DONE adjust paper size on exporting pdf via imagesize
+- DONE let user set path to java-binary (for pdf export)
+- DONE make color of atlas-selection configurable
+- DONE sum atlas picture up into a single pdf optionally
+- DONE template selection for atlas export
+- DONE progress monitor for image export / atlas export
+- DONE make imageglue a class with events
+- DONE there are 18 zoom-levels!! in some parts 17 are assumed
+- use tile_loader for loading tiles in map_area
+- DONE on CACHE_MISS: let another thread load into memory from disk for complete
+	fluid visuals. 3-level-cache should be represented in threading
+- DONE make config-dialog
+- DONE config-dialog should save settings on apply
+- PARTIALLY (learned about extern) config should be accessible from (nearly) everywhere somehow USE EXTERN
+- DONE function 'load_new_tiles' is called on every position change
+	it handles checking for new tile-downloading quite inefficent
+	since it check existance of every single file on the tmp-dir
+	lookup in cache could be much more efficient???
+- DONE bind positioning to lat/lon instead of tile-coords in most parts
+- DONE free visual and colormap when removed from cache
+	therefore store them in struct in cache / try to get them from pixmap
+- DONE improve memory-caching algorithm
+- recognize downloading failures (empty files)
+- DONE add selection mechanism
+- DONE add features to selection mechanism
+- DONE add sidebars

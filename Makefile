@@ -1,6 +1,8 @@
 BIN = gosm
 
 SRC = \
+menu.c \
+toolbar.c \
 tool.c \
 tiles/ringbuffer.c \
 tiles/tile_cache.c \
@@ -61,6 +63,8 @@ widget/gtk_rollup_button.c \
 gosm.c
 
 OBJ = \
+menu.o \
+toolbar.o \
 tool.o \
 tiles/ringbuffer.o \
 tiles/tile_cache.o \

@@ -29,15 +29,6 @@
 #include "map_area.h"
 #include "map_navigator.h"
 
-#define DIRECTION_TOP_LEFT      1
-#define DIRECTION_TOP           2
-#define DIRECTION_TOP_RIGHT     3
-#define DIRECTION_LEFT          4
-#define DIRECTION_RIGHT         5
-#define DIRECTION_DOWN_LEFT     6
-#define DIRECTION_DOWN          7
-#define DIRECTION_DOWN_RIGHT    8
-
 G_DEFINE_TYPE (MapNavigator, map_navigator, GTK_TYPE_VBOX);
 
 typedef struct AreaDirection{
@@ -45,18 +36,35 @@ typedef struct AreaDirection{
 	int direction;
 } AreaDirection;
 
+enum
+{
+	CONTROLS_TOGGLED,
+	LAST_SIGNAL
+};
+
+static guint map_navigator_signals[LAST_SIGNAL] = { 0 };
+
 void map_navigator_construct(MapNavigator *map_navigator);
 
 GtkWidget * map_navigator_new(GtkWidget * area)
 {
 	MapNavigator * map_navigator = g_object_new(GOSM_TYPE_MAP_NAVIGATOR, NULL);
 	map_navigator -> area = area;
+	map_navigator -> controls_visible = TRUE;
 	map_navigator_construct(map_navigator);
 	return GTK_WIDGET(map_navigator);
 }
 
 static void map_navigator_class_init(MapNavigatorClass *class)
 {
+	map_navigator_signals[CONTROLS_TOGGLED] = g_signal_new(
+		"controls-toggled",
+		G_OBJECT_CLASS_TYPE (class),
+		G_SIGNAL_RUN_FIRST,
+		G_STRUCT_OFFSET (MapNavigatorClass, controls_toggled),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0);
 }
 
 static void map_navigator_init(MapNavigator *map_navigator)
@@ -76,16 +84,29 @@ static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton * event, Map
 	return FALSE;
 }
 
+gboolean map_navigator_get_controls_visible(MapNavigator * map_navigator)
+{
+	return map_navigator -> controls_visible;
+}
+
+void map_navigator_toggle_controls(MapNavigator *map_navigator)
+{
+	map_navigator_show_controls(map_navigator, !map_navigator_get_controls_visible(map_navigator));
+}
+
 void map_navigator_show_controls(MapNavigator *map_navigator, gboolean show)
 {
-        int i; for (i = 0; i < 8; i++){
-                if (show){
-                        gtk_widget_show(map_navigator -> buttons[i]);
-                }else{
-                        gtk_widget_hide(map_navigator -> buttons[i]);
-                }
-        }
-
+	if (show != map_navigator -> controls_visible){
+		map_navigator -> controls_visible = show;
+		int i; for (i = 0; i < 8; i++){
+			if (show){
+				gtk_widget_show(map_navigator -> buttons[i]);
+			}else{
+				gtk_widget_hide(map_navigator -> buttons[i]);
+			}
+		}
+		g_signal_emit (map_navigator, map_navigator_signals[CONTROLS_TOGGLED], 0);
+	}
 }
 
 void map_navigator_construct(MapNavigator *map_navigator){
@@ -140,4 +161,5 @@ void map_navigator_construct(MapNavigator *map_navigator){
 	        g_signal_connect(G_OBJECT(buttons[k]), "clicked", G_CALLBACK(navigate_cb), &ad[k]);
 		g_signal_connect(G_OBJECT(buttons[k]), "button-release-event", G_CALLBACK(focus_redirect_cb), map_navigator -> area);
 	}
+	g_signal_emit (map_navigator, map_navigator_signals[CONTROLS_TOGGLED], 0);
 }

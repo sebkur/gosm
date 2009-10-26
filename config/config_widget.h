@@ -18,6 +18,9 @@
  * along with Gosm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _CONFIG_WIDGET_H_
+#define _CONFIG_WIDGET_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,7 +29,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "configuration.h"
+#include "config.h"
 
 #define GOSM_TYPE_CONFIG_WIDGET           (config_widget_get_type ())
 #define GOSM_CONFIG_WIDGET(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_CONFIG_WIDGET, ConfigWidget))
@@ -45,7 +48,7 @@ struct _ConfigWidget
 	GtkWidget * button_confirm;
 	GtkWidget * button_cancel;
 	
-	Configuration * configuration;
+	Config * config;
 	GtkWidget ** entries;
 };
 
@@ -56,6 +59,8 @@ struct _ConfigWidgetClass
 	void (* function_name) (ConfigWidget *config_widget);
 };
 
-GtkWidget * config_widget_new(Configuration * configuration);
+GtkWidget * config_widget_new(Config * config);
 
 gboolean ** config_widget_get_new_configuration(ConfigWidget *config_widget);
+
+#endif /* _CONFIG_WIDGET_H_ */
