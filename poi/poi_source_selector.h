@@ -52,7 +52,7 @@ struct _PoiSourceSelectorClass
 {
 	GtkVBoxClass parent_class;
 
-	void (* function_name) (PoiSourceSelector *poi_source_selector);
+	//void (* function_name) (PoiSourceSelector *poi_source_selector);
 };
 
 PoiSourceSelector * poi_source_selector_new(PoiManager * poi_manager);

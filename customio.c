@@ -28,6 +28,12 @@
 #include <fcntl.h>
 #include <glib.h>
 
+/****************************************************************************************************
+* print a double d into a buffer, independent of currently set locale
+* format [-]123.4567
+* where precision is the number of digits behind "."
+* TODO: use strcat instead of sprintf
+****************************************************************************************************/
 void sprintdouble(char * buf, double d, int precision)
 {
 	int z = (int)d;
@@ -47,6 +53,9 @@ void sprintdouble(char * buf, double d, int precision)
 	}
 }
 
+/****************************************************************************************************
+* reads a double from a string. the format used to read in is the same as produced by sprintdouble
+****************************************************************************************************/
 double strtodouble(char * buf)
 {
 	int pos = 0;
@@ -101,6 +110,10 @@ double strtodouble(char * buf)
 	return negative ? -result : result;
 }
 
+/****************************************************************************************************
+* copy file 'source' to 'dest'
+* returns 0 on success, negative value otherwise
+****************************************************************************************************/
 int copy_file(char * source, char * dest)
 {
 	printf("copying %s to %s\n", source, dest);

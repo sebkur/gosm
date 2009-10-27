@@ -53,7 +53,7 @@ struct _NamedPoiSetClass
 {
 	PoiSetClass parent_class;
 
-	void (* function_name) (NamedPoiSet *named_poi_set);
+	//void (* function_name) (NamedPoiSet *named_poi_set);
 };
 
 NamedPoiSet * named_poi_set_new(char * key, char * value);

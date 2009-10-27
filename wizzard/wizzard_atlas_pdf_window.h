@@ -56,7 +56,7 @@ struct _WizzardAtlasPdfWindowClass
 {
 	GtkWindowClass parent_class;
 
-	void (* function_name) (WizzardAtlasPdfWindow *wizzard_atlas_pdf_window);
+	//void (* function_name) (WizzardAtlasPdfWindow *wizzard_atlas_pdf_window);
 };
 
 WizzardAtlasPdfWindow * wizzard_atlas_pdf_window_new();

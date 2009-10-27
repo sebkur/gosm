@@ -60,7 +60,7 @@ struct _PoiSetClass
 {
 	GObjectClass parent_class;
 
-	void (* function_name) (PoiSet *poi_set);
+	//void (* function_name) (PoiSet *poi_set);
 };
 
 PoiSet * poi_set_new();

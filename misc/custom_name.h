@@ -44,7 +44,7 @@ struct _CustomNameClass
 {
 	GObjectClass parent_class;
 
-	void (* function_name) (CustomName *custom_name);
+	//void (* function_name) (CustomName *custom_name);
 };
 
 GObject * custom_name_new();

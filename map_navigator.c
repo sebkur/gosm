@@ -71,29 +71,31 @@ static void map_navigator_init(MapNavigator *map_navigator)
 {
 }
 
-// for buttons around map_area
+/****************************************************************************************************
+* callback for the buttons around the map-widget
+****************************************************************************************************/
 static gboolean navigate_cb(GtkWidget *widget, AreaDirection * area_dir)
 {
         map_area_move(area_dir -> map_area, area_dir -> direction);
 	gtk_widget_grab_focus(GTK_WIDGET(area_dir -> map_area));
 }
 
+/****************************************************************************************************
+* after interaction with the buttons, redirect focus to the map-widget
+****************************************************************************************************/
 static gboolean focus_redirect_cb(GtkWidget *widget, GdkEventButton * event, MapArea * area)
 {
 	gtk_widget_grab_focus(GTK_WIDGET(area));
 	return FALSE;
 }
 
+/****************************************************************************************************
+* get/set/toggle controls buttons around map-widget
+****************************************************************************************************/
 gboolean map_navigator_get_controls_visible(MapNavigator * map_navigator)
 {
 	return map_navigator -> controls_visible;
 }
-
-void map_navigator_toggle_controls(MapNavigator *map_navigator)
-{
-	map_navigator_show_controls(map_navigator, !map_navigator_get_controls_visible(map_navigator));
-}
-
 void map_navigator_show_controls(MapNavigator *map_navigator, gboolean show)
 {
 	if (show != map_navigator -> controls_visible){
@@ -108,7 +110,14 @@ void map_navigator_show_controls(MapNavigator *map_navigator, gboolean show)
 		g_signal_emit (map_navigator, map_navigator_signals[CONTROLS_TOGGLED], 0);
 	}
 }
+void map_navigator_toggle_controls(MapNavigator *map_navigator)
+{
+	map_navigator_show_controls(map_navigator, !map_navigator_get_controls_visible(map_navigator));
+}
 
+/****************************************************************************************************
+* build up the widget
+****************************************************************************************************/
 void map_navigator_construct(MapNavigator *map_navigator){
 	GtkBox * vbox = GTK_BOX(map_navigator);
 	GtkWidget ** buttons = map_navigator -> buttons;

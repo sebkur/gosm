@@ -56,7 +56,7 @@ struct _WizzardDeleteTilesClass
 {
 	GObjectClass parent_class;
 
-	void (* function_name) (WizzardDeleteTiles *wizzard_delete_tiles);
+	//void (* function_name) (WizzardDeleteTiles *wizzard_delete_tiles);
 };
 
 WizzardDeleteTiles * wizzard_delete_tiles_new(MapArea * map_area, Tileset tileset, Selection selection);

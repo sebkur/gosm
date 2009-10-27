@@ -55,7 +55,7 @@ struct _WizzardAtlasSequenceWindowClass
 {
 	GtkWindowClass parent_class;
 
-	void (* function_name) (WizzardAtlasSequenceWindow *wizzard_atlas_sequence_window);
+	////////////////void (* function_name) (WizzardAtlasSequenceWindow *wizzard_atlas_sequence_window);
 };
 
 WizzardAtlasSequenceWindow * wizzard_atlas_sequence_window_new();

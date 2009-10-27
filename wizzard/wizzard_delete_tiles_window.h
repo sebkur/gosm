@@ -52,7 +52,7 @@ struct _WizzardDeleteTilesWindowClass
 {
 	GtkWindowClass parent_class;
 
-	void (* function_name) (WizzardDeleteTilesWindow *wizzard_delete_tiles_window);
+	//void (* function_name) (WizzardDeleteTilesWindow *wizzard_delete_tiles_window);
 };
 
 WizzardDeleteTilesWindow * wizzard_delete_tiles_window_new();

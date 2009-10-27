@@ -21,6 +21,9 @@
 #ifndef _MAP_TYPES_H_
 #define _MAP_TYPES_H_
 
+/****************************************************************************************************
+* a struct used by map_area to represent the current state of the widget
+****************************************************************************************************/
 typedef struct MapPosition {
 	int width;
 	int height;
@@ -35,6 +38,9 @@ typedef struct MapPosition {
 	int tile_count_y;
 } MapPosition;
 
+/****************************************************************************************************
+* a selection on the area, either defined by x/y coordinates on the screen or by lon/lat
+****************************************************************************************************/
 typedef struct Selection {
 	int x1;
 	int x2;
@@ -50,12 +56,18 @@ typedef struct Selection {
 #ifndef _MAP_TILE_
 #define _MAP_TILE_
 
+/****************************************************************************************************
+* a map tile is defined by zoomlevel and x, y values
+****************************************************************************************************/
 typedef struct MapTile {
 	int x;
 	int y;
 	int zoom;
 } MapTile;
 
+/****************************************************************************************************
+* a cached map tile has is a struct that associates a pixbuf to a map tile
+****************************************************************************************************/
 typedef struct CachedMapTile {
 	MapTile map_tile_info;
 	gpointer pixbuf;
@@ -63,33 +75,51 @@ typedef struct CachedMapTile {
 
 #endif
 
+/****************************************************************************************************
+* well, just a point
+****************************************************************************************************/
 typedef struct Point {
 	int x;
 	int y;
 } Point;
 
+/****************************************************************************************************
+* pair of longitude and lattitude
+****************************************************************************************************/
 typedef struct LonLatPair {
 	double lon;
 	double lat;
 } LonLatPair;
 
+/****************************************************************************************************
+* longitude and lattitude associated with some data
+****************************************************************************************************/
 typedef struct LonLatPairData {
 	double lon;
 	double lat;
 	void * data;
 } LonLatPairData;
 
+/****************************************************************************************************
+* used by poi-managing to associate lon/lat-values to a set of key-value pairs
+****************************************************************************************************/
 typedef struct LonLatTags {
 	double lon;
 	double lat;
 	GHashTable * tags;
 } LonLatTags;
 
+/****************************************************************************************************
+* an id + a name
+****************************************************************************************************/
 typedef struct IdAndName {
 	int id;
 	char * name;
 } IdAndName;
 
+/****************************************************************************************************
+* used to store 4 double values that represent a colour
+****************************************************************************************************/
 typedef struct ColorQuadriple {
 	double r;
 	double g;

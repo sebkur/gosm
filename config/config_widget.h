@@ -56,7 +56,7 @@ struct _ConfigWidgetClass
 {
 	GtkVBoxClass parent_class;
 
-	void (* function_name) (ConfigWidget *config_widget);
+	//void (* function_name) (ConfigWidget *config_widget);
 };
 
 GtkWidget * config_widget_new(Config * config);

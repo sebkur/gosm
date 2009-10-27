@@ -58,7 +58,7 @@ struct _PoiToolClass
 {
 	GtkVBoxClass parent_class;
 
-	void (* function_name) (PoiTool *poi_tool);
+	//void (* function_name) (PoiTool *poi_tool);
 };
 
 GtkWidget * poi_tool_new(PoiManager * poi_manager);

@@ -55,7 +55,7 @@ struct _PoiSourceLoadProgressClass
 {
 	GObjectClass parent_class;
 
-	void (* function_name) (PoiSourceLoadProgress *poi_source_load_progress);
+	//void (* function_name) (PoiSourceLoadProgress *poi_source_load_progress);
 };
 
 PoiSourceLoadProgress * poi_source_load_progress_new();

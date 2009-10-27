@@ -55,7 +55,7 @@ struct _StyledPoiSetClass
 {
 	NamedPoiSetClass parent_class;
 
-	void (* function_name) (StyledPoiSet *styled_poi_set);
+	//void (* function_name) (StyledPoiSet *styled_poi_set);
 };
 
 StyledPoiSet * styled_poi_set_new(char * key, char * value, double r, double g, double b, double a);
