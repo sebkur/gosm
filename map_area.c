@@ -74,14 +74,7 @@ enum
 
 static guint map_area_signals[LAST_SIGNAL] = { 0 };
 
-//const char * format_url_mapnik = "http://b.tile.openstreetmap.org/%d/%d/%d.png";
-//const char * format_url_osmarender = "http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png";
-
 extern char * urls[];
-/*const char * urls[TILESET_LAST] = {
-	"http://b.tile.openstreetmap.org/%d/%d/%d.png",
-	"http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png"
-};*/
 
 struct timeval t1, t2;
 
@@ -90,6 +83,7 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event);
 static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event);
 static gboolean scroll_cb(MapArea *map_area, GdkEventScroll *event);
+static gboolean tile_loaded_cb(TileManager * tile_manager, MapArea *map_area);
 
 void map_has_moved(MapArea *map_area);
 void map_area_adjust_map_position_values(MapArea *map_area);
@@ -199,73 +193,9 @@ static void map_area_class_init(MapAreaClass *class)
 		G_TYPE_NONE, 0);
 }
 
-void map_area_set_mouse_mode(MapArea *map_area, MouseMode mouse_mode)
-{
-	map_area -> mouse_mode = mouse_mode;
-	GdkCursor * cursor; 
-	switch(mouse_mode){
-		case MAP_MODE_SELECT:	cursor = gdk_cursor_new(GDK_CROSS); break;
-		case MAP_MODE_PATH:	cursor = gdk_cursor_new(GDK_TARGET); break;
-		case MAP_MODE_POI:	cursor = gdk_cursor_new(GDK_TARGET); break;
-		default: 		cursor = gdk_cursor_new(GDK_ARROW); break;
-	}
-	gdk_window_set_cursor(GTK_WIDGET(map_area)->window, cursor);
-	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_MOUSE_MODE_CHANGED], 0);
-}
-
-MouseMode map_area_get_mouse_mode(MapArea *map_area)
-{
-	return map_area -> mouse_mode;
-}
-
-void map_area_set_tileset(MapArea *map_area, Tileset tileset)
-{
-	if (map_area -> tileset != tileset){
-		map_area -> tileset = tileset;
-		map_area_repaint(map_area);
-		g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_TILESET_CHANGED], 0);
-	}
-}
-
-Tileset map_area_get_tileset(MapArea *map_area)
-{
-	return map_area -> tileset;
-}
-
-void map_area_set_cache_directory(MapArea * map_area, Tileset tileset, char * directory)
-{
-	if (map_area -> cache_dir[tileset] != NULL){
-		free(map_area -> cache_dir[tileset]);
-	}
-	map_area -> cache_dir[tileset] = malloc(sizeof(char) * (strlen(directory) + 1));
-	strcpy(map_area -> cache_dir[tileset], directory);
-	tile_manager_set_cache_directory(map_area -> tile_manager[tileset], directory);
-}
-
-void map_area_set_network_state(MapArea *map_area, gboolean state)
-{
-	int i;
-	for (i = 0; i < TILESET_LAST; i++){
-		tile_manager_set_network_state(map_area -> tile_manager[i], state);
-		// TODO change state of tileloader
-	}
-	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_NETWORK_STATE_CHANGED], 0);
-}
-
-gboolean map_area_get_network_state(MapArea * map_area)
-{
-	return tile_manager_get_network_state(map_area -> tile_manager[0]);
-}
-
-static void tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
-{
-	//printf("received a repaint signal\n");
-	map_area -> need_repaint = TRUE;
-	gdk_threads_enter();
-	gtk_widget_queue_draw(GTK_WIDGET(map_area));
-	gdk_threads_leave();
-}
-
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void map_area_init(MapArea *map_area)
 {
 	map_area -> tileset = TILESET_MAPNIK;
@@ -333,33 +263,164 @@ static void map_area_init(MapArea *map_area)
 	map_area -> next_marker_id = 1;
 }
 
+/****************************************************************************************************
+*****************************************************************************************************
+* SETTERS AND GETTERS
+*****************************************************************************************************
+****************************************************************************************************/
+
+/****************************************************************************************************
+* set/get the mouse mode, i.e. move, select, path or set pois
+****************************************************************************************************/
+void map_area_set_mouse_mode(MapArea *map_area, MouseMode mouse_mode)
+{
+	map_area -> mouse_mode = mouse_mode;
+	GdkCursor * cursor; 
+	switch(mouse_mode){
+		case MAP_MODE_SELECT:	cursor = gdk_cursor_new(GDK_CROSS); break;
+		case MAP_MODE_PATH:	cursor = gdk_cursor_new(GDK_TARGET); break;
+		case MAP_MODE_POI:	cursor = gdk_cursor_new(GDK_TARGET); break;
+		default: 		cursor = gdk_cursor_new(GDK_ARROW); break;
+	}
+	gdk_window_set_cursor(GTK_WIDGET(map_area)->window, cursor);
+	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_MOUSE_MODE_CHANGED], 0);
+}
+MouseMode map_area_get_mouse_mode(MapArea *map_area)
+{
+	return map_area -> mouse_mode;
+}
+
+/****************************************************************************************************
+* set/get the current tileset displayed by this map-widget
+****************************************************************************************************/
+void map_area_set_tileset(MapArea *map_area, Tileset tileset)
+{
+	if (map_area -> tileset != tileset){
+		map_area -> tileset = tileset;
+		map_area_repaint(map_area);
+		g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_TILESET_CHANGED], 0);
+	}
+}
+Tileset map_area_get_tileset(MapArea *map_area)
+{
+	return map_area -> tileset;
+}
+
+/****************************************************************************************************
+* set the cache directory for a tileset
+****************************************************************************************************/
+void map_area_set_cache_directory(MapArea * map_area, Tileset tileset, char * directory)
+{
+	if (map_area -> cache_dir[tileset] != NULL){
+		free(map_area -> cache_dir[tileset]);
+	}
+	map_area -> cache_dir[tileset] = malloc(sizeof(char) * (strlen(directory) + 1));
+	strcpy(map_area -> cache_dir[tileset], directory);
+	tile_manager_set_cache_directory(map_area -> tile_manager[tileset], directory);
+}
+
+/****************************************************************************************************
+* get the associated tile_manager for a given tileset
+****************************************************************************************************/
+TileManager * map_area_get_tile_manager(MapArea *map_area, Tileset tileset)
+{
+	return map_area -> tile_manager[tileset];
+}
+
+/****************************************************************************************************
+* set/get whether the widget should load tiles over network
+****************************************************************************************************/
+void map_area_set_network_state(MapArea *map_area, gboolean state)
+{
+	int i;
+	for (i = 0; i < TILESET_LAST; i++){
+		tile_manager_set_network_state(map_area -> tile_manager[i], state);
+		// TODO change state of tileloader
+	}
+	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_NETWORK_STATE_CHANGED], 0);
+}
+gboolean map_area_get_network_state(MapArea * map_area)
+{
+	return tile_manager_get_network_state(map_area -> tile_manager[0]);
+}
+
+/****************************************************************************************************
+* set/get whether the map-widget should display a tile-grid
+****************************************************************************************************/
+void map_area_set_show_grid(MapArea * map_area, gboolean show)
+{
+	if (map_area -> show_grid != show){
+		map_area -> show_grid = show;
+		map_area_repaint(map_area);
+		g_signal_emit (map_area, map_area_signals[MAP_GRID_TOGGLED], 0);
+	}
+}
+gboolean map_area_get_show_grid(MapArea * map_area)
+{
+	return map_area -> show_grid;
+}
+
+/****************************************************************************************************
+* set/get whether the map-widget should display tile-names
+****************************************************************************************************/
+void map_area_set_show_font(MapArea * map_area, gboolean show)
+{
+	if (map_area -> show_font != show){
+		map_area -> show_font = show;
+		map_area_repaint(map_area);
+		g_signal_emit (map_area, map_area_signals[MAP_FONT_TOGGLED], 0);
+	}
+}
+gboolean map_area_get_show_font(MapArea * map_area)
+{
+	return map_area -> show_font;
+}
+
+/****************************************************************************************************
+* get current positions' x (in pixels of the whole underlying zoomlevels' map images)
+****************************************************************************************************/
 int map_area_position_get_center_x(MapArea *map_area)
 {
 	MapPosition *map_position = &(map_area -> map_position);
 	return map_position -> tile_left * 256 + map_position -> tile_offset_x + map_position -> width/2;
 }
 
+/****************************************************************************************************
+* get current positions' y (in pixels of the whole underlying zoomlevels' map images)
+****************************************************************************************************/
 int map_area_position_get_center_y(MapArea *map_area)
 {
 	MapPosition *map_position = &(map_area -> map_position);
 	return map_position -> tile_top * 256 + map_position -> tile_offset_y + map_position -> height/2;
 }
 
+/****************************************************************************************************
+* get current positions' longitude
+****************************************************************************************************/
 double map_area_position_get_center_lon(MapArea *map_area)
 {
 	return x_to_lon(map_area_position_get_center_x(map_area) / 256.0, map_area -> map_position.zoom);
 }
 
+/****************************************************************************************************
+* get current positions' lattitude
+****************************************************************************************************/
 double map_area_position_get_center_lat(MapArea *map_area)
 {
 	return y_to_lat(map_area_position_get_center_y(map_area) / 256.0, map_area -> map_position.zoom);
 }
 
+/****************************************************************************************************
+* get current zoom level
+****************************************************************************************************/
 int map_area_get_zoom(MapArea *map_area)
 {
 	return map_area -> map_position.zoom;
 }
 
+/****************************************************************************************************
+* locate a longitude on the widget
+****************************************************************************************************/
 int map_area_lon_to_area_x(MapArea *map_area, double lon)
 {
 	MapPosition *map_position = &(map_area -> map_position);
@@ -367,6 +428,9 @@ int map_area_lon_to_area_x(MapArea *map_area, double lon)
 	return (x - map_position -> tile_left - map_position -> tile_offset_x / 256.0) * 256.0;
 }
 
+/****************************************************************************************************
+* locate a lattitude on the widget
+****************************************************************************************************/
 int map_area_lat_to_area_y(MapArea *map_area, double lat)
 {
 	MapPosition *map_position = &(map_area -> map_position);
@@ -374,6 +438,9 @@ int map_area_lat_to_area_y(MapArea *map_area, double lat)
 	return (y - map_position -> tile_top - map_position -> tile_offset_y / 256.0) * 256.0;
 }
 
+/****************************************************************************************************
+* get the longitude of a position on the widget
+****************************************************************************************************/
 double map_area_x_to_lon(MapArea *map_area, int x)
 {
 	MapPosition *map_position = &(map_area -> map_position);
@@ -381,6 +448,9 @@ double map_area_x_to_lon(MapArea *map_area, int x)
 	return x_to_lon(pos, map_position -> zoom);
 }
 
+/****************************************************************************************************
+* get the lattitude of a position on the widget
+****************************************************************************************************/
 double map_area_y_to_lat(MapArea *map_area, int y)
 {
 	MapPosition *map_position = &(map_area -> map_position);
@@ -388,25 +458,9 @@ double map_area_y_to_lat(MapArea *map_area, int y)
 	return y_to_lat(pos, map_position -> zoom);
 }
 
-void map_area_repaint(MapArea *map_area)
-{
-	map_area -> need_repaint = TRUE;
-	gtk_widget_queue_draw(GTK_WIDGET(map_area));
-}
-
-void map_area_goto_lon_lat_zoom(MapArea *map_area, double lon, double lat, int zoom)
-{
-	//printf("%f %f %d\n", lon, lat, zoom);
-	map_area -> map_position.lon = lon;
-	map_area -> map_position.lat = lat;
-	map_area -> map_position.zoom = zoom;
-	map_area_adjust_map_position_values(map_area);
-	map_area_adjust_tile_count_information(map_area);
-	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_BEEN_MOVED], 0);
-	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_ZOOM_CHANGED], 0);
-	map_has_moved(map_area);
-}
-
+/****************************************************************************************************
+* put the boudaries of the currently visible area into the lon/lat parameters
+****************************************************************************************************/
 void map_area_get_visible_area(MapArea * map_area, double *min_lon, double *min_lat, double *max_lon, double *max_lat)
 {
 	int width = map_area -> map_position.width;
@@ -428,6 +482,10 @@ void map_area_get_visible_area(MapArea * map_area, double *min_lon, double *min_
 	*min_lat = y_to_lat(y_bo, zoom);
 }
 
+/****************************************************************************************************
+* check whether the given bounding box could be displayed in a map-widget with the size given by
+* width and height
+****************************************************************************************************/
 gboolean map_area_check_if_fits(double lon1, double lat1, double lon2, double lat2, int zoom, int width, int height)
 {
 	double width_half = ((double) width) / 2;
@@ -449,6 +507,10 @@ gboolean map_area_check_if_fits(double lon1, double lat1, double lon2, double la
 	return lon_le <= lon1 && lon_ri >= lon2 && lat_to >= lat1 && lat_bo <= lat2;
 }
 
+/****************************************************************************************************
+* return the maximum zoomlevel that could be used to display the given bounding box in a map-widget
+* with the size given by width and height
+****************************************************************************************************/
 int map_area_get_max_bbox_zoomlevel(double lon1, double lat1, double lon2, double lat2, int width, int height)
 {
 	int zoom = 1;
@@ -463,6 +525,59 @@ int map_area_get_max_bbox_zoomlevel(double lon1, double lat1, double lon2, doubl
 	return zoom;
 }
 
+/****************************************************************************************************
+* set the poi_manager that should be used by this map-widget
+****************************************************************************************************/
+void map_area_set_poi_manager(MapArea *map_area, PoiManager *poi_manager)
+{
+	map_area -> poi_manager = poi_manager;
+}
+
+/****************************************************************************************************
+* set the colours of the selection
+****************************************************************************************************/
+void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad, ColorQuadriple c_a_lines)
+{
+	map_area -> color_selection = c_s;
+	map_area -> color_selection_out = c_s_out;
+	map_area -> color_selection_pad = c_s_pad;
+	map_area -> color_atlas_lines = c_a_lines;
+}
+
+/****************************************************************************************************
+*****************************************************************************************************
+* WIDGET CONTROL
+*****************************************************************************************************
+****************************************************************************************************/
+
+/****************************************************************************************************
+* just repaint the widget
+****************************************************************************************************/
+void map_area_repaint(MapArea *map_area)
+{
+	map_area -> need_repaint = TRUE;
+	gtk_widget_queue_draw(GTK_WIDGET(map_area));
+}
+
+/****************************************************************************************************
+* reposition the map to the given parameters
+****************************************************************************************************/
+void map_area_goto_lon_lat_zoom(MapArea *map_area, double lon, double lat, int zoom)
+{
+	//printf("%f %f %d\n", lon, lat, zoom);
+	map_area -> map_position.lon = lon;
+	map_area -> map_position.lat = lat;
+	map_area -> map_position.zoom = zoom;
+	map_area_adjust_map_position_values(map_area);
+	map_area_adjust_tile_count_information(map_area);
+	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_BEEN_MOVED], 0);
+	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_ZOOM_CHANGED], 0);
+	map_has_moved(map_area);
+}
+
+/****************************************************************************************************
+* reposition the map to a bounding-box
+****************************************************************************************************/
 void map_area_goto_bbox(MapArea *map_area, double lon1, double lat1, double lon2, double lat2)
 {
 	int width = map_area -> map_position.width;
@@ -472,6 +587,9 @@ void map_area_goto_bbox(MapArea *map_area, double lon1, double lat1, double lon2
 	map_area_goto_lon_lat_zoom(map_area, middle_lon(lon1, lon2), middle_lat(lat1, lat2), zoom);
 }
 
+/****************************************************************************************************
+* PRIVATE: adjust internal values after moving the map
+****************************************************************************************************/
 void map_has_moved(MapArea *map_area)
 {
 	map_area -> map_moved = TRUE;
@@ -491,6 +609,91 @@ void map_has_moved(MapArea *map_area)
 	g_signal_emit (map_area, map_area_signals[MAP_BEEN_MOVED], 0);
 }
 
+/****************************************************************************************************
+* PRIVATE: adjust internal position values
+****************************************************************************************************/
+void map_area_adjust_map_position_values(MapArea *map_area)
+{
+	MapPosition *map_position = &(map_area -> map_position);
+	double x = lon_to_x(map_position -> lon, map_position -> zoom) - map_position -> width/2/256.0;
+	double y = lat_to_y(map_position -> lat, map_position -> zoom) - map_position -> height/2/256.0;
+	map_area -> map_position.tile_top 	= (int)y;
+	map_area -> map_position.tile_left 	= (int)x;
+	map_area -> map_position.tile_offset_y 	= ((int)(y * 256.0)) % 256;
+	map_area -> map_position.tile_offset_x 	= ((int)(x * 256.0)) % 256;	
+}
+
+/****************************************************************************************************
+* PRIVATE: adjust the internal information about the currently visible number of tiles
+****************************************************************************************************/
+void map_area_adjust_tile_count_information(MapArea *map_area)
+{
+	MapPosition *map_position = &(map_area -> map_position);
+	int width = map_position -> width;
+	int height = map_position -> height;
+	int width_1 = width - TILESIZE +  map_position -> tile_offset_x;
+	int height_1 = height - TILESIZE +  map_position -> tile_offset_y;
+	width_1 = width_1 > 0 ? width_1 : 0;
+	height_1 = height_1 > 0 ? height_1 :0;
+	map_position -> tile_count_x = width_1 / 256 + 2;
+	map_position -> tile_count_y = height_1 / 256 + 2;
+}
+
+/****************************************************************************************************
+* PRIVATE: return the current size of poi-squares
+****************************************************************************************************/
+double map_area_get_poi_square_size(MapArea *map_area)
+{
+	switch(map_area -> map_position.zoom){
+	case(7):
+	case(8): return 3;
+	case(9):
+	case(10): return 4;
+	case(11):
+	case(12): return 5;
+	case(13):
+	case(14): return 6;
+	case(15): return 7;
+	case(16): return 8;
+	case(17): return 9;
+	case(18): return 10;
+	default: return 2;
+	}
+}
+
+/****************************************************************************************************
+* move the map position for one map-tile in the given direction
+****************************************************************************************************/
+void map_area_move(MapArea *map_area, int direction)
+{
+	MapPosition * map_position = &(map_area -> map_position);
+	switch(direction){
+		case DIRECTION_LEFT:
+		case DIRECTION_TOP_LEFT:
+		case DIRECTION_DOWN_LEFT:
+			map_position -> tile_left -= 1; break;
+		case DIRECTION_RIGHT:
+		case DIRECTION_TOP_RIGHT:
+		case DIRECTION_DOWN_RIGHT:
+			map_position -> tile_left += 1; break;
+	}
+	switch(direction){
+		case DIRECTION_TOP:
+		case DIRECTION_TOP_LEFT:
+		case DIRECTION_TOP_RIGHT:
+			map_position -> tile_top -= 1; break;
+		case DIRECTION_DOWN:
+		case DIRECTION_DOWN_LEFT:
+		case DIRECTION_DOWN_RIGHT:
+			map_position -> tile_top += 1; break;
+	}
+	map_has_moved(map_area);
+	gtk_widget_queue_draw(GTK_WIDGET(map_area));
+}
+
+/****************************************************************************************************
+* zoom in one step
+****************************************************************************************************/
 void map_area_zoom_in(MapArea *map_area)
 {
 	MapPosition *map_position = &(map_area -> map_position);
@@ -511,6 +714,9 @@ void map_area_zoom_in(MapArea *map_area)
 	}
 }
 
+/****************************************************************************************************
+* zoom out one step
+****************************************************************************************************/
 void map_area_zoom_out(MapArea *map_area)
 {
 	MapPosition *map_position = &(map_area -> map_position);
@@ -531,6 +737,9 @@ void map_area_zoom_out(MapArea *map_area)
 	}
 }
 
+/****************************************************************************************************
+* add one point to the existing distance-path
+****************************************************************************************************/
 void path_add_point(MapArea *map_area, double lon, double lat)
 {
 	LonLatPair * llp = malloc(sizeof(LonLatPair));
@@ -541,6 +750,9 @@ void path_add_point(MapArea *map_area, double lon, double lat)
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 }
 
+/****************************************************************************************************
+* remove the last point from the distance-path
+****************************************************************************************************/
 void map_area_path_remove_point(MapArea *map_area)
 {
 	if (g_list_length(map_area -> path) > 1){
@@ -552,6 +764,9 @@ void map_area_path_remove_point(MapArea *map_area)
 	}
 }
 
+/****************************************************************************************************
+* remove all points from the distance-path
+****************************************************************************************************/
 void map_area_path_clear(MapArea *map_area)
 {
 	
@@ -565,6 +780,10 @@ void map_area_path_clear(MapArea *map_area)
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 }
 
+/****************************************************************************************************
+* add a marker to the area
+* TODO: this has to be adjusted for use by poi-editing
+****************************************************************************************************/
 void map_area_add_marker(MapArea *map_area, double lon, double lat)
 {
 	/*IdAndName * id_name = malloc(sizeof(IdAndName));
@@ -575,6 +794,57 @@ void map_area_add_marker(MapArea *map_area, double lon, double lat)
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));*/
 }
 
+/****************************************************************************************************
+*****************************************************************************************************
+* CALLBACKS
+*****************************************************************************************************
+****************************************************************************************************/
+
+/****************************************************************************************************
+* when a key is pressed while map has focus
+****************************************************************************************************/
+static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event)
+{
+	//printf("%d\n", event->keyval); //6536x
+	switch (event->keyval){
+		case 65361: map_area_move(map_area, DIRECTION_LEFT); break;
+		case 65362: map_area_move(map_area, DIRECTION_TOP); break;
+		case 65363: map_area_move(map_area, DIRECTION_RIGHT); break;
+		case 65364: map_area_move(map_area, DIRECTION_DOWN); break;
+		case 65365: map_area_zoom_in(map_area); break;
+		case 65366: map_area_zoom_out(map_area); break;
+	}
+	return FALSE;
+}
+
+/****************************************************************************************************
+* when the mouse is scrolled while map has focus
+****************************************************************************************************/
+static gboolean scroll_cb(MapArea *map_area, GdkEventScroll *event)
+{
+	switch (event -> direction){
+		case GDK_SCROLL_UP: map_area_zoom_in(map_area); break;
+		case GDK_SCROLL_DOWN: map_area_zoom_out(map_area); break;
+	}
+}
+
+/****************************************************************************************************
+* when a tile has been loaded, repaint the area
+****************************************************************************************************/
+static gboolean tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
+{
+	//printf("received a repaint signal\n");
+	map_area -> need_repaint = TRUE;
+	gdk_threads_enter();
+	gtk_widget_queue_draw(GTK_WIDGET(map_area));
+	gdk_threads_leave();
+}
+
+
+
+/****************************************************************************************************
+* when the mouse has been clicked on the map-widget
+****************************************************************************************************/
 static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
@@ -608,6 +878,10 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 	}
 }
 
+/****************************************************************************************************
+* when the mouse has been moved around on the map-widget
+* TODO: this function could be split up into multiple functions
+****************************************************************************************************/
 static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
@@ -801,63 +1075,10 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 	}
 }
 
-static gboolean button_move_function(MapArea *map_area, gpointer direction)
-{
-	MapPosition * map_position = &(map_area -> map_position);
-	int dir = GPOINTER_TO_INT(direction);
-	switch(dir){
-		case DIRECTION_LEFT:
-		case DIRECTION_TOP_LEFT:
-		case DIRECTION_DOWN_LEFT:
-			map_position -> tile_left -= 1; break;
-		case DIRECTION_RIGHT:
-		case DIRECTION_TOP_RIGHT:
-		case DIRECTION_DOWN_RIGHT:
-			map_position -> tile_left += 1; break;
-	}
-	switch(dir){
-		case DIRECTION_TOP:
-		case DIRECTION_TOP_LEFT:
-		case DIRECTION_TOP_RIGHT:
-			map_position -> tile_top -= 1; break;
-		case DIRECTION_DOWN:
-		case DIRECTION_DOWN_LEFT:
-		case DIRECTION_DOWN_RIGHT:
-			map_position -> tile_top += 1; break;
-	}
-	map_has_moved(map_area);
-	gtk_widget_queue_draw(GTK_WIDGET(map_area));
-}
-
-void map_area_move(MapArea *map_area, int direction)
-{
-	button_move_function(map_area, GINT_TO_POINTER(direction));
-}
-
-void map_area_adjust_map_position_values(MapArea *map_area)
-{
-	MapPosition *map_position = &(map_area -> map_position);
-	double x = lon_to_x(map_position -> lon, map_position -> zoom) - map_position -> width/2/256.0;
-	double y = lat_to_y(map_position -> lat, map_position -> zoom) - map_position -> height/2/256.0;
-	map_area -> map_position.tile_top 	= (int)y;
-	map_area -> map_position.tile_left 	= (int)x;
-	map_area -> map_position.tile_offset_y 	= ((int)(y * 256.0)) % 256;
-	map_area -> map_position.tile_offset_x 	= ((int)(x * 256.0)) % 256;	
-}
-
-void map_area_adjust_tile_count_information(MapArea *map_area)
-{
-	MapPosition *map_position = &(map_area -> map_position);
-	int width = map_position -> width;
-	int height = map_position -> height;
-	int width_1 = width - TILESIZE +  map_position -> tile_offset_x;
-	int height_1 = height - TILESIZE +  map_position -> tile_offset_y;
-	width_1 = width_1 > 0 ? width_1 : 0;
-	height_1 = height_1 > 0 ? height_1 :0;
-	map_position -> tile_count_x = width_1 / 256 + 2;
-	map_position -> tile_count_y = height_1 / 256 + 2;
-}
-
+/****************************************************************************************************
+* when the expose event has been sent to the map-widget
+* TODO: this function could be split up into multiple function
+****************************************************************************************************/
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 {
 	//printf("function map_area.expose_cb\n");
@@ -1217,89 +1438,3 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	return TRUE;
 }
 
-static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event)
-{
-	//printf("%d\n", event->keyval); //6536x
-	switch (event->keyval){
-		case 65361: map_area_move(map_area, DIRECTION_LEFT); break;
-		case 65362: map_area_move(map_area, DIRECTION_TOP); break;
-		case 65363: map_area_move(map_area, DIRECTION_RIGHT); break;
-		case 65364: map_area_move(map_area, DIRECTION_DOWN); break;
-		case 65365: map_area_zoom_in(map_area); break;
-		case 65366: map_area_zoom_out(map_area); break;
-	}
-	return FALSE;
-}
-
-static gboolean scroll_cb(MapArea *map_area, GdkEventScroll *event)
-{
-	switch (event -> direction){
-		case GDK_SCROLL_UP: map_area_zoom_in(map_area); break;
-		case GDK_SCROLL_DOWN: map_area_zoom_out(map_area); break;
-	}
-}
-
-void map_area_set_color_selection(MapArea *map_area, ColorQuadriple c_s, ColorQuadriple c_s_out, ColorQuadriple c_s_pad, ColorQuadriple c_a_lines)
-{
-	map_area -> color_selection = c_s;
-	map_area -> color_selection_out = c_s_out;
-	map_area -> color_selection_pad = c_s_pad;
-	map_area -> color_atlas_lines = c_a_lines;
-}
-
-TileManager * map_area_get_tile_manager(MapArea *map_area, Tileset tileset)
-{
-	return map_area -> tile_manager[tileset];
-}
-
-void map_area_set_poi_manager(MapArea *map_area, PoiManager *poi_manager)
-{
-	map_area -> poi_manager = poi_manager;
-}
-
-double map_area_get_poi_square_size(MapArea *map_area)
-{
-	switch(map_area -> map_position.zoom){
-	case(7):
-	case(8): return 3;
-	case(9):
-	case(10): return 4;
-	case(11):
-	case(12): return 5;
-	case(13):
-	case(14): return 6;
-	case(15): return 7;
-	case(16): return 8;
-	case(17): return 9;
-	case(18): return 10;
-	default: return 2;
-	}
-}
-
-void map_area_set_show_grid(MapArea * map_area, gboolean show)
-{
-	if (map_area -> show_grid != show){
-		map_area -> show_grid = show;
-		map_area_repaint(map_area);
-		g_signal_emit (map_area, map_area_signals[MAP_GRID_TOGGLED], 0);
-	}
-}
-
-gboolean map_area_get_show_grid(MapArea * map_area)
-{
-	return map_area -> show_grid;
-}
-
-void map_area_set_show_font(MapArea * map_area, gboolean show)
-{
-	if (map_area -> show_font != show){
-		map_area -> show_font = show;
-		map_area_repaint(map_area);
-		g_signal_emit (map_area, map_area_signals[MAP_FONT_TOGGLED], 0);
-	}
-}
-
-gboolean map_area_get_show_font(MapArea * map_area)
-{
-	return map_area -> show_font;
-}
