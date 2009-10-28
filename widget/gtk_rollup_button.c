@@ -31,8 +31,15 @@
 
 #define BUTTONSIZE 10
 
+/****************************************************************************************************
+* this is a simple triangle button used by the GtkCustomFrame as a button to show/hide the child-
+* widget; it is a toggle-button
+****************************************************************************************************/
 G_DEFINE_TYPE (GtkRollupButton, gtk_rollup_button, GTK_TYPE_DRAWING_AREA);
 
+/****************************************************************************************************
+* signals
+****************************************************************************************************/
 enum
 {
         TOGGLED,
@@ -41,9 +48,15 @@ enum
 
 static guint gtk_rollup_button_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* method declarations
+****************************************************************************************************/
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event);
 static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GtkWidget * gtk_rollup_button_new()
 {
 	GtkRollupButton * gtk_rollup_button = g_object_new(GOSM_TYPE_GTK_ROLLUP_BUTTON, NULL);
@@ -58,6 +71,9 @@ GtkWidget * gtk_rollup_button_new()
 	return GTK_WIDGET(gtk_rollup_button);
 }
 
+/****************************************************************************************************
+* class init
+****************************************************************************************************/
 static void gtk_rollup_button_class_init(GtkRollupButtonClass *class)
 {
 	GtkWidgetClass *widget_class;
@@ -78,6 +94,9 @@ static void gtk_rollup_button_init(GtkRollupButton *gtk_rollup_button)
 {
 }
 
+/****************************************************************************************************
+* set/get whether this button is active, i.e. toggled or not
+****************************************************************************************************/
 gboolean gtk_rollup_button_get_active(GtkRollupButton * button)
 {
 	return button -> active;
@@ -88,6 +107,9 @@ void gtk_rollup_button_set_active(GtkRollupButton * button, gboolean active)
 	button -> active = active;
 }
 
+/****************************************************************************************************
+* draw the button
+****************************************************************************************************/
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 {
 	GtkRollupButton * button = GOSM_GTK_ROLLUP_BUTTON(widget);
@@ -120,6 +142,9 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	return FALSE;
 }
 
+/****************************************************************************************************
+* when the button has been clicked
+****************************************************************************************************/
 static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	GtkRollupButton * button = GOSM_GTK_ROLLUP_BUTTON(widget);

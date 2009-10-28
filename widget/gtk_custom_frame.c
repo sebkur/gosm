@@ -29,6 +29,11 @@
 #include "gtk_custom_frame.h"
 #include "gtk_rollup_button.h"
 
+/****************************************************************************************************
+* GtkCustomFrame is somehow like a GtkFrame.
+* it add the functionality to show/hide the child-widget.
+* TODO: although it works like this, this should propably implement the GtkContainer interface
+****************************************************************************************************/
 G_DEFINE_TYPE (GtkCustomFrame, gtk_custom_frame, GTK_TYPE_VBOX);
 
 /*enum
@@ -40,8 +45,15 @@ G_DEFINE_TYPE (GtkCustomFrame, gtk_custom_frame, GTK_TYPE_VBOX);
 
 //static guint gtk_custom_frame_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, gtk_custom_frame_signals[SIGNAL_NAME_n], 0);
+
+/****************************************************************************************************
+* method declarations
+****************************************************************************************************/
 static gboolean button_toggled_cb(GtkRollupButton * button, gpointer data);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GtkWidget * gtk_custom_frame_new(char * title)
 {
 	GtkCustomFrame * gtk_custom_frame = g_object_new(GOSM_TYPE_GTK_CUSTOM_FRAME, NULL);
@@ -99,6 +111,10 @@ static void gtk_custom_frame_init(GtkCustomFrame *gtk_custom_frame)
 {
 }
 
+/****************************************************************************************************
+* add the child widget
+* TODO: invalid usage of the container is not catched
+****************************************************************************************************/
 void gtk_custom_frame_add(GtkCustomFrame * gtk_custom_frame, GtkWidget * widget)
 {
 	gtk_custom_frame -> child = widget;
@@ -106,6 +122,9 @@ void gtk_custom_frame_add(GtkCustomFrame * gtk_custom_frame, GtkWidget * widget)
 	gtk_widget_show_all(widget);
 }
 
+/****************************************************************************************************
+* set/get wheter the child-widget is visible
+****************************************************************************************************/
 gboolean gtk_custom_frame_get_child_visible(GtkCustomFrame * gtk_custom_frame)
 {
 	return gtk_custom_frame -> child_visible;
@@ -123,6 +142,9 @@ void gtk_custom_frame_set_child_visible(GtkCustomFrame * gtk_custom_frame, gbool
 	}
 }
 
+/****************************************************************************************************
+* when the rollup-button has been clicked, toggle visibility of the child
+****************************************************************************************************/
 static gboolean button_toggled_cb(GtkRollupButton * button, gpointer data)
 {
 	GtkCustomFrame * frame = GOSM_GTK_CUSTOM_FRAME(data);
