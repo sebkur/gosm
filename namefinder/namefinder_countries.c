@@ -39,6 +39,9 @@
 
 G_DEFINE_TYPE (NamefinderCountries, namefinder_countries, GTK_TYPE_VBOX);
 
+/****************************************************************************************************
+* signals
+****************************************************************************************************/
 enum
 {
         CITY_ACTIVATED,
@@ -47,6 +50,9 @@ enum
 
 static guint namefinder_countries_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* treeview's columns
+****************************************************************************************************/
 enum
 {
 	COL_NAME = 0,
@@ -61,12 +67,18 @@ void namefinder_countries_view_cb (GtkTreeView	      *treeview,
 		    GtkTreeViewColumn  *col,
 		    gpointer            namefinder_countries);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GtkWidget * namefinder_countries_new()
 {
 	NamefinderCountries * namefinder_countries = g_object_new(GOSM_TYPE_NAMEFINDER_COUNTRIES, NULL);
 	return GTK_WIDGET(namefinder_countries);
 }
 
+/****************************************************************************************************
+* class init
+****************************************************************************************************/
 static void namefinder_countries_class_init(NamefinderCountriesClass *class)
 {
         namefinder_countries_signals[CITY_ACTIVATED] = g_signal_new(
@@ -79,6 +91,9 @@ static void namefinder_countries_class_init(NamefinderCountriesClass *class)
                 G_TYPE_NONE, 0);
 }
 
+/****************************************************************************************************
+* object init
+****************************************************************************************************/
 static void namefinder_countries_init(NamefinderCountries *namefinder_countries)
 {
 	char * filename = GOSM_NAMEFINDER_DIR "res/countries.txt";
@@ -136,16 +151,25 @@ static void namefinder_countries_init(NamefinderCountries *namefinder_countries)
 	gtk_container_add (GTK_CONTAINER (namefinder_countries), scrolled);
 }
 
+/****************************************************************************************************
+* return the currently activated item's index
+****************************************************************************************************/
 int namefinder_countries_get_activated_id(NamefinderCountries * namefinder_countries)
 {
 	return namefinder_countries -> activated;
 }
 
+/****************************************************************************************************
+* return the array of country-structs
+****************************************************************************************************/
 gpointer namefinder_countries_get_countries(NamefinderCountries * namefinder_countries)
 {
 	return namefinder_countries -> countries;
 }
 
+/****************************************************************************************************
+* create the treeview's model
+****************************************************************************************************/
 static GtkTreeModel * namefinder_countries_create_model (country * countries, int num)
 {
 	GtkListStore	*store;
@@ -164,6 +188,9 @@ static GtkTreeModel * namefinder_countries_create_model (country * countries, in
 	return GTK_TREE_MODEL (store);
 }
 
+/****************************************************************************************************
+* create the treeview
+****************************************************************************************************/
 static GtkWidget * namefinder_countries_create_view (country * countries, int num)
 {
 	GtkCellRenderer     *renderer;
@@ -184,11 +211,17 @@ static GtkWidget * namefinder_countries_create_view (country * countries, int nu
 	return view;
 }
 
+/****************************************************************************************************
+* function used to sort countries by name
+****************************************************************************************************/
 static int cmpstringp(const void *p1, const void *p2)
 {
 	 return strcmp(* (char * const *) p1, * (char * const *) p2);
 }
 
+/****************************************************************************************************
+* when an item has been activated
+****************************************************************************************************/
 void namefinder_countries_view_cb (GtkTreeView	      *treeview,
 		    GtkTreePath        *path,
 		    GtkTreeViewColumn  *col,

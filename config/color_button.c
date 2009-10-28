@@ -29,6 +29,9 @@
 
 #include "color_button.h"
 
+/****************************************************************************************************
+* this is a simple button that displays a colour
+****************************************************************************************************/
 G_DEFINE_TYPE (ColorButton, color_button, GTK_TYPE_DRAWING_AREA);
 
 /*enum
@@ -43,6 +46,9 @@ G_DEFINE_TYPE (ColorButton, color_button, GTK_TYPE_DRAWING_AREA);
 
 static gboolean expose_cb (GtkWidget * area, GdkEventExpose *event);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GtkWidget * color_button_new()
 {
 	ColorButton * color_button = g_object_new(GOSM_TYPE_COLOR_BUTTON, NULL);
@@ -71,6 +77,9 @@ static void color_button_init(ColorButton *color_button)
 {
 }
 
+/****************************************************************************************************
+* set the colour the button shall show
+****************************************************************************************************/
 void color_button_set_color(ColorButton * color_button, double r, double g, double b, double a)
 {
 	color_button -> r = r;
@@ -80,9 +89,10 @@ void color_button_set_color(ColorButton * color_button, double r, double g, doub
 	gtk_widget_queue_draw(GTK_WIDGET(color_button));
 }
 
-/*
- * derived from gtk_color_sel.c
- */
+/****************************************************************************************************
+* paint the widget
+* derived from gtk_color_sel.c
+****************************************************************************************************/
 static gboolean expose_cb (GtkWidget * area, GdkEventExpose *event)
 {
 	ColorButton * cb = GOSM_COLOR_BUTTON(area);

@@ -21,11 +21,17 @@
 #ifndef _ATLAS_H_
 #define _ATLAS_H_
 
+/****************************************************************************************************
+* used to discriminate between landscape and portrait orientation of paper-layouts
+****************************************************************************************************/
 typedef enum {
 	ORIENTATION_LANDSCAPE,
 	ORIENTATION_PORTRAIT
 } PageOrientation;
 
+/****************************************************************************************************
+* defines some papersizes
+****************************************************************************************************/
 typedef enum {
 	PAPERSIZE_A3,
 	PAPERSIZE_A4,
@@ -35,16 +41,26 @@ typedef enum {
 	PAPERSIZE_LAST
 } PageSize;
 
+/****************************************************************************************************
+* a paper has width and height
+****************************************************************************************************/
 typedef struct {
 	int width;
 	int height;
 } PageDimension;
 
+/****************************************************************************************************
+* an image has width and height
+****************************************************************************************************/
 typedef struct {
 	int width;
 	int height;
 } ImageDimension;
 
+/****************************************************************************************************
+* a page consist of pagesize, orientation, border and resolution
+* TODO: there seems to be some redundancy here (width, height are also in pagesize?)
+****************************************************************************************************/
 typedef struct {
 	PageSize page_size;
 	PageOrientation page_orientation;

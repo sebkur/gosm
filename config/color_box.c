@@ -32,6 +32,13 @@
 #include "../map_types.h"
 #include "../customio.h"
 
+/****************************************************************************************************
+* This is a combination of two widgets: an entry and a colour-button.
+* the two widget are arranged horizontally in a box, first the entry, then the button.
+* the two items are connected, so that changing the colour in on of them influences the
+* representation of the other. the current value can be obtained from outside by the 
+* function 'color_box_get_current_value'.
+****************************************************************************************************/
 G_DEFINE_TYPE (ColorBox, color_box, GTK_TYPE_HBOX);
 
 /*enum
@@ -47,11 +54,13 @@ G_DEFINE_TYPE (ColorBox, color_box, GTK_TYPE_HBOX);
 static gboolean color_box_entry_cb(GtkWidget * entry, ColorBox * color_box);
 static gboolean color_box_button_cb(GtkWidget * button, GdkEventButton * event, ColorBox * color_box);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GtkWidget * color_box_new()
 {
 	ColorBox * color_box = g_object_new(GOSM_TYPE_COLOR_BOX, NULL);
 	color_box -> entry = gtk_entry_new();
-	//color_box -> button = gtk_button_new_with_label("Select");
 	color_box -> button = color_button_new();
 	gtk_widget_set_size_request(color_box -> button, 40, -1);
 	gtk_box_pack_start(GTK_BOX(color_box), color_box -> entry, TRUE, TRUE, 0);
@@ -61,6 +70,9 @@ GtkWidget * color_box_new()
 	return GTK_WIDGET(color_box);
 }
 
+/****************************************************************************************************
+* class init
+****************************************************************************************************/
 static void color_box_class_init(ColorBoxClass *class)
 {
         /*color_box_signals[SIGNAL_NAME_n] = g_signal_new(
@@ -77,11 +89,18 @@ static void color_box_init(ColorBox *color_box)
 {
 }
 
+/****************************************************************************************************
+* return the currently selected value, e.g. '0.92,0.90,0.14,0.40'
+* which is red, green, blue, alpha; each in range [0.0,1.0]
+****************************************************************************************************/
 const char * color_box_get_current_value(ColorBox * color_box)
 {
 	return gtk_entry_get_text(GTK_ENTRY(color_box -> entry));
 }
 
+/****************************************************************************************************
+* set current value. parameter has to be in the form as obtained by the getter-function
+****************************************************************************************************/
 void color_box_set_current_value(ColorBox * color_box, char * value)
 {
 	gtk_entry_set_text(GTK_ENTRY(color_box -> entry), value);
@@ -89,6 +108,10 @@ void color_box_set_current_value(ColorBox * color_box, char * value)
 	strcpy(color_box -> last_correct_value, value);
 }
 
+/****************************************************************************************************
+* callback for changes in the entry
+* -> updates the appearance of the button
+****************************************************************************************************/
 static gboolean color_box_entry_cb(GtkWidget * entry, ColorBox * color_box)
 {
 	const char * value = gtk_entry_get_text(GTK_ENTRY(entry));
@@ -110,6 +133,10 @@ static gboolean color_box_entry_cb(GtkWidget * entry, ColorBox * color_box)
 	}
 }
 
+/****************************************************************************************************
+* callback for changes of the button
+* -> updates the contents of the entry
+****************************************************************************************************/
 static gboolean color_box_button_cb(GtkWidget * button, GdkEventButton * event, ColorBox * color_box)
 {
 	//printf("%s\n", gtk_entry_get_text(GTK_ENTRY(entry)));

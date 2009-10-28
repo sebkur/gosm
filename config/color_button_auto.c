@@ -32,6 +32,11 @@
 #include "../map_types.h"
 #include "../customio.h"
 
+/****************************************************************************************************
+* this is a coloured button that can be used to let the user select a colour.
+* the buttons appears in the preselected colour. when the user clicks the button, a colour-chooser-
+* dialog will appear.
+****************************************************************************************************/
 G_DEFINE_TYPE (ColorButtonAuto, color_button_auto, GTK_TYPE_HBOX);
 
 /*enum
@@ -47,12 +52,17 @@ G_DEFINE_TYPE (ColorButtonAuto, color_button_auto, GTK_TYPE_HBOX);
 static gboolean color_button_auto_entry_cb(GtkWidget * entry, ColorButtonAuto * color_button_auto);
 static gboolean color_button_auto_button_cb(GtkWidget * button, GdkEventButton * event, ColorButtonAuto * color_button_auto);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GtkWidget * color_button_auto_new()
 {
 	ColorButtonAuto * color_button_auto = g_object_new(GOSM_TYPE_COLOR_BUTTON_AUTO, NULL);
 	color_button_auto -> button = color_button_new();
 	gtk_box_pack_start(GTK_BOX(color_button_auto), color_button_auto -> button, TRUE, TRUE, 0);
-	g_signal_connect(G_OBJECT(color_button_auto -> button), "button_press_event", G_CALLBACK(color_button_auto_button_cb), color_button_auto);
+	g_signal_connect(
+		G_OBJECT(color_button_auto -> button), "button_press_event", 
+		G_CALLBACK(color_button_auto_button_cb), color_button_auto);
 	return GTK_WIDGET(color_button_auto);
 }
 
@@ -72,6 +82,9 @@ static void color_button_auto_init(ColorButtonAuto *color_button_auto)
 {
 }
 
+/****************************************************************************************************
+* get the current value
+****************************************************************************************************/
 void color_button_auto_get_current_value(ColorButtonAuto * color_button_auto, double *r, double *g, double *b, double *a)
 {
 	*r = GOSM_COLOR_BUTTON(color_button_auto -> button) -> r;
@@ -80,12 +93,18 @@ void color_button_auto_get_current_value(ColorButtonAuto * color_button_auto, do
 	*a = GOSM_COLOR_BUTTON(color_button_auto -> button) -> a;
 }
 
+/****************************************************************************************************
+* set the current value externaly
+****************************************************************************************************/
 void color_button_auto_set_current_value(ColorButtonAuto * color_button_auto, double r, double g, double b, double a)
 {
 	color_button_set_color(
 		GOSM_COLOR_BUTTON(color_button_auto -> button), r, g, b, a);
 }
 
+/****************************************************************************************************
+* show the dialog to select a colour for the button
+****************************************************************************************************/
 static gboolean color_button_auto_button_cb(GtkWidget * button, GdkEventButton * event, ColorButtonAuto * color_button_auto)
 {
 	GtkWidget * dialog = gtk_color_selection_dialog_new("Select color");

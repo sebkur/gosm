@@ -35,8 +35,6 @@ G_DEFINE_TYPE (ManualDialog, manual_dialog, GTK_TYPE_WINDOW);
 
 static void manual_dialog_class_init(ManualDialogClass *class)
 {
-	GtkWidgetClass *widget_class;
-	widget_class = GTK_WIDGET_CLASS(class);
 }
 
 static void manual_dialog_init(ManualDialog *manual_dialog)
@@ -45,6 +43,9 @@ static void manual_dialog_init(ManualDialog *manual_dialog)
 
 GtkWidget * manual_widget_new(ManualDialog *manual_dialog);
 
+/****************************************************************************************************
+* constructor, create the manual dialog
+****************************************************************************************************/
 GtkWidget * manual_dialog_new(GtkWindow * parent_window)
 {
 	ManualDialog * win = g_object_new(GOSM_TYPE_MANUAL_DIALOG, NULL);
@@ -60,6 +61,9 @@ GtkWidget * manual_dialog_new(GtkWindow * parent_window)
 	return GTK_WIDGET(win);
 }
 
+/****************************************************************************************************
+* create the webkit view showing the manual pages
+****************************************************************************************************/
 GtkWidget * manual_widget_new(ManualDialog * manual_dialog)
 {
 	char * uri = get_abs_uri(GOSM_MANUAL_DIR "index.html");
@@ -73,9 +77,5 @@ GtkWidget * manual_widget_new(ManualDialog * manual_dialog)
                                         GTK_POLICY_AUTOMATIC,
                                         GTK_POLICY_AUTOMATIC);
 	gtk_widget_set_size_request(scrolled, 600, 400);
-
-	GtkWidget *label_copyright= gtk_label_new("GOSM");
-	GtkWidget *label_manualosm = gtk_label_new("OpenStreetMap");
-	GtkWidget *label_license = gtk_label_new("License");
 	return scrolled;
 }

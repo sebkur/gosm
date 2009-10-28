@@ -39,6 +39,9 @@
 
 G_DEFINE_TYPE (NamefinderCities, namefinder_cities, GTK_TYPE_VBOX);
 
+/****************************************************************************************************
+* signals
+****************************************************************************************************/
 enum
 {
         CITY_ACTIVATED,
@@ -47,12 +50,18 @@ enum
 
 static guint namefinder_cities_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* the columns of the treeview
+****************************************************************************************************/
 enum
 {
 	COL_NAME = 0,
 	NUM_COLS
 } ;
 
+/****************************************************************************************************
+* method declarations
+****************************************************************************************************/
 static GtkTreeModel * namefinder_cities_create_model (city * cities, int num);
 static GtkWidget * namefinder_cities_create_view (city * cities, int num);
 static int cmpstringp(const void *p1, const void *p2);
@@ -61,12 +70,18 @@ void namefinder_cities_view_cb (GtkTreeView	      *treeview,
 		    GtkTreeViewColumn  *col,
 		    gpointer            namefinder_cities);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GtkWidget * namefinder_cities_new()
 {
 	NamefinderCities * namefinder_cities = g_object_new(GOSM_TYPE_NAMEFINDER_CITIES, NULL);
 	return GTK_WIDGET(namefinder_cities);
 }
 
+/****************************************************************************************************
+* class init
+****************************************************************************************************/
 static void namefinder_cities_class_init(NamefinderCitiesClass *class)
 {
         namefinder_cities_signals[CITY_ACTIVATED] = g_signal_new(
@@ -79,6 +94,9 @@ static void namefinder_cities_class_init(NamefinderCitiesClass *class)
                 G_TYPE_NONE, 0);
 }
 
+/****************************************************************************************************
+* object init
+****************************************************************************************************/
 static void namefinder_cities_init(NamefinderCities *namefinder_cities)
 {
 	char * filename = GOSM_NAMEFINDER_DIR "res/cities15000.crop.txt";
@@ -126,16 +144,25 @@ static void namefinder_cities_init(NamefinderCities *namefinder_cities)
 	gtk_container_add (GTK_CONTAINER (namefinder_cities), scrolled);
 }
 
+/****************************************************************************************************
+* return the currently activated item's index
+****************************************************************************************************/
 int namefinder_cities_get_activated_id(NamefinderCities * namefinder_cities)
 {
 	return namefinder_cities -> activated;
 }
 
+/****************************************************************************************************
+* return the array of city-structs
+****************************************************************************************************/
 gpointer namefinder_cities_get_cities(NamefinderCities * namefinder_cities)
 {
 	return namefinder_cities -> cities;
 }
 
+/****************************************************************************************************
+* create the treeview's model
+****************************************************************************************************/
 static GtkTreeModel * namefinder_cities_create_model (city * cities, int num)
 {
 	GtkListStore	*store;
@@ -154,6 +181,9 @@ static GtkTreeModel * namefinder_cities_create_model (city * cities, int num)
 	return GTK_TREE_MODEL (store);
 }
 
+/****************************************************************************************************
+* create the treeview
+****************************************************************************************************/
 static GtkWidget * namefinder_cities_create_view (city * cities, int num)
 {
 	GtkCellRenderer     *renderer;
@@ -174,18 +204,24 @@ static GtkWidget * namefinder_cities_create_view (city * cities, int num)
 	return view;
 }
 
+/****************************************************************************************************
+* function used to sort the cities
+****************************************************************************************************/
 static int cmpstringp(const void *p1, const void *p2)
 {
 	 return strcmp(* (char * const *) p1, * (char * const *) p2);
 }
 
+/****************************************************************************************************
+* when an entry has been activated
+****************************************************************************************************/
 void namefinder_cities_view_cb (GtkTreeView	      *treeview,
 		    GtkTreePath        *path,
 		    GtkTreeViewColumn  *col,
 		    gpointer            namefinder_cities)
 {
 	GtkTreeModel *model;
-	GtkTreeIter	 iter;
+	GtkTreeIter iter;
 
 	model = gtk_tree_view_get_model(treeview);
 

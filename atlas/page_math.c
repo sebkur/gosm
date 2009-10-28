@@ -26,6 +26,9 @@
 
 #define MM_TO_INCH(x)	((double)x)/25.4
 
+/****************************************************************************************************
+* calculates the visible area of a page in pixels by subtracting margins and applying resolution
+****************************************************************************************************/
 ImageDimension get_image_dimension(PageInformation page_info)
 {
 	ImageDimension id;

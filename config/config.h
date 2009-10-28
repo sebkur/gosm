@@ -39,6 +39,12 @@
 typedef struct _Config        Config;
 typedef struct _ConfigClass   ConfigClass;
 
+/****************************************************************************************************
+* 'name' is a string that identifies the configuration-entry
+* 'type' is one of those TYPE_* below and indicates the type of data found in 'data'
+* 'data_str' is a string representation of the value, e.g. "TRUE", "13.42", or "/tmp/osm_mapnik"
+* 'data' is the actual value stored in the entry, e.g. 1, 13.42, "/tmp/osm_mapnik"
+****************************************************************************************************/
 typedef struct ConfEntry{
 	char * name;
 	int type;
@@ -46,6 +52,9 @@ typedef struct ConfEntry{
 	gpointer data;
 } ConfEntry;
 
+/****************************************************************************************************
+* this is used to discriminate between different types of values stored in configuration entries
+****************************************************************************************************/
 enum {
         TYPE_BOOLEAN,
         TYPE_INT,
@@ -56,6 +65,9 @@ enum {
 	TYPE_IP
 };
 
+/****************************************************************************************************
+* header for config-class
+****************************************************************************************************/
 struct _Config
 {
 	GObject parent;

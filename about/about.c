@@ -49,6 +49,9 @@ static void about_dialog_init(AboutDialog *about_dialog)
 
 GtkWidget * about_widget_new(AboutDialog *about_dialog);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GtkWidget * about_dialog_new(GtkWindow * parent_window, MapArea * m_a)
 {
 	AboutDialog * win = g_object_new(GOSM_TYPE_ABOUT_DIALOG, NULL);
@@ -67,11 +70,19 @@ GtkWidget * about_dialog_new(GtkWindow * parent_window, MapArea * m_a)
 	return GTK_WIDGET(win);
 }
 
+/****************************************************************************************************
+* get the notebook
+****************************************************************************************************/
 GtkNotebook * about_dialog_get_notebook(AboutDialog * about_dialog)
 {
 	return GTK_NOTEBOOK(about_dialog -> notebook);
 }
 
+/****************************************************************************************************
+* this function gets called, when the user clicks a link that 
+* calls the function 'showpos' from javascript
+* it will then position the map to the position given by the javascript functions' parameters
+****************************************************************************************************/
 JSValueRef show_pos_cb(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception){
         //printf("show_pos function called from javascript\n");
 	double values[3];
@@ -95,6 +106,9 @@ JSValueRef show_pos_cb(JSContextRef ctx, JSObjectRef function, JSObjectRef thisO
 	gdk_threads_leave();
 }
 
+/****************************************************************************************************
+* create the widget
+****************************************************************************************************/
 GtkWidget * about_widget_new(AboutDialog * about_dialog)
 {
 

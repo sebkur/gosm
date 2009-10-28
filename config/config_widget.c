@@ -35,6 +35,9 @@
 #include "../customio.h"
 #include "../tool.h"
 
+/****************************************************************************************************
+* this is a widget that displays the configuration and let's the user edit the values
+****************************************************************************************************/
 G_DEFINE_TYPE (ConfigWidget, config_widget, GTK_TYPE_VBOX);
 
 /*enum
@@ -47,6 +50,9 @@ G_DEFINE_TYPE (ConfigWidget, config_widget, GTK_TYPE_VBOX);
 //static guint config_widget_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, config_widget_signals[SIGNAL_NAME_n], 0);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GtkWidget * config_widget_new(Config * config)
 {
 	ConfigWidget * config_widget = g_object_new(GOSM_TYPE_CONFIG_WIDGET, NULL);
@@ -71,19 +77,30 @@ static void config_widget_init(ConfigWidget *config_widget)
 {
 }
 
+/****************************************************************************************************
+* when the user clicked "apply"
+****************************************************************************************************/
 static gboolean preferences_confirm_cb(GtkWidget * widget, ConfigWidget * conf_widget)
 {
-	gboolean ** changed = config_widget_get_new_configuration(conf_widget);
+	gboolean * changed = config_widget_get_new_configuration(conf_widget);
+	free(changed);
+	//TODO: inspect if something actually changed
 	GtkWidget * window = find_containing_gtk_window(GTK_WIDGET(conf_widget));
 	gtk_widget_destroy(window);
 	config_save_config_file(conf_widget -> config);
 }
 
+/****************************************************************************************************
+* when the user cancelled
+****************************************************************************************************/
 static gboolean preferences_cancel_cb(GtkWidget * widget, GtkWindow *window)
 {
 	gtk_widget_destroy(GTK_WIDGET(window));
 }
 
+/****************************************************************************************************
+* present this widget in a window
+****************************************************************************************************/
 void config_widget_show_in_window(ConfigWidget * config_widget, GtkWindow * parent)
 {
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -104,8 +121,11 @@ void config_widget_show_in_window(ConfigWidget * config_widget, GtkWindow * pare
         gtk_widget_show_all(window);
 }
 
-// TODO: this function returns nothing???
-gboolean ** config_widget_get_new_configuration(ConfigWidget * config_widget)
+/****************************************************************************************************
+* apply the configuration edited by the user to the configuration-array
+* return an array of gbooleans indicating whether each of the entries has changed
+****************************************************************************************************/
+gboolean * config_widget_get_new_configuration(ConfigWidget * config_widget)
 {
 	Config * config = config_widget -> config;
 	gboolean * changed = malloc(sizeof(gboolean) * config -> num_entries);
@@ -140,11 +160,15 @@ gboolean ** config_widget_get_new_configuration(ConfigWidget * config_widget)
 		}
 		}
 	}
-	for (i = 0; i < config -> num_entries; i++){
-		printf("%d\n", changed[i]);
-	}
+//	for (i = 0; i < config -> num_entries; i++){
+//		printf("%d\n", changed[i]);
+//	}
+	return changed;
 }
 
+/****************************************************************************************************
+* construct the widget
+****************************************************************************************************/
 config_widget_construct(ConfigWidget * config_widget, Config * config)
 {
 	GtkWidget *box_v = GTK_WIDGET(config_widget); 

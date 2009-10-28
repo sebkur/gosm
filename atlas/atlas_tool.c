@@ -35,6 +35,9 @@
 
 G_DEFINE_TYPE (AtlasTool, atlas_tool, GTK_TYPE_VBOX);
 
+/****************************************************************************************************
+* signals
+****************************************************************************************************/
 enum
 {
 	VALUES_CHANGED,
@@ -43,11 +46,17 @@ enum
 
 static guint atlas_tool_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 AtlasTool * atlas_tool_new()
 {
 	return g_object_new(GOSM_TYPE_ATLAS_TOOL, NULL);
 }
 
+/****************************************************************************************************
+* class init
+****************************************************************************************************/
 static void atlas_tool_class_init(AtlasToolClass *class)
 {
 	atlas_tool_signals[VALUES_CHANGED] = g_signal_new(
@@ -60,6 +69,9 @@ static void atlas_tool_class_init(AtlasToolClass *class)
 		G_TYPE_NONE, 0);
 }
 
+/****************************************************************************************************
+* method declarations
+****************************************************************************************************/
 void set_resize_visibility(AtlasTool * atlas_tool, gboolean state);
 static gboolean mode_switched_cb(GtkWidget *widget, gpointer atlasp);
 static gboolean widget_changed_cb(GtkWidget *widget, gpointer atlasp);
@@ -70,6 +82,9 @@ void atlas_tool_set_page_info(AtlasTool * atlas_tool, PageInformation page_info)
 void atlas_tool_set_image_dimension(AtlasTool * atlas_tool, ImageDimension image_dimension);
 void atlas_tool_set_values(AtlasTool * atlas_tool, int zoom, gboolean visible);
 
+/****************************************************************************************************
+* object init
+****************************************************************************************************/
 static void atlas_tool_init(AtlasTool *atlas_tool)
 {
 	GtkWidget *label_size = gtk_label_new("Size:");
@@ -120,16 +135,16 @@ static void atlas_tool_init(AtlasTool *atlas_tool)
 	gtk_widget_set_tooltip_text(atlas_tool -> button_export_pdf, "export to pdf");
 
 	GtkWidget * table = gtk_table_new(5, 3, FALSE);
-	gtk_table_attach(GTK_TABLE(table), label_size,					1, 2, 0, 1, GTK_EXPAND | GTK_FILL, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(table), label_intersect,				2, 3, 0, 1, GTK_EXPAND | GTK_FILL, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(table), icon1,					0, 1, 1, 2, GTK_SHRINK, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(table), icon2,					0, 1, 2, 3, GTK_SHRINK, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(table), atlas_tool->entry_slice_x,			1, 2, 1, 2, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(table), atlas_tool->entry_slice_y,			1, 2, 2, 3, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(table), atlas_tool->entry_slice_intersect_x,		2, 3, 1, 2, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(table), atlas_tool->entry_slice_intersect_y,		2, 3, 2, 3, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(table), box_check_show,				0, 3, 3, 4, GTK_EXPAND | GTK_FILL, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(table), box_buttons,					0, 3, 4, 5, GTK_EXPAND | GTK_FILL, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), label_size,				1, 2, 0, 1, GTK_EXPAND | GTK_FILL, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), label_intersect,			2, 3, 0, 1, GTK_EXPAND | GTK_FILL, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), icon1,				0, 1, 1, 2, GTK_SHRINK, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), icon2,				0, 1, 2, 3, GTK_SHRINK, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), atlas_tool->entry_slice_x,		1, 2, 1, 2, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), atlas_tool->entry_slice_y,		1, 2, 2, 3, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), atlas_tool->entry_slice_intersect_x,	2, 3, 1, 2, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), atlas_tool->entry_slice_intersect_y,	2, 3, 2, 3, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), box_check_show,			0, 3, 3, 4, GTK_EXPAND | GTK_FILL, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(table), box_buttons,				0, 3, 4, 5, GTK_EXPAND | GTK_FILL, 0, 0, 0);
 
 	gtk_widget_set_size_request(table, 200, -1);
 	gtk_widget_set_size_request(atlas_tool -> entry_slice_x, 0 , -1);
@@ -147,19 +162,34 @@ static void atlas_tool_init(AtlasTool *atlas_tool)
 	gtk_box_pack_start(GTK_BOX(atlas_tool), atlas_tool -> radio_conf_pixel, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(atlas_tool), table, FALSE, FALSE, 0);
 
-	g_signal_connect(G_OBJECT(atlas_tool -> radio_conf_page), "toggled", G_CALLBACK(mode_switched_cb), (gpointer)atlas_tool);
-
-	g_signal_connect(G_OBJECT(atlas_tool -> combo), "changed", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
-	g_signal_connect(G_OBJECT(atlas_tool -> check_show), "toggled", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
-	g_signal_connect(G_OBJECT(atlas_tool -> entry_slice_x), "changed", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
-	g_signal_connect(G_OBJECT(atlas_tool -> entry_slice_y), "changed", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
-	g_signal_connect(G_OBJECT(atlas_tool -> entry_slice_intersect_x), "changed", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
-	g_signal_connect(G_OBJECT(atlas_tool -> entry_slice_intersect_y), "changed", G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
+	g_signal_connect(
+		G_OBJECT(atlas_tool -> radio_conf_page), "toggled", 
+		G_CALLBACK(mode_switched_cb), (gpointer)atlas_tool);
+	g_signal_connect(
+		G_OBJECT(atlas_tool -> combo), "changed", 
+		G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
+	g_signal_connect(
+		G_OBJECT(atlas_tool -> check_show), "toggled", 
+		G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
+	g_signal_connect(
+		G_OBJECT(atlas_tool -> entry_slice_x), "changed", 
+		G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
+	g_signal_connect(
+		G_OBJECT(atlas_tool -> entry_slice_y), "changed", 
+		G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
+	g_signal_connect(
+		G_OBJECT(atlas_tool -> entry_slice_intersect_x), "changed", 
+		G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
+	g_signal_connect(
+		G_OBJECT(atlas_tool -> entry_slice_intersect_y), "changed", 
+		G_CALLBACK(widget_changed_cb), (gpointer)atlas_tool);
 
 	set_resize_visibility(atlas_tool, FALSE);
 }
 
-// when radio is changed between "by page" and "by imagesize"
+/****************************************************************************************************
+* when radio is changed between "by page" and "by imagesize"
+****************************************************************************************************/
 static gboolean mode_switched_cb(GtkWidget *widget, gpointer atlasp)
 {
 	AtlasTool *atlas_tool = (AtlasTool*)atlasp;
@@ -180,14 +210,18 @@ static gboolean mode_switched_cb(GtkWidget *widget, gpointer atlasp)
 	}
 }
 
-// set, whether user can edit image size (only possible in "by imagesize" mode)
+/****************************************************************************************************
+* set, whether user can edit image size (only possible in "by imagesize" mode)
+****************************************************************************************************/
 void set_resize_visibility(AtlasTool * atlas_tool, gboolean state)
 {
 	gtk_widget_set_sensitive(atlas_tool -> entry_slice_x, state);
 	gtk_widget_set_sensitive(atlas_tool -> entry_slice_y, state);
 }
 
-// one of the configurable items has changed
+/****************************************************************************************************
+* one of the configurable items has changed
+****************************************************************************************************/
 static gboolean widget_changed_cb(GtkWidget *widget, gpointer atlasp)
 {
 	AtlasTool *atlas_tool = (AtlasTool*)atlasp;
@@ -227,7 +261,9 @@ static gboolean widget_changed_cb(GtkWidget *widget, gpointer atlasp)
 	}
 }
 
-// set the page information
+/****************************************************************************************************
+* set the page information
+****************************************************************************************************/
 void atlas_tool_set_page_info(AtlasTool * atlas_tool, PageInformation page_info)
 {
 	atlas_tool -> page_info_stored = page_info;
@@ -237,7 +273,9 @@ void atlas_tool_set_page_info(AtlasTool * atlas_tool, PageInformation page_info)
 	}
 }
 
-// adjust the imagesize to fit the selected page-layout
+/****************************************************************************************************
+* adjust the imagesize to fit the selected page-layout
+****************************************************************************************************/
 void atlas_tool_set_image_size_from_page_info(AtlasTool * atlas_tool)
 {
 	ImageDimension image_dim = get_image_dimension(atlas_tool -> page_info);
@@ -250,7 +288,9 @@ void atlas_tool_set_image_size_from_page_info(AtlasTool * atlas_tool)
 	g_signal_emit (atlas_tool, atlas_tool_signals[VALUES_CHANGED], 0);
 }
 
-// adjust the pageinfo to be exactly fitting the imagesize
+/****************************************************************************************************
+* adjust the pageinfo to be exactly fitting the imagesize
+****************************************************************************************************/
 void atlas_tool_set_page_info_from_image_size(AtlasTool * atlas_tool)
 {
 	atlas_tool -> page_info.border_top = 0;
@@ -262,7 +302,9 @@ void atlas_tool_set_page_info_from_image_size(AtlasTool * atlas_tool)
 	atlas_tool -> page_info.page_height = atlas_tool -> image_dimension.height * 25.4 / atlas_tool -> page_info.resolution;
 }
 
-// set intersection values
+/****************************************************************************************************
+* set intersection values
+****************************************************************************************************/
 void atlas_tool_set_intersection(AtlasTool * atlas_tool, int intersect_x, int intersect_y)
 {
 	atlas_tool -> intersect_x = intersect_x,
@@ -274,13 +316,17 @@ void atlas_tool_set_intersection(AtlasTool * atlas_tool, int intersect_x, int in
 	gtk_entry_set_text(GTK_ENTRY(atlas_tool -> entry_slice_intersect_y), buf2);
 }
 
-// set image size
+/****************************************************************************************************
+* set image size
+****************************************************************************************************/
 void atlas_tool_set_image_dimension(AtlasTool * atlas_tool, ImageDimension image_dimension)
 {
 	atlas_tool -> image_dimension = image_dimension;
 }
 
-// set the other values
+/****************************************************************************************************
+* set the other values
+****************************************************************************************************/
 void atlas_tool_set_values(AtlasTool * atlas_tool, int zoom, gboolean visible)
 {
 	atlas_tool -> slice_zoom = zoom;

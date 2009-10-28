@@ -35,8 +35,18 @@
 #include "../customio.h"
 #include "../map_types.h"
 
+/****************************************************************************************************
+* This class manages the configuration gosm uses.
+* it reads in the config-file
+* it writes out the config-file
+* it can be queried for specific configuration-values
+* see config.h for details of a single ConfEntry
+****************************************************************************************************/
 G_DEFINE_TYPE (Config, config, G_TYPE_OBJECT);
 
+/****************************************************************************************************
+* signals
+****************************************************************************************************/
 enum
 {
         CONFIG_CHANGED,
@@ -45,11 +55,21 @@ enum
 
 static guint config_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* method declarations
+****************************************************************************************************/
 gboolean config_set_entry(Config * config, char *name, char *data);
 
+/****************************************************************************************************
+* constructor
+* create an array of ConfEntries, that is fille with the default values
+* TODO: use g_array
+* TODO: get rid of strings as default values for boolean/numeric types
+****************************************************************************************************/
 GObject * config_new()
 {
 	Config * config = g_object_new(GOSM_TYPE_CONFIG, NULL);
+	/* default values */
 	ConfEntry ConfEntries[] = {
 		{"online_on_startup",	TYPE_BOOLEAN,	"TRUE",			NULL},
 		{"longitude",           TYPE_DOUBLE,    "13.4",         	NULL},
@@ -84,12 +104,15 @@ GObject * config_new()
 		{"proxy_host",          TYPE_IP,        "proxy.ip.add",		NULL},
 		{"proxy_port",          TYPE_INT,       "80",			NULL}
 	};
+	/* create the current instance of configuration */
 	config -> entries = malloc(sizeof(ConfEntries));
 	config -> num_entries = sizeof(ConfEntries) / sizeof(ConfEntry);
 	int i;
+	/* copy default values */
 	for (i = 0; i < config -> num_entries; i++){
 		memcpy(&(config -> entries[i]), &(ConfEntries[i]), sizeof(ConfEntry));
 	}
+	/* set default values to the data field */
 	for (i = 0; i < config -> num_entries; i++){
 		ConfEntry * ce = &(config -> entries[i]);
 		config_set_entry_data(ce, ce -> data_str);
@@ -113,6 +136,9 @@ static void config_init(Config *config)
 {
 }
 
+/****************************************************************************************************
+* return the data of a specific config-entry
+****************************************************************************************************/
 gpointer config_get_entry_data(Config * config, char * name)
 {
 	int i;
@@ -125,7 +151,10 @@ gpointer config_get_entry_data(Config * config, char * name)
 	return NULL;
 }
 
-//TODO: use g_build_filename instead of self-made string-concat
+/****************************************************************************************************
+* find and return the configuration-directory (~/.config/gosm)
+* TODO: use g_build_filename instead of self-made string-concat
+****************************************************************************************************/
 char * config_get_config_dir()
 {
 	char * dir = getenv("HOME");
@@ -137,6 +166,9 @@ char * config_get_config_dir()
 	sprintf(gosmdir, "%s%s", dir,afterhomedir);
 	return gosmdir;
 }
+/****************************************************************************************************
+* find and retrun the path to a file in the configuration-directory
+****************************************************************************************************/
 char * config_get_config_dir_sub_file(char * filename)
 {
 	char * gosmdir = config_get_config_dir();
@@ -146,6 +178,9 @@ char * config_get_config_dir_sub_file(char * filename)
 	free(gosmdir);
 	return filepath;
 }
+/****************************************************************************************************
+* find the filenames for config-files that are used by gosm
+****************************************************************************************************/
 char * config_get_config_file()
 {
 	return config_get_config_dir_sub_file("configuration");
@@ -159,6 +194,9 @@ char * config_get_poi_layers_file()
 	return config_get_config_dir_sub_file("poi_layers");
 }
 
+/****************************************************************************************************
+* read and parse the config-file; fill read values into array of config-values
+****************************************************************************************************/
 gboolean config_load_config_file(Config * config)
 {
 	char * filepath = config_get_config_file();
@@ -199,6 +237,9 @@ gboolean config_load_config_file(Config * config)
 	//TODO: free ?
 }
 
+/****************************************************************************************************
+* write the current config into the config-file
+****************************************************************************************************/
 gboolean config_save_config_file(Config * config)
 {
 	char * filename = "configuration";
@@ -232,6 +273,10 @@ gboolean config_save_config_file(Config * config)
 	return TRUE;
 }
 
+/****************************************************************************************************
+* sets the config entry given by 'name' to the value given by 'data'
+* only if 'data' has changed in comparison to the old value, the hold data will be changed
+****************************************************************************************************/
 gboolean config_set_entry(Config * config, char *name, char *data)
 {	
 	printf("%s = %s\n", name, data);
@@ -244,6 +289,9 @@ gboolean config_set_entry(Config * config, char *name, char *data)
 	}	
 }
 
+/****************************************************************************************************
+* set the data-entry of ConfEntry according to the value in 'data_str'
+****************************************************************************************************/
 gboolean config_set_entry_data(ConfEntry * ce, char * data_str)
 {	
 	if (ce -> data != NULL){

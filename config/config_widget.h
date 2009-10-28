@@ -61,6 +61,6 @@ struct _ConfigWidgetClass
 
 GtkWidget * config_widget_new(Config * config);
 
-gboolean ** config_widget_get_new_configuration(ConfigWidget *config_widget);
+gboolean * config_widget_get_new_configuration(ConfigWidget *config_widget);
 
 #endif /* _CONFIG_WIDGET_H_ */
