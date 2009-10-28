@@ -33,12 +33,13 @@
 #define FIXED_HEIGHT 10
 
 /****************************************************************************************************
-* 
+* this class is a renderer that can be used in treeviews
+* it shows a coloured square in its cell
 ****************************************************************************************************/
 G_DEFINE_TYPE (CellRendererColour, cell_renderer_colour, GTK_TYPE_CELL_RENDERER);
 
 /****************************************************************************************************
-* 
+* the properties of the cell: red, gree, blue, alpha, and whether this can be edited
 ****************************************************************************************************/
 enum
 {
@@ -50,7 +51,7 @@ enum
 };
 
 /****************************************************************************************************
-* 
+* signals
 ****************************************************************************************************/
 enum
 {
@@ -61,7 +62,7 @@ enum
 static guint cell_renderer_colour_signals[LAST_SIGNAL] = { 0 };
 
 /****************************************************************************************************
-* 
+* method declarations
 ****************************************************************************************************/
 static void cell_renderer_colour_get_property (GObject *object,
 					guint param_id,
@@ -98,7 +99,7 @@ static gint cell_renderer_colour_activate (GtkCellRenderer *cell,
 					GtkCellRendererState flags);
 
 /****************************************************************************************************
-* 
+* constructor
 ****************************************************************************************************/
 GtkCellRenderer * cell_renderer_colour_new()
 {
@@ -107,7 +108,7 @@ GtkCellRenderer * cell_renderer_colour_new()
 }
 
 /****************************************************************************************************
-* 
+* class init
 ****************************************************************************************************/
 static void cell_renderer_colour_class_init(CellRendererColourClass *class)
 {
@@ -168,7 +169,7 @@ static void cell_renderer_colour_class_init(CellRendererColourClass *class)
 }
 
 /****************************************************************************************************
-* 
+* object init
 ****************************************************************************************************/
 static void cell_renderer_colour_init(CellRendererColour *cell_renderer_colour)
 {
@@ -176,7 +177,7 @@ static void cell_renderer_colour_init(CellRendererColour *cell_renderer_colour)
 }
 
 /****************************************************************************************************
-* 
+* get a property
 ****************************************************************************************************/
 static void cell_renderer_colour_get_property (GObject *object,
 		guint param_id,
@@ -213,7 +214,7 @@ static void cell_renderer_colour_get_property (GObject *object,
 }
 
 /****************************************************************************************************
-* 
+* set a property
 ****************************************************************************************************/
 static void cell_renderer_colour_set_property (GObject *object,
 		guint param_id,
@@ -250,7 +251,7 @@ static void cell_renderer_colour_set_property (GObject *object,
 }
 
 /****************************************************************************************************
-* 
+* get size of the cell
 ****************************************************************************************************/
 static void cell_renderer_colour_get_size (GtkCellRenderer *cell,
 					GtkWidget *widget,
@@ -278,11 +279,9 @@ static void cell_renderer_colour_get_size (GtkCellRenderer *cell,
 	}
 }
 
-/*
- * derived from gtk_color_sel.c (config/color_button.c)
- */
 /****************************************************************************************************
-* 
+* draw the cell
+* derived from gtk_color_sel.c (config/color_button.c)
 ****************************************************************************************************/
 static void cell_renderer_colour_render (GtkCellRenderer *cell,
 					GdkWindow *window,
@@ -335,7 +334,7 @@ static void cell_renderer_colour_render (GtkCellRenderer *cell,
 }
 
 /****************************************************************************************************
-* 
+* when the cell is clicked
 ****************************************************************************************************/
 static gint cell_renderer_colour_activate (GtkCellRenderer *cell,
 				 GdkEvent *event,

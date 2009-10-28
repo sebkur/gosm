@@ -30,7 +30,7 @@
 #include "named_poi_set.h"
 
 /****************************************************************************************************
-* 
+* a NamedPoiSet is a PoiSet that is extended by key and value
 ****************************************************************************************************/
 G_DEFINE_TYPE (NamedPoiSet, named_poi_set, GOSM_TYPE_POI_SET);
 
@@ -45,7 +45,7 @@ G_DEFINE_TYPE (NamedPoiSet, named_poi_set, GOSM_TYPE_POI_SET);
 //g_signal_emit (widget, named_poi_set_signals[SIGNAL_NAME_n], 0);
 
 /****************************************************************************************************
-* 
+* create a new NamedPoiSet
 ****************************************************************************************************/
 NamedPoiSet * named_poi_set_new(char * key, char * value)
 {
@@ -55,7 +55,7 @@ NamedPoiSet * named_poi_set_new(char * key, char * value)
 }
 
 /****************************************************************************************************
-* 
+* constructor
 ****************************************************************************************************/
 void named_poi_set_constructor(NamedPoiSet * named_poi_set, char * key, char * value)
 {
@@ -83,7 +83,7 @@ static void named_poi_set_init(NamedPoiSet *named_poi_set)
 }
 
 /****************************************************************************************************
-* 
+* get the key
 ****************************************************************************************************/
 char * named_poi_set_get_key(NamedPoiSet * named_poi_set)
 {
@@ -91,7 +91,7 @@ char * named_poi_set_get_key(NamedPoiSet * named_poi_set)
 }
 
 /****************************************************************************************************
-* 
+* get the value
 ****************************************************************************************************/
 char * named_poi_set_get_value(NamedPoiSet * named_poi_set)
 {

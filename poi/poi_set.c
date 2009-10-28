@@ -103,7 +103,7 @@ static void poi_set_init(PoiSet *poi_set)
 }
 
 /****************************************************************************************************
-* 
+* add a point to the PoiSet
 ****************************************************************************************************/
 void poi_set_add(PoiSet * poi_set, double lon, double lat, void * data)
 {
@@ -120,12 +120,9 @@ void poi_set_add(PoiSet * poi_set, double lon, double lat, void * data)
 	poi_set -> node_index++;
 }
 
-/*
-	used as a callback for searching the RTree.
-	this function adds found nodes to the resultset
-*/
 /****************************************************************************************************
-* 
+* used as a callback for searching the RTree.
+* this function adds found nodes to the resultset
 ****************************************************************************************************/
 int poi_set_search_cb(int id, void* arg)
 {
@@ -140,7 +137,7 @@ int poi_set_search_cb(int id, void* arg)
 }
 
 /****************************************************************************************************
-* 
+* return the points found in the given area
 ****************************************************************************************************/
 LonLatPairData * poi_set_get(PoiSet * poi_set, int* count, double min_lon, double min_lat, double max_lon, double max_lat)
 {
@@ -168,16 +165,12 @@ LonLatPairData * poi_set_get(PoiSet * poi_set, int* count, double min_lon, doubl
 }
 
 /****************************************************************************************************
-* 
+* set/get whether this PoiSet is visible
 ****************************************************************************************************/
 void poi_set_set_visible(PoiSet * poi_set, gboolean visible)
 {
 	poi_set -> visible = visible;
 }
-
-/****************************************************************************************************
-* 
-****************************************************************************************************/
 gboolean poi_set_get_visible(PoiSet * poi_set)
 {
 	return poi_set -> visible;
