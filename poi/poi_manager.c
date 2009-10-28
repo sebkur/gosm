@@ -43,12 +43,12 @@
 #include "poi_statistics.h"
 
 /****************************************************************************************************
-* 
+* PoiManager is the central management unit for Points of interests
 ****************************************************************************************************/
 G_DEFINE_TYPE (PoiManager, poi_manager, G_TYPE_OBJECT);
 
 /****************************************************************************************************
-* 
+* signals
 ****************************************************************************************************/
 enum
 {
@@ -72,7 +72,7 @@ enum
 static guint poi_manager_signals[LAST_SIGNAL] = { 0 };
 
 /****************************************************************************************************
-* 
+* method declarations
 ****************************************************************************************************/
 gboolean poi_manager_create_default_poi_layers();
 gboolean poi_manager_read_poi_sources(PoiManager * poi_manager);
@@ -82,7 +82,7 @@ static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int s
 static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, int status, gpointer data);
 
 /****************************************************************************************************
-* 
+* constructor
 ****************************************************************************************************/
 PoiManager * poi_manager_new()
 {
@@ -90,15 +90,11 @@ PoiManager * poi_manager_new()
 	poi_manager -> poi_sets = g_array_new(FALSE, FALSE, sizeof(StyledPoiSet*));
 	poi_manager -> poi_sources = g_array_new(FALSE, FALSE, sizeof(PoiSource*));
 	poi_manager -> active_poi_source = -1;
-//	char * filename = GOSM_NAMEFINDER_DIR "res/vienna.short.osm";
-//	filename = GOSM_NAMEFINDER_DIR "res/berlin.short.osm";
-//	filename = GOSM_NAMEFINDER_DIR "res/vienna.50000.osm";
 	poi_manager -> osm_reader = osm_reader_new();
 	g_signal_connect(G_OBJECT(poi_manager -> osm_reader),"reading-finished",
 			 G_CALLBACK(poi_manager_osm_reader_finished_cb), (gpointer)poi_manager);
 	g_signal_connect(G_OBJECT(poi_manager -> osm_reader),"api-finished",
 			 G_CALLBACK(poi_manager_osm_reader_api_finished_cb), (gpointer)poi_manager);
-//	osm_reader_parse_file(poi_manager -> osm_reader, filename);
 	gboolean layers = poi_manager_read_poi_layers(poi_manager);
 	if (!layers) {
 		printf("did not find poi_layers file, attempting to create it\n");
@@ -114,7 +110,7 @@ PoiManager * poi_manager_new()
 }
 
 /****************************************************************************************************
-* 
+* class init
 ****************************************************************************************************/
 static void poi_manager_class_init(PoiManagerClass *class)
 {
@@ -237,7 +233,7 @@ static void poi_manager_init(PoiManager *poi_manager)
 }
 
 /****************************************************************************************************
-* 
+* add a source file to the list of source files
 ****************************************************************************************************/
 void poi_manager_add_poi_source(PoiManager * poi_manager, char * filename, gboolean load_on_startup)
 {
@@ -252,7 +248,7 @@ void poi_manager_add_poi_source(PoiManager * poi_manager, char * filename, gbool
 }
 
 /****************************************************************************************************
-* 
+* read in the list of source files from the config file
 ****************************************************************************************************/
 //TODO: splitting in only 100 lines is stupid
 gboolean poi_manager_read_poi_sources(PoiManager * poi_manager)
@@ -297,7 +293,7 @@ gboolean poi_manager_read_poi_sources(PoiManager * poi_manager)
 }
 
 /****************************************************************************************************
-* 
+* create the default config file for poi layers
 ****************************************************************************************************/
 gboolean poi_manager_create_default_poi_layers()
 {
@@ -309,7 +305,7 @@ gboolean poi_manager_create_default_poi_layers()
 }
 
 /****************************************************************************************************
-* 
+* read in the config file for poi layers
 ****************************************************************************************************/
 gboolean poi_manager_read_poi_layers(PoiManager * poi_manager)
 {
@@ -358,7 +354,7 @@ gboolean poi_manager_read_poi_layers(PoiManager * poi_manager)
 }
 
 /****************************************************************************************************
-* 
+* add a new PoiSet to the set fo PoiSets
 ****************************************************************************************************/
 void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active,
 	double r, double g, double b, double a)
@@ -371,7 +367,7 @@ void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value,
 }
 
 /****************************************************************************************************
-* 
+* remove a PoiSet from the set of PoiSets
 ****************************************************************************************************/
 void poi_manager_delete_poi_set(PoiManager * poi_manager, int index)
 {
@@ -382,7 +378,7 @@ void poi_manager_delete_poi_set(PoiManager * poi_manager, int index)
 }
 
 /****************************************************************************************************
-* 
+* insert all pois, that are currently available through OsmReader into the given PoiSet
 ****************************************************************************************************/
 void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set)
 {
@@ -408,7 +404,7 @@ void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set)
 }
 
 /****************************************************************************************************
-* 
+* toggle the visibility of a PoiSet
 ****************************************************************************************************/
 void poi_manager_toggle_poi_set(PoiManager * poi_manager, int index)
 {
@@ -419,7 +415,7 @@ void poi_manager_toggle_poi_set(PoiManager * poi_manager, int index)
 }
 
 /****************************************************************************************************
-* 
+* return the number of PoiSets
 ****************************************************************************************************/
 int poi_manager_get_number_of_poi_sets(PoiManager * poi_manager)
 {
@@ -427,7 +423,7 @@ int poi_manager_get_number_of_poi_sets(PoiManager * poi_manager)
 }
 
 /****************************************************************************************************
-* 
+* return the index's PoiSet
 ****************************************************************************************************/
 StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index)
 {
@@ -435,7 +431,7 @@ StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index)
 }
 
 /****************************************************************************************************
-* 
+* return the number of poi-source files
 ****************************************************************************************************/
 int poi_manager_get_number_of_poi_sources(PoiManager * poi_manager)
 {
@@ -443,7 +439,7 @@ int poi_manager_get_number_of_poi_sources(PoiManager * poi_manager)
 }
 
 /****************************************************************************************************
-* 
+* return the index's poi-source file
 ****************************************************************************************************/
 PoiSource * poi_manager_get_poi_source(PoiManager * poi_manager, int index)
 {
@@ -451,7 +447,8 @@ PoiSource * poi_manager_get_poi_source(PoiManager * poi_manager, int index)
 }
 
 /****************************************************************************************************
-* 
+* set the index's poi-source file as the current
+* i.e. read in the selected file and fill the PoiSets with the read points
 ****************************************************************************************************/
 void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
 {
@@ -477,7 +474,7 @@ void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
 }
 
 /****************************************************************************************************
-* 
+* callback; when the OsmReader finished reading a file
 ****************************************************************************************************/
 static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int status, gpointer data)
 {
@@ -496,7 +493,7 @@ static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int s
 }
 
 /****************************************************************************************************
-* 
+* callback; when the OsmReader finished reading in an api-request
 ****************************************************************************************************/
 static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, int status, gpointer data)
 {
@@ -513,7 +510,7 @@ static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, i
 }
 
 /****************************************************************************************************
-* 
+* change a PoiSets' colour
 ****************************************************************************************************/
 void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double r, double g, double b, double a)
 {
@@ -523,7 +520,7 @@ void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double 
 }
 
 /****************************************************************************************************
-* 
+* save the list of poi layers
 ****************************************************************************************************/
 gboolean poi_manager_layers_save(PoiManager * poi_manager)
 {
@@ -572,7 +569,7 @@ gboolean poi_manager_layers_save(PoiManager * poi_manager)
 }
 
 /****************************************************************************************************
-* 
+* save the list of poi sources
 ****************************************************************************************************/
 gboolean poi_manager_sources_save(PoiManager * poi_manager)
 {
@@ -603,7 +600,8 @@ gboolean poi_manager_sources_save(PoiManager * poi_manager)
 }
 
 /****************************************************************************************************
-* 
+* revert the poi layers to the last saved state
+* TODO: unimplemented
 ****************************************************************************************************/
 gboolean poi_manager_layers_revert(PoiManager * poi_manager)
 {
@@ -612,7 +610,7 @@ gboolean poi_manager_layers_revert(PoiManager * poi_manager)
 }
 
 /****************************************************************************************************
-* 
+* add a poi-source file
 ****************************************************************************************************/
 gboolean poi_manager_sources_add(PoiManager * poi_manager, char * path)
 {
@@ -620,7 +618,7 @@ gboolean poi_manager_sources_add(PoiManager * poi_manager, char * path)
 }
 
 /****************************************************************************************************
-* 
+* remove a poi-source file
 ****************************************************************************************************/
 gboolean poi_manager_sources_delete(PoiManager * poi_manager, int index)
 {
@@ -637,7 +635,8 @@ gboolean poi_manager_sources_delete(PoiManager * poi_manager, int index)
 }
 
 /****************************************************************************************************
-* 
+* the PoiManager needs a reference to the MapArea to be able to request the currently visible area
+* via the OSM-API
 ****************************************************************************************************/
 void poi_manager_set_map_area(PoiManager * poi_manager, MapArea * map_area)
 {
@@ -645,7 +644,7 @@ void poi_manager_set_map_area(PoiManager * poi_manager, MapArea * map_area)
 }
 
 /****************************************************************************************************
-* 
+* make a request to the OSM-API
 ****************************************************************************************************/
 void poi_manager_api_request(PoiManager * poi_manager)
 {
@@ -660,7 +659,7 @@ void poi_manager_api_request(PoiManager * poi_manager)
 }
 
 /****************************************************************************************************
-* 
+* print out to stdout the information about a node
 ****************************************************************************************************/
 void poi_manager_print_node_information(PoiManager * poi_manager, int node_id)
 {
@@ -675,7 +674,7 @@ void poi_manager_print_node_information(PoiManager * poi_manager, int node_id)
 }
 
 /****************************************************************************************************
-* 
+* find a node
 ****************************************************************************************************/
 LonLatTags * poi_manager_get_node(PoiManager * poi_manager, int node_id)
 {

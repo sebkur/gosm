@@ -48,8 +48,14 @@
 // OSM 1 == G 16
 #define FORMAT_FILES	"/%d_%d_%d.png"
 
+/****************************************************************************************************
+* a TileManager manages everything about tiles of a map-tile-source
+****************************************************************************************************/
 G_DEFINE_TYPE (TileManager, tile_manager, G_TYPE_OBJECT);
 
+/****************************************************************************************************
+* signals
+****************************************************************************************************/
 enum
 {
 	TILE_LOADED_FROM_DISK,
@@ -57,8 +63,12 @@ enum
 	LAST_SIGNAL
 };
 
-static pthread_mutex_t mutex_curl = PTHREAD_MUTEX_INITIALIZER;
 static guint tile_manager_signals[LAST_SIGNAL] = { 0 };
+
+/****************************************************************************************************
+* a mutex for initializing curl easyhandles
+****************************************************************************************************/
+static pthread_mutex_t mutex_curl = PTHREAD_MUTEX_INITIALIZER;
 
 /**
  * add functions for adding tile to list / waking up loader thread
@@ -66,6 +76,9 @@ static guint tile_manager_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, tile_manager_signals[TILE_LOADED_SUCCESFULLY], 0);
 
 
+/****************************************************************************************************
+* method declaration
+****************************************************************************************************/
 void function_load_from_disk();
 void function_load_from_netw();
 
@@ -73,6 +86,9 @@ void tile_manager_tile_load_function(TileManager *tile_manager);
 void get_tile_from_harddisk(TileManager * tile_manager, int x, int y, int zoom);
 
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GObject * tile_manager_new()
 {
 	return g_object_new(GOSM_TYPE_TILE_MANAGER, NULL);
@@ -90,6 +106,9 @@ static void tile_manager_class_init(TileManagerClass *class)
 		G_TYPE_NONE, 0);
 }
 
+/****************************************************************************************************
+* object init
+****************************************************************************************************/
 static void tile_manager_init(TileManager *tile_manager)
 {
 	tile_manager -> tile_cache	= cache_new(64); 					// TODO: CACHE_SIZE
@@ -124,6 +143,9 @@ static void tile_manager_init(TileManager *tile_manager)
 	}
 }
 
+/****************************************************************************************************
+* set/get whether the TileManager is on- or off-line
+****************************************************************************************************/
 void tile_manager_set_network_state(TileManager * tile_manager, gboolean state)
 {
 	tile_manager -> network_state = state;
@@ -134,12 +156,18 @@ gboolean tile_manager_get_network_state(TileManager * tile_manager)
 	return tile_manager -> network_state;
 }
 
+/****************************************************************************************************
+* set the url used to retrieve tiles via network
+****************************************************************************************************/
 void tile_manager_set_url_format(TileManager * tile_manager, char * format)
 {
 	tile_manager -> format_url = malloc(sizeof(char) * (strlen(format) + 1));
 	strcpy(tile_manager -> format_url, format);
 }
 
+/****************************************************************************************************
+* set the cache directory used to store retrieved tiles
+****************************************************************************************************/
 void tile_manager_set_cache_directory(TileManager * tile_manager, char * directory)
 {
 	// TODO: directory-string might contain a trailing backslash...
@@ -158,6 +186,9 @@ void tile_manager_set_cache_directory(TileManager * tile_manager, char * directo
 	strcpy(tile_manager -> cache_files_format + dir_len, FORMAT_FILES);
 }
 
+/****************************************************************************************************
+* find out whether a tile has already been appended to the list of tiles-to-load
+****************************************************************************************************/
 gboolean is_in_list(GArray * array, MapTile * map_tile){
 	int i;
 	for (i = 0; i < array -> len; i++){
@@ -169,6 +200,9 @@ gboolean is_in_list(GArray * array, MapTile * map_tile){
 	return FALSE;
 }
 
+/****************************************************************************************************
+* return where a MapTile is in the queue
+****************************************************************************************************/
 int pos_in_list(GArray * array, MapTile * map_tile){
 	int i;
 	for (i = 0; i < array -> len; i++){
@@ -180,6 +214,14 @@ int pos_in_list(GArray * array, MapTile * map_tile){
 	return -1;
 }
 
+/****************************************************************************************************
+* request a MapTile
+* if the MapTile is in cache, return it immediatly
+* otherwise try to load it from disk.
+* 	if the file is present on harddisk, block until it's loaded
+*	otherwise add it to the queue of tiles, that shall be loaded via network
+*		-> return NULL
+****************************************************************************************************/
 gpointer tile_manager_request_tile(TileManager * tile_manager, int x, int y, int zoom)
 {
 	//check if in memory-cache
@@ -195,6 +237,11 @@ gpointer tile_manager_request_tile(TileManager * tile_manager, int x, int y, int
 	return NULL;
 }
 
+/****************************************************************************************************
+* remove a MapTile from cache and harddisk.
+* -> it will be retrieved from network the next time it is requested
+*	-> this is used to mark tiles for reloading or removal from harddisk
+****************************************************************************************************/
 void tile_manager_delete_tile(TileManager * tile_manager, int x, int y, int zoom)
 {
 	// delete from harddisk
@@ -219,6 +266,9 @@ void tile_manager_delete_tile(TileManager * tile_manager, int x, int y, int zoom
 	}
 }
 
+/****************************************************************************************************
+* load a MapTile from harddisk
+****************************************************************************************************/
 void get_tile_from_harddisk(TileManager * tile_manager, int x, int y, int zoom)
 {
 	//printf("get tile from hd: %d %d %d\n", x, y, zoom);
@@ -238,6 +288,9 @@ void get_tile_from_harddisk(TileManager * tile_manager, int x, int y, int zoom)
 	pthread_mutex_unlock(&(tile_manager -> mutex_wait_load_from_disk));
 }
 
+/****************************************************************************************************
+* load a MapTile from network
+****************************************************************************************************/
 void get_tile_from_network(TileManager * tile_manager, int x, int y, int zoom)
 {
 	//printf("get tile from nw: %d %d %d\n", x, y, zoom);
@@ -257,6 +310,9 @@ void get_tile_from_network(TileManager * tile_manager, int x, int y, int zoom)
 	pthread_mutex_unlock(&(tile_manager -> mutex_wait_load_from_netw));
 }
 
+/****************************************************************************************************
+* actual thread-function for loading tiles from disk
+****************************************************************************************************/
 void function_load_from_disk(TileManager * tile_manager)
 {
 	while (TRUE){
@@ -341,6 +397,9 @@ void function_load_from_disk(TileManager * tile_manager)
 }
 
 
+/****************************************************************************************************
+* download a tile, internally used function
+****************************************************************************************************/
 void tile_manager_download(TileManager * tile_manager, CURL * easyhandle, const char* url, const char* file_name)
 { // TODO: recycle easyhandle like in tile_loader
   // better: use one method for both classes
@@ -359,6 +418,9 @@ void tile_manager_download(TileManager * tile_manager, CURL * easyhandle, const 
 	fclose(file);
 }
 
+/****************************************************************************************************
+* download a tile, easy interface
+****************************************************************************************************/
 void tile_manager_download_tile(TileManager * tile_manager, CURL * easyhandle, int zoom, int x, int y)
 {
 	char url[100];
@@ -370,6 +432,9 @@ void tile_manager_download_tile(TileManager * tile_manager, CURL * easyhandle, i
 	//printf("got %s\n", filename);
 }
 
+/****************************************************************************************************
+* actually used thread-function for loading a tile
+****************************************************************************************************/
 void function_load_from_netw(TileManager * tile_manager)
 {
 	pthread_mutex_lock(&mutex_curl);

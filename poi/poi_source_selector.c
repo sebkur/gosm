@@ -29,12 +29,12 @@
 #include "poi_source_selector.h"
 
 /****************************************************************************************************
-* 
+* let the user manage the poi-source on harddisk
 ****************************************************************************************************/
 G_DEFINE_TYPE (PoiSourceSelector, poi_source_selector, GTK_TYPE_VBOX);
 
 /****************************************************************************************************
-* 
+* columns
 ****************************************************************************************************/
 enum
 {
@@ -45,7 +45,7 @@ enum
 };
 
 /****************************************************************************************************
-* 
+* method declarations
 ****************************************************************************************************/
 static GtkTreeModel * poi_source_selector_create_model (PoiManager * poi_manager);
 static GtkWidget * poi_source_selector_create_view (PoiManager * poi_manager);
@@ -60,7 +60,7 @@ static gboolean poi_source_selector_activated_cb(PoiManager * poi_manager, int i
 static gboolean poi_source_selector_deactivated_cb(PoiManager * poi_manager, int index, gpointer data);
 
 /****************************************************************************************************
-* 
+* constructor
 ****************************************************************************************************/
 PoiSourceSelector * poi_source_selector_new(PoiManager * poi_manager)
 {

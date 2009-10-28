@@ -29,7 +29,7 @@
 #include "poi_source_load_progress.h"
 
 /****************************************************************************************************
-* 
+* show a progress bar while a poi-source is beeing loaded from hard-disk
 ****************************************************************************************************/
 G_DEFINE_TYPE (PoiSourceLoadProgress, poi_source_load_progress, G_TYPE_OBJECT);
 
@@ -44,7 +44,7 @@ G_DEFINE_TYPE (PoiSourceLoadProgress, poi_source_load_progress, G_TYPE_OBJECT);
 //g_signal_emit (widget, poi_source_load_progress_signals[SIGNAL_NAME_n], 0);
 
 /****************************************************************************************************
-* 
+* constructor
 ****************************************************************************************************/
 PoiSourceLoadProgress * poi_source_load_progress_new()
 {
@@ -64,20 +64,17 @@ static void poi_source_load_progress_class_init(PoiSourceLoadProgressClass *clas
                 G_TYPE_NONE, 0);*/
 }
 
-/****************************************************************************************************
-* 
-****************************************************************************************************/
 static void poi_source_load_progress_init(PoiSourceLoadProgress *poi_source_load_progress)
 {
 }
 
 /****************************************************************************************************
-* 
+* method declaration
 ****************************************************************************************************/
 static gboolean poi_source_load_progress_progress_cb(OsmReader * osm_reader, int percent, gpointer data);
 
 /****************************************************************************************************
-* 
+* show the window, borderless
 ****************************************************************************************************/
 void poi_source_load_progress_show(
 	PoiSourceLoadProgress * poi_source_load_progress, 
@@ -105,7 +102,7 @@ void poi_source_load_progress_show(
 }
 
 /****************************************************************************************************
-* 
+* destroy, disconnect handlers that were connected to OsmReader for progress
 ****************************************************************************************************/
 void poi_source_load_progress_destroy(
 	PoiSourceLoadProgress * poi_source_load_progress
@@ -116,7 +113,7 @@ void poi_source_load_progress_destroy(
 }
 
 /****************************************************************************************************
-* 
+* when progress has benn emitted by OsmReader
 ****************************************************************************************************/
 static gboolean poi_source_load_progress_progress_cb(OsmReader * osm_reader, int percent, gpointer data)
 {

@@ -26,6 +26,17 @@
 
 #include "ringbuffer.h"
 
+/****************************************************************************************************
+* this is a ringbuffer
+* it is used by the TileManager to distinguish which tile to remove from the cache next
+* currently cache management is FIFO
+* TODO: implement Least-Recently-Used
+****************************************************************************************************/
+
+/****************************************************************************************************
+* constructor
+* TODO: refactor to be a glib-type
+****************************************************************************************************/
 RingBuffer * ringbuffer_new(guint length, guint element_size)
 {
 	RingBuffer * ring_buffer = malloc(sizeof(struct RingBuffer));
@@ -39,6 +50,10 @@ RingBuffer * ringbuffer_new(guint length, guint element_size)
 	return ring_buffer;
 }
 
+/****************************************************************************************************
+* add something to the 'end' of the buffer, possibly overwriting an already present value
+* return TRUE if a value has been overwritten, FALSE otherwise
+****************************************************************************************************/
 gboolean ringbuffer_append(RingBuffer * ring_buffer, gconstpointer data)
 {
 	gboolean overwrite = FALSE;
@@ -75,11 +90,17 @@ gboolean ringbuffer_append(RingBuffer * ring_buffer, gconstpointer data)
 	return overwrite;
 }
 
+/****************************************************************************************************
+* return the element at the index's position
+****************************************************************************************************/
 void * ringbuffer_index(RingBuffer * ring_buffer, guint index)
 {
 	return ring_buffer -> data + ring_buffer -> element_size * index;
 }
 
+/****************************************************************************************************
+* TODO: is this function still necessary? seems to be used nowhere except the testing-code below
+****************************************************************************************************/
 gboolean ringbuffer_is_used(RingBuffer * ring_buffer, guint index)
 {
 	if (ring_buffer -> end == ring_buffer -> start){
@@ -92,6 +113,7 @@ gboolean ringbuffer_is_used(RingBuffer * ring_buffer, guint index)
 	return index >= ring_buffer -> start
 		|| index < ring_buffer -> end;
 }
+
 /*
 int main(int argc, char *argv[])
 {

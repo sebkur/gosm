@@ -26,6 +26,25 @@
 
 #include "tile_cache.h"
 
+/****************************************************************************************************
+* the TileCache hold references to tiles that have already been loaded into memory and provides
+* efficient mechanisms to 
+*	- find out whether a tile is in cache
+*	- retrieve the pointer to a cached tile
+****************************************************************************************************/
+
+/****************************************************************************************************
+* Comparism functions for the cache-structure
+* the cache is organised like this:
+*	- an array of sorted lists, one list for each zoomlevel
+*	- these lists are contain further lists of tiles present in the cache
+*	- the toplevel lists are sorted by x-values
+*	- the 2nd-level lists are sorted by y-values
+*	- the 2nd-level list contains references to the actual tiles
+****************************************************************************************************/
+/****************************************************************************************************
+* TODO: add detailed descriptions of comparism functions
+****************************************************************************************************/
 gint compare_list_x_int(gconstpointer a, gconstpointer b)
 {
 	int a_x = ((list_x*) a) -> x;
@@ -40,6 +59,9 @@ gint compare_list_x_int(gconstpointer a, gconstpointer b)
 	
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gint compare_list_x_list_x(gconstpointer a, gconstpointer b)
 {
 	int a_x = ((list_x*) a) -> x;
@@ -54,6 +76,9 @@ gint compare_list_x_list_x(gconstpointer a, gconstpointer b)
 	
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gint compare_node_y_int(gconstpointer a, gconstpointer b)
 {
 	int a_y = ((node_y*) a) -> y;
@@ -68,6 +93,9 @@ gint compare_node_y_int(gconstpointer a, gconstpointer b)
 	
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gint compare_node_y_node_y(gconstpointer a, gconstpointer b)
 {
 	int a_y = ((node_y*) a) -> y;
@@ -82,15 +110,21 @@ gint compare_node_y_node_y(gconstpointer a, gconstpointer b)
 	
 }
 
+/****************************************************************************************************
+* create a new TileCache
+****************************************************************************************************/
 TileCache * cache_new(int cache_size)
 {
 	TileCache * cache = malloc(sizeof(struct TileCache));
-	cache -> table = malloc(sizeof(GList) * 16);
-	memset(cache -> table, 0, sizeof(GList) * 16);
+	cache -> table = malloc(sizeof(GList) * 18);
+	memset(cache -> table, 0, sizeof(GList) * 18);
 	cache -> ring_buffer = ringbuffer_new(cache_size, sizeof(struct CachedMapTile));
 	return cache;
 }
 
+/****************************************************************************************************
+* find a tile in cache; return the pointer if present, NULL otherwise
+****************************************************************************************************/
 gpointer cache_find_tile(TileCache * cache, int zoom, int x, int y)
 {
 	GList * list = (cache -> table)[zoom];
@@ -106,6 +140,9 @@ gpointer cache_find_tile(TileCache * cache, int zoom, int x, int y)
 	return ((node_y*)(find2 -> data)) -> pixbuf;
 }
 
+/****************************************************************************************************
+* add a tile to cache. return TRUE if an old tile has been replaced, FALSE otherwise
+****************************************************************************************************/
 gboolean cache_add_tile(TileCache * cache, int zoom, int x, int y, gpointer pixbuf)
 {
 	MapTile mt; mt.x = x; mt.y = y; mt.zoom = zoom;
@@ -164,12 +201,15 @@ gboolean cache_add_tile(TileCache * cache, int zoom, int x, int y, gpointer pixb
 	return replace;
 }
 
-// this function not only removes from the
-// 3-dimensional cache-list, but also from
-// the ringbuffer (it sets zoomlevel to 0 in the CachedMapTile)
-// -> when this removed tile is 'overwritten' by 'cache_add_tile'
-// (since it resides in the ringbuffer), the function 'cache_remove_tile'
-// will not be called on this tile again.
+/****************************************************************************************************
+* this function not only removes from the
+* 3-dimensional cache-list, but also from
+* the ringbuffer (it sets zoomlevel to 0 in the CachedMapTile)
+* -> when this removed tile is 'overwritten' by 'cache_add_tile'
+* (since it resides in the ringbuffer), the function 'cache_remove_tile'
+* will not be called on this tile again.
+* PURPOSE: this function forces the tile-cache to reload this tile on next request
+****************************************************************************************************/
 void cache_purge_tile(TileCache * cache, int zoom, int x, int y)
 {
 	cache_remove_tile(cache, zoom, x, y);
@@ -184,6 +224,9 @@ void cache_purge_tile(TileCache * cache, int zoom, int x, int y)
 	}
 }
 
+/****************************************************************************************************
+* remove a tile from cache 
+****************************************************************************************************/
 void cache_remove_tile(TileCache * cache, int zoom, int x, int y)
 {
 	//printf("removing\n");
@@ -236,7 +279,7 @@ int main(int argc, char *argv[])
 	cache_add_tile(tc,cmt);
 
 	printf("%d\n", cache_find_tile(tc, 11, 12, 6));
-	/*GList cache[16];
+	GList cache[16];
 	GList * list = g_list_alloc();
 	int * q = malloc(sizeof(int));
 	*q = 99;

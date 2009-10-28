@@ -30,7 +30,7 @@
 #include "osm_reader.h"
 
 /****************************************************************************************************
-* 
+* let the user inspect what tags are present in the currently loaded PoiSource
 ****************************************************************************************************/
 G_DEFINE_TYPE (PoiStatistics, poi_statistics, G_TYPE_OBJECT);
 
@@ -45,7 +45,7 @@ G_DEFINE_TYPE (PoiStatistics, poi_statistics, G_TYPE_OBJECT);
 //g_signal_emit (widget, poi_statistics_signals[SIGNAL_NAME_n], 0);
 
 /****************************************************************************************************
-* 
+* constructor
 ****************************************************************************************************/
 PoiStatistics * poi_statistics_new()
 {
@@ -71,7 +71,7 @@ static void poi_statistics_init(PoiStatistics *poi_statistics)
 }
 
 /****************************************************************************************************
-* 
+* iterator function for the key-value-tree on level 2(values), add tag and count to resultset
 ****************************************************************************************************/
 gboolean tree_inspect2 (gpointer k, gpointer v, gpointer data)
 {
@@ -84,7 +84,7 @@ gboolean tree_inspect2 (gpointer k, gpointer v, gpointer data)
 }
 
 /****************************************************************************************************
-* 
+* iterator function for the key-value-tree on level 1(keys), iterate values
 ****************************************************************************************************/
 gboolean tree_inspect1 (gpointer k, gpointer v, gpointer data)
 {
@@ -95,7 +95,7 @@ gboolean tree_inspect1 (gpointer k, gpointer v, gpointer data)
 }
 
 /****************************************************************************************************
-* 
+* comparism function for sorting tags by number of occurences
 ****************************************************************************************************/
 int key_val_count_compare(gconstpointer a, gconstpointer b)
 {
@@ -105,7 +105,8 @@ int key_val_count_compare(gconstpointer a, gconstpointer b)
 }
 
 /****************************************************************************************************
-* 
+* analyse the currently loaded pois
+* inspect all tags and save each tag associated with the number of occurences
 ****************************************************************************************************/
 void poi_statistics_analyze(PoiStatistics * poi_statistics, OsmReader * osm_reader)
 {
@@ -121,7 +122,7 @@ void poi_statistics_analyze(PoiStatistics * poi_statistics, OsmReader * osm_read
 }
 
 /****************************************************************************************************
-* 
+* columns for presentation of tags + number of occurences
 ****************************************************************************************************/
 enum {
 	COL_KEY = 0,
@@ -131,7 +132,7 @@ enum {
 };
 
 /****************************************************************************************************
-* 
+* show a window; treeview showing tags + number of occurences
 ****************************************************************************************************/
 void poi_statistics_show_window(PoiStatistics * poi_statistics)
 {

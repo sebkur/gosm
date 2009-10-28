@@ -33,7 +33,8 @@
 #include "../paths.h"
 
 /****************************************************************************************************
-* 
+* SelectTool is a widget that show information about the current selection and has some buttons
+* to perform actions with this selection
 ****************************************************************************************************/
 G_DEFINE_TYPE (SelectTool, select_tool, GTK_TYPE_VBOX);
 
@@ -48,7 +49,7 @@ G_DEFINE_TYPE (SelectTool, select_tool, GTK_TYPE_VBOX);
 //g_signal_emit (widget, select_tool_signals[TILE_LOADED_SUCCESFULLY], 0);
 
 /****************************************************************************************************
-* 
+* constructor
 ****************************************************************************************************/
 SelectTool * select_tool_new()
 {
@@ -68,7 +69,7 @@ static void select_tool_class_init(SelectToolClass *class)
 }
 
 /****************************************************************************************************
-* 
+* object init
 ****************************************************************************************************/
 static void select_tool_init(SelectTool *select_tool)
 {
@@ -157,7 +158,7 @@ static void select_tool_init(SelectTool *select_tool)
 }
 
 /****************************************************************************************************
-* 
+* update the currently displayed values
 ****************************************************************************************************/
 void select_tool_set_lons_n_lats(SelectTool * select_tool, double lon1, double lon2, double lat1, double lat2)
 {

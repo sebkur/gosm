@@ -31,7 +31,8 @@
 #include "../config/color_button_auto.h"
 
 /****************************************************************************************************
-* 
+* PoiTool acts as a view for the PoiManager
+* it is a frontend for editing all aspects of PoiSources and PoiLayers
 ****************************************************************************************************/
 G_DEFINE_TYPE (PoiTool, poi_tool, GTK_TYPE_VBOX);
 
@@ -46,7 +47,7 @@ G_DEFINE_TYPE (PoiTool, poi_tool, GTK_TYPE_VBOX);
 //g_signal_emit (widget, poi_tool_signals[SIGNAL_NAME_n], 0);
 
 /****************************************************************************************************
-* 
+* method declarations
 ****************************************************************************************************/
 static gboolean poi_tool_button_layers_add_cb(GtkWidget * button, gpointer data);
 static gboolean poi_tool_button_layers_delete_cb(GtkWidget * button, gpointer data);
@@ -60,7 +61,7 @@ static gboolean poi_tool_api_start_cb(PoiManager * poi_manager, gpointer data);
 static gboolean poi_tool_api_end_cb(PoiManager * poi_manager, int index, gpointer data);
 
 /****************************************************************************************************
-* 
+* constructor
 ****************************************************************************************************/
 GtkWidget * poi_tool_new(PoiManager * poi_manager)
 {
@@ -186,7 +187,7 @@ static void poi_tool_init(PoiTool *poi_tool)
 }
 
 /****************************************************************************************************
-* 
+* add a poi-layer
 ****************************************************************************************************/
 static gboolean poi_tool_button_layers_add_cb(GtkWidget * button, gpointer data)
 {
@@ -233,7 +234,7 @@ static gboolean poi_tool_button_layers_add_cb(GtkWidget * button, gpointer data)
 }
 
 /****************************************************************************************************
-* 
+* remove a poi-layer
 ****************************************************************************************************/
 static gboolean poi_tool_button_layers_delete_cb(GtkWidget * button, gpointer data)
 {
@@ -247,7 +248,7 @@ static gboolean poi_tool_button_layers_delete_cb(GtkWidget * button, gpointer da
 }
 
 /****************************************************************************************************
-* 
+* save poi-layers
 ****************************************************************************************************/
 static gboolean poi_tool_button_layers_save_cb(GtkWidget * button, gpointer data)
 {
@@ -258,7 +259,7 @@ static gboolean poi_tool_button_layers_save_cb(GtkWidget * button, gpointer data
 }
 
 /****************************************************************************************************
-* 
+* revert layers to saved state
 ****************************************************************************************************/
 static gboolean poi_tool_button_layers_revert_cb(GtkWidget * button, gpointer data)
 {
@@ -268,7 +269,7 @@ static gboolean poi_tool_button_layers_revert_cb(GtkWidget * button, gpointer da
 }
 
 /****************************************************************************************************
-* 
+* request the api for currently visible area
 ****************************************************************************************************/
 static gboolean poi_tool_button_api_request_cb(GtkWidget * button, gpointer data)
 {
@@ -278,7 +279,7 @@ static gboolean poi_tool_button_api_request_cb(GtkWidget * button, gpointer data
 }
 
 /****************************************************************************************************
-* 
+* add a poi-source
 ****************************************************************************************************/
 static gboolean poi_tool_button_sources_add_cb(GtkWidget * button, gpointer data)
 {
@@ -307,7 +308,7 @@ static gboolean poi_tool_button_sources_add_cb(GtkWidget * button, gpointer data
 }
 
 /****************************************************************************************************
-* 
+* remove a poi-source
 ****************************************************************************************************/
 static gboolean poi_tool_button_sources_delete_cb(GtkWidget * button, gpointer data)
 {
@@ -321,7 +322,7 @@ static gboolean poi_tool_button_sources_delete_cb(GtkWidget * button, gpointer d
 }
 
 /****************************************************************************************************
-* 
+* save the list of poi-sources
 ****************************************************************************************************/
 static gboolean poi_tool_button_sources_save_cb(GtkWidget * button, gpointer data)
 {
@@ -331,7 +332,8 @@ static gboolean poi_tool_button_sources_save_cb(GtkWidget * button, gpointer dat
 }
 
 /****************************************************************************************************
-* 
+* callback; when api-request started, deactivate the api-button, so that there is always maximally
+* one api-request running
 ****************************************************************************************************/
 static gboolean poi_tool_api_start_cb(PoiManager * poi_manager, gpointer data)
 {
@@ -340,7 +342,8 @@ static gboolean poi_tool_api_start_cb(PoiManager * poi_manager, gpointer data)
 }
 
 /****************************************************************************************************
-* 
+* callback; when api-request enden, acitvate the api-button, so that the next api-request can be 
+* stated
 ****************************************************************************************************/
 static gboolean poi_tool_api_end_cb(PoiManager * poi_manager, int index, gpointer data)
 {

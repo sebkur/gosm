@@ -43,8 +43,14 @@
 #define TILESIZE	256
 #define FORMAT_FILES	"/%d_%d_%d.png"
 
+/****************************************************************************************************
+* TileLoader encapsulates functions for retrieving tiles over network
+****************************************************************************************************/
 G_DEFINE_TYPE (TileLoader, tile_loader, G_TYPE_OBJECT);
 
+/****************************************************************************************************
+* signals
+****************************************************************************************************/
 enum
 {
 	TILE_LOADED_SUCCESFULLY,
@@ -57,11 +63,17 @@ static guint tile_loader_signals[LAST_SIGNAL] = { 0 };
 
 
 /**
- * add functions for adding tile to list / waking up loader thread
+ * TODO: add functions for adding tile to list / waking up loader thread
  */
 
-void tile_loader_load_function();
+/****************************************************************************************************
+* method declarations
+****************************************************************************************************/
+void tile_loader_tile_load_function(TileLoader *tile_loader);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 GObject * tile_loader_new()
 {
 	return g_object_new(GOSM_TYPE_TILE_LOADER, NULL);
@@ -69,8 +81,9 @@ GObject * tile_loader_new()
 
 //g_signal_emit (widget, tile_loader_signals[TILE_LOADED_SUCCESFULLY], 0);
 
-void tile_loader_tile_load_function(TileLoader *tile_loader);
-
+/****************************************************************************************************
+* class init
+****************************************************************************************************/
 static void tile_loader_class_init(TileLoaderClass *class)
 {
 	tile_loader_signals[TILE_LOADED_SUCCESFULLY] = g_signal_new(
@@ -99,6 +112,9 @@ static void tile_loader_class_init(TileLoaderClass *class)
 		G_TYPE_NONE, 0);
 }
 
+/****************************************************************************************************
+* object init
+****************************************************************************************************/
 static void tile_loader_init(TileLoader *tile_loader)
 {
 	tile_loader -> list_to_load = g_array_new(TRUE, TRUE, sizeof(struct MapTile));
@@ -107,12 +123,18 @@ static void tile_loader_init(TileLoader *tile_loader)
 	pthread_mutex_init(&(tile_loader -> mutex_mode), NULL);
 }
 
+/****************************************************************************************************
+* set the format of urls used to retrieve tiles
+****************************************************************************************************/
 void tile_loader_set_url_format(TileLoader * tile_loader, char * format)
 {
 	tile_loader -> format_url = malloc(sizeof(char) * (strlen(format) + 1));
 	strcpy(tile_loader -> format_url, format);
 }
 
+/****************************************************************************************************
+* set the location of where to save tiles
+****************************************************************************************************/
 void tile_loader_set_cache_directory(TileLoader * tile_loader, char * directory)
 {
         // TODO: directory-string might contain a trailing backslash...
@@ -131,7 +153,9 @@ void tile_loader_set_cache_directory(TileLoader * tile_loader, char * directory)
         strcpy(tile_loader -> cache_files_format + dir_len, FORMAT_FILES);
 }
 
-
+/****************************************************************************************************
+* start loading the preset tiles
+****************************************************************************************************/
 void tile_loader_start(TileLoader *tile_loader)
 {
 	tile_loader -> mode = TILE_LOADER_MODE_RUN;
@@ -139,6 +163,9 @@ void tile_loader_start(TileLoader *tile_loader)
 	int p = pthread_create(&thread, NULL, (void *) tile_loader_tile_load_function, tile_loader);
 }
 
+/****************************************************************************************************
+* pause loading
+****************************************************************************************************/
 void tile_loader_pause(TileLoader *tile_loader)
 {
 	pthread_mutex_lock(&(tile_loader -> mutex_mode));
@@ -146,6 +173,9 @@ void tile_loader_pause(TileLoader *tile_loader)
 	pthread_mutex_unlock(&(tile_loader -> mutex_mode));
 }
 
+/****************************************************************************************************
+* resume loading
+****************************************************************************************************/
 void tile_loader_resume(TileLoader *tile_loader)
 {
 	pthread_mutex_lock(&(tile_loader -> mutex_mode));
@@ -154,6 +184,9 @@ void tile_loader_resume(TileLoader *tile_loader)
 	pthread_mutex_unlock(&(tile_loader -> mutex_mode));
 }
 
+/****************************************************************************************************
+* download a single tile, internally used function
+****************************************************************************************************/
 void tile_loader_download(TileLoader * tile_loader, const char* url, const char* file_name)
 {
 	if (tile_loader -> easyhandle == NULL){
@@ -168,6 +201,9 @@ void tile_loader_download(TileLoader * tile_loader, const char* url, const char*
 	fclose(file);
 }
 
+/****************************************************************************************************
+* download a single tile
+****************************************************************************************************/
 void tile_loader_download_tile(TileLoader * tile_loader, int zoom, int x, int y)
 {
 	// TODO: bad constant buffer size
@@ -180,6 +216,9 @@ void tile_loader_download_tile(TileLoader * tile_loader, int zoom, int x, int y)
 	printf("got %s\n", filename);
 }
 
+/****************************************************************************************************
+* add a tile for downloading
+****************************************************************************************************/
 void tile_loader_add_tile(TileLoader *tile_loader, MapTile map_tile)
 {
 		pthread_mutex_lock(&(tile_loader -> mutex_list));
@@ -187,6 +226,9 @@ void tile_loader_add_tile(TileLoader *tile_loader, MapTile map_tile)
 		pthread_mutex_unlock(&(tile_loader -> mutex_list));
 }
 
+/****************************************************************************************************
+* the function used by the loading-thread to perform the downloading of the preset tiles
+****************************************************************************************************/
 void tile_loader_tile_load_function(TileLoader *tile_loader)
 {
 	//while(TRUE){ // this loop could be used, if adding tiles after initial start should be supported

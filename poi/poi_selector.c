@@ -36,12 +36,13 @@
 #include "../config/color_button.h"
 
 /****************************************************************************************************
-* 
+* the PoiSelector widget let's the user select the set of PoiSets to be displayed (i.e. a list of 
+* tags to be shown on the map
 ****************************************************************************************************/
 G_DEFINE_TYPE (PoiSelector, poi_selector, GTK_TYPE_VBOX);
 
 /****************************************************************************************************
-* 
+* the columns
 ****************************************************************************************************/
 enum
 {
@@ -55,7 +56,7 @@ enum
 //static guint poi_selector_signals[LAST_SIGNAL] = { 0 };
 
 /****************************************************************************************************
-* 
+* method declarations
 ****************************************************************************************************/
 static GtkWidget * poi_selector_create_view (PoiSelector * poi_selector);
 void poi_selector_add_pair(PoiSelector * poi_selector, StyledPoiSet * poi_set);
@@ -67,7 +68,7 @@ static gboolean poi_selector_layer_added_cb(PoiManager * poi_manager, int index,
 static gboolean poi_selector_layer_deleted_cb(PoiManager * poi_manager, int index, gpointer data);
 
 /****************************************************************************************************
-* 
+* constructor
 ****************************************************************************************************/
 GtkWidget * poi_selector_new(PoiManager * poi_manager)
 {
@@ -104,7 +105,7 @@ static void poi_selector_init(PoiSelector *poi_selector)
 }
 
 /****************************************************************************************************
-* 
+* when a row has been checked or unchecked
 ****************************************************************************************************/
 static gboolean poi_selector_check_cb(GtkCellRendererToggle * renderer, const gchar * path_string, gpointer data)
 {
@@ -119,7 +120,7 @@ static gboolean poi_selector_check_cb(GtkCellRendererToggle * renderer, const gc
 }
 
 /****************************************************************************************************
-* 
+* when the colour-column has been clicked in a row
 ****************************************************************************************************/
 static gboolean poi_selector_color_button_cb(CellRendererColour * renderer, const gchar * path_string, gpointer data)
 {
@@ -164,7 +165,7 @@ static gboolean poi_selector_color_button_cb(CellRendererColour * renderer, cons
 }
 
 /****************************************************************************************************
-* 
+* when the colour of a row changed
 ****************************************************************************************************/
 static gboolean poi_selector_colour_changed_cb(PoiManager * poi_manager, int index, gpointer data)
 {
@@ -188,7 +189,7 @@ static gboolean poi_selector_colour_changed_cb(PoiManager * poi_manager, int ind
 }
 
 /****************************************************************************************************
-* 
+* when a tag (key-value-pair) has been added
 ****************************************************************************************************/
 static gboolean poi_selector_layer_added_cb(PoiManager * poi_manager, int index, gpointer data)
 {
@@ -214,7 +215,7 @@ static gboolean poi_selector_layer_added_cb(PoiManager * poi_manager, int index,
 }
 
 /****************************************************************************************************
-* 
+* when a tag has been removed
 ****************************************************************************************************/
 static gboolean poi_selector_layer_deleted_cb(PoiManager * poi_manager, int index, gpointer data)
 {
@@ -231,7 +232,7 @@ static gboolean poi_selector_layer_deleted_cb(PoiManager * poi_manager, int inde
 }
 
 /****************************************************************************************************
-* 
+* when the visibility of a PoiSet has been changed
 ****************************************************************************************************/
 static gboolean poi_selector_layer_toggled_cb(PoiManager * poi_manager, int index, gpointer data)
 {
@@ -250,7 +251,7 @@ static gboolean poi_selector_layer_toggled_cb(PoiManager * poi_manager, int inde
 }
 
 /****************************************************************************************************
-* 
+* create the treeview's model
 ****************************************************************************************************/
 static GtkTreeModel * poi_selector_create_model (PoiManager * poi_manager)
 {
@@ -279,7 +280,7 @@ static GtkTreeModel * poi_selector_create_model (PoiManager * poi_manager)
 }
 
 /****************************************************************************************************
-* 
+* create the treeview
 ****************************************************************************************************/
 static GtkWidget * poi_selector_create_view (PoiSelector * poi_selector)
 {
