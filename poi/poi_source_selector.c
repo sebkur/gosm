@@ -28,8 +28,14 @@
 
 #include "poi_source_selector.h"
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (PoiSourceSelector, poi_source_selector, GTK_TYPE_VBOX);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 enum
 {
 	COL_ACTIVE = 0,
@@ -38,6 +44,9 @@ enum
 	NUM_COLS
 };
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static GtkTreeModel * poi_source_selector_create_model (PoiManager * poi_manager);
 static GtkWidget * poi_source_selector_create_view (PoiManager * poi_manager);
 void poi_source_selector_list_cb(
@@ -50,6 +59,9 @@ static gboolean poi_source_selector_deleted_cb(PoiManager * poi_manager, int ind
 static gboolean poi_source_selector_activated_cb(PoiManager * poi_manager, int index, gpointer data);
 static gboolean poi_source_selector_deactivated_cb(PoiManager * poi_manager, int index, gpointer data);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 PoiSourceSelector * poi_source_selector_new(PoiManager * poi_manager)
 {
 	PoiSourceSelector * poi_source_selector = g_object_new(GOSM_TYPE_POI_SOURCE_SELECTOR, NULL);

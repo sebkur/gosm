@@ -30,6 +30,9 @@
 #include "poi_tool.h"
 #include "../config/color_button_auto.h"
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (PoiTool, poi_tool, GTK_TYPE_VBOX);
 
 /*enum
@@ -42,6 +45,9 @@ G_DEFINE_TYPE (PoiTool, poi_tool, GTK_TYPE_VBOX);
 //static guint poi_tool_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, poi_tool_signals[SIGNAL_NAME_n], 0);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_button_layers_add_cb(GtkWidget * button, gpointer data);
 static gboolean poi_tool_button_layers_delete_cb(GtkWidget * button, gpointer data);
 static gboolean poi_tool_button_layers_save_cb(GtkWidget * button, gpointer data);
@@ -53,6 +59,9 @@ static gboolean poi_tool_button_sources_save_cb(GtkWidget * button, gpointer dat
 static gboolean poi_tool_api_start_cb(PoiManager * poi_manager, gpointer data);
 static gboolean poi_tool_api_end_cb(PoiManager * poi_manager, int index, gpointer data);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 GtkWidget * poi_tool_new(PoiManager * poi_manager)
 {
 	PoiTool * poi_tool = g_object_new(GOSM_TYPE_POI_TOOL, NULL);
@@ -176,6 +185,9 @@ static void poi_tool_init(PoiTool *poi_tool)
 {
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_button_layers_add_cb(GtkWidget * button, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
@@ -220,6 +232,9 @@ static gboolean poi_tool_button_layers_add_cb(GtkWidget * button, gpointer data)
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_button_layers_delete_cb(GtkWidget * button, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
@@ -231,6 +246,9 @@ static gboolean poi_tool_button_layers_delete_cb(GtkWidget * button, gpointer da
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_button_layers_save_cb(GtkWidget * button, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
@@ -239,6 +257,9 @@ static gboolean poi_tool_button_layers_save_cb(GtkWidget * button, gpointer data
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_button_layers_revert_cb(GtkWidget * button, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
@@ -246,6 +267,9 @@ static gboolean poi_tool_button_layers_revert_cb(GtkWidget * button, gpointer da
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_button_api_request_cb(GtkWidget * button, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
@@ -253,6 +277,9 @@ static gboolean poi_tool_button_api_request_cb(GtkWidget * button, gpointer data
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_button_sources_add_cb(GtkWidget * button, gpointer data)
 {
 	GtkWidget * chooser = gtk_file_chooser_dialog_new("Select Osm-File to add",
@@ -279,6 +306,9 @@ static gboolean poi_tool_button_sources_add_cb(GtkWidget * button, gpointer data
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_button_sources_delete_cb(GtkWidget * button, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
@@ -290,6 +320,9 @@ static gboolean poi_tool_button_sources_delete_cb(GtkWidget * button, gpointer d
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_button_sources_save_cb(GtkWidget * button, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
@@ -297,12 +330,18 @@ static gboolean poi_tool_button_sources_save_cb(GtkWidget * button, gpointer dat
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_api_start_cb(PoiManager * poi_manager, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
 	gtk_widget_set_sensitive(poi_tool -> button_api, FALSE);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_tool_api_end_cb(PoiManager * poi_manager, int index, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);

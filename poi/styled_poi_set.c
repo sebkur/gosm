@@ -28,6 +28,9 @@
 
 #include "styled_poi_set.h"
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (StyledPoiSet, styled_poi_set, GOSM_TYPE_NAMED_POI_SET);
 
 /*enum
@@ -40,6 +43,9 @@ G_DEFINE_TYPE (StyledPoiSet, styled_poi_set, GOSM_TYPE_NAMED_POI_SET);
 //static guint styled_poi_set_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, styled_poi_set_signals[SIGNAL_NAME_n], 0);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 StyledPoiSet * styled_poi_set_new(char * key, char * value, double r, double g, double b, double a)
 {
 	StyledPoiSet * styled_poi_set = g_object_new(GOSM_TYPE_STYLED_POI_SET, NULL);
@@ -47,6 +53,9 @@ StyledPoiSet * styled_poi_set_new(char * key, char * value, double r, double g, 
 	return styled_poi_set;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void styled_poi_set_constructor(StyledPoiSet * styled_poi_set, char * key, char * value,
 	double r, double g, double b, double a){
 	named_poi_set_constructor(GOSM_NAMED_POI_SET(styled_poi_set), key, value);
@@ -72,6 +81,9 @@ static void styled_poi_set_init(StyledPoiSet *styled_poi_set)
 {
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void styled_poi_set_get_colour(StyledPoiSet * styled_poi_set, double * r, double * g, double * b, double * a)
 {
 	*r = styled_poi_set -> r;
@@ -80,6 +92,9 @@ void styled_poi_set_get_colour(StyledPoiSet * styled_poi_set, double * r, double
 	*a = styled_poi_set -> a;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void styled_poi_set_set_colour(StyledPoiSet * styled_poi_set, double r, double g, double b, double a)
 {
 	styled_poi_set -> r = r;

@@ -35,8 +35,14 @@
 #include "cell_renderer_colour.h"
 #include "../config/color_button.h"
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (PoiSelector, poi_selector, GTK_TYPE_VBOX);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 enum
 {
 	COL_ACTIVE = 0,
@@ -48,6 +54,9 @@ enum
 
 //static guint poi_selector_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static GtkWidget * poi_selector_create_view (PoiSelector * poi_selector);
 void poi_selector_add_pair(PoiSelector * poi_selector, StyledPoiSet * poi_set);
 static gboolean poi_selector_check_cb(GtkCellRendererToggle * renderer, const gchar * path_string, gpointer data);
@@ -57,6 +66,9 @@ static gboolean poi_selector_layer_toggled_cb(PoiManager * poi_manager, int inde
 static gboolean poi_selector_layer_added_cb(PoiManager * poi_manager, int index, gpointer data);
 static gboolean poi_selector_layer_deleted_cb(PoiManager * poi_manager, int index, gpointer data);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 GtkWidget * poi_selector_new(PoiManager * poi_manager)
 {
 	PoiSelector * poi_selector = g_object_new(GOSM_TYPE_POI_SELECTOR, NULL);
@@ -91,6 +103,9 @@ static void poi_selector_init(PoiSelector *poi_selector)
 {
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_selector_check_cb(GtkCellRendererToggle * renderer, const gchar * path_string, gpointer data)
 {
 	PoiSelector * poi_selector = GOSM_POI_SELECTOR(data);
@@ -103,6 +118,9 @@ static gboolean poi_selector_check_cb(GtkCellRendererToggle * renderer, const gc
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_selector_color_button_cb(CellRendererColour * renderer, const gchar * path_string, gpointer data)
 {
 	PoiSelector * poi_selector = GOSM_POI_SELECTOR(data);
@@ -145,6 +163,9 @@ static gboolean poi_selector_color_button_cb(CellRendererColour * renderer, cons
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_selector_colour_changed_cb(PoiManager * poi_manager, int index, gpointer data)
 {
 	PoiSelector * poi_selector = GOSM_POI_SELECTOR(data);
@@ -166,6 +187,9 @@ static gboolean poi_selector_colour_changed_cb(PoiManager * poi_manager, int ind
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_selector_layer_added_cb(PoiManager * poi_manager, int index, gpointer data)
 {
 	PoiSelector * poi_selector = (PoiSelector*) data;
@@ -189,6 +213,9 @@ static gboolean poi_selector_layer_added_cb(PoiManager * poi_manager, int index,
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_selector_layer_deleted_cb(PoiManager * poi_manager, int index, gpointer data)
 {
 	PoiSelector * poi_selector = (PoiSelector*) data;
@@ -203,6 +230,9 @@ static gboolean poi_selector_layer_deleted_cb(PoiManager * poi_manager, int inde
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_selector_layer_toggled_cb(PoiManager * poi_manager, int index, gpointer data)
 {
 	PoiSelector * poi_selector = (PoiSelector*) data;
@@ -219,6 +249,9 @@ static gboolean poi_selector_layer_toggled_cb(PoiManager * poi_manager, int inde
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static GtkTreeModel * poi_selector_create_model (PoiManager * poi_manager)
 {
 	GtkListStore	*store;
@@ -245,6 +278,9 @@ static GtkTreeModel * poi_selector_create_model (PoiManager * poi_manager)
 	return GTK_TREE_MODEL (store);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static GtkWidget * poi_selector_create_view (PoiSelector * poi_selector)
 {
 	GtkCellRenderer     *renderer;

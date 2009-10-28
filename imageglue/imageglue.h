@@ -29,6 +29,12 @@ int make_image_1(char * filename, char * cache_dir, int zoom,
 			int x1,   int x2,   int y1,   int y2,
 			int x1_o, int x2_o, int y1_o, int y2_o);*/
 
+/****************************************************************************************************
+* see implementation for explanation
+****************************************************************************************************/
 int create_read_structs(FILE * fp, png_structp * png_ptr, png_infop * info_ptr);
 
+/****************************************************************************************************
+* see implementation for explanation
+****************************************************************************************************/
 int create_write_structs(FILE * fp, png_structp * png_ptr, png_infop * info_ptr, png_colorp * palette, int width, int height);

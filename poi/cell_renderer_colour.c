@@ -32,14 +32,14 @@
 #define FIXED_WIDTH 10
 #define FIXED_HEIGHT 10
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (CellRendererColour, cell_renderer_colour, GTK_TYPE_CELL_RENDERER);
 
-enum
-{
-        EDIT_COLOUR,
-        LAST_SIGNAL
-};
-
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 enum
 {
 	PROP_R = 1,
@@ -49,8 +49,20 @@ enum
 	PROP_ACTIVATABLE
 };
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
+enum
+{
+        EDIT_COLOUR,
+        LAST_SIGNAL
+};
+
 static guint cell_renderer_colour_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void cell_renderer_colour_get_property (GObject *object,
 					guint param_id,
 					GValue *value,
@@ -85,12 +97,18 @@ static gint cell_renderer_colour_activate (GtkCellRenderer *cell,
 					GdkRectangle *cell_area,
 					GtkCellRendererState flags);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 GtkCellRenderer * cell_renderer_colour_new()
 {
 	CellRendererColour * cell_renderer_colour = g_object_new(GOSM_TYPE_CELL_RENDERER_COLOUR, NULL);
 	return GTK_CELL_RENDERER(cell_renderer_colour);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void cell_renderer_colour_class_init(CellRendererColourClass *class)
 {
 	GtkCellRendererClass	*cell_class	= GTK_CELL_RENDERER_CLASS(class);
@@ -149,11 +167,17 @@ static void cell_renderer_colour_class_init(CellRendererColourClass *class)
 
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void cell_renderer_colour_init(CellRendererColour *cell_renderer_colour)
 {
 	GTK_CELL_RENDERER (cell_renderer_colour) -> mode = GTK_CELL_RENDERER_MODE_ACTIVATABLE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void cell_renderer_colour_get_property (GObject *object,
 		guint param_id,
 		GValue *value,
@@ -188,6 +212,9 @@ static void cell_renderer_colour_get_property (GObject *object,
 	}
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void cell_renderer_colour_set_property (GObject *object,
 		guint param_id,
 		const GValue *value,
@@ -222,6 +249,9 @@ static void cell_renderer_colour_set_property (GObject *object,
 	}
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void cell_renderer_colour_get_size (GtkCellRenderer *cell,
 					GtkWidget *widget,
 					GdkRectangle *cell_area,
@@ -251,6 +281,9 @@ static void cell_renderer_colour_get_size (GtkCellRenderer *cell,
 /*
  * derived from gtk_color_sel.c (config/color_button.c)
  */
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void cell_renderer_colour_render (GtkCellRenderer *cell,
 					GdkWindow *window,
 					GtkWidget *widget,
@@ -301,6 +334,9 @@ static void cell_renderer_colour_render (GtkCellRenderer *cell,
 	cairo_destroy (cr);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gint cell_renderer_colour_activate (GtkCellRenderer *cell,
 				 GdkEvent *event,
 				 GtkWidget *widget,

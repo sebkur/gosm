@@ -29,6 +29,9 @@
 
 #include "named_poi_set.h"
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (NamedPoiSet, named_poi_set, GOSM_TYPE_POI_SET);
 
 /*enum
@@ -41,6 +44,9 @@ G_DEFINE_TYPE (NamedPoiSet, named_poi_set, GOSM_TYPE_POI_SET);
 //static guint named_poi_set_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, named_poi_set_signals[SIGNAL_NAME_n], 0);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 NamedPoiSet * named_poi_set_new(char * key, char * value)
 {
 	NamedPoiSet * named_poi_set = g_object_new(GOSM_TYPE_NAMED_POI_SET, NULL);
@@ -48,6 +54,9 @@ NamedPoiSet * named_poi_set_new(char * key, char * value)
 	return named_poi_set;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void named_poi_set_constructor(NamedPoiSet * named_poi_set, char * key, char * value)
 {
 	poi_set_constructor(GOSM_POI_SET(named_poi_set));
@@ -73,11 +82,17 @@ static void named_poi_set_init(NamedPoiSet *named_poi_set)
 {
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 char * named_poi_set_get_key(NamedPoiSet * named_poi_set)
 {
 	return named_poi_set -> key;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 char * named_poi_set_get_value(NamedPoiSet * named_poi_set)
 {
 	return named_poi_set -> value;

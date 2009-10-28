@@ -32,6 +32,9 @@
 #include "select_tool.h"
 #include "../paths.h"
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (SelectTool, select_tool, GTK_TYPE_VBOX);
 
 /*enum
@@ -44,6 +47,9 @@ G_DEFINE_TYPE (SelectTool, select_tool, GTK_TYPE_VBOX);
 //static guint select_tool_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, select_tool_signals[TILE_LOADED_SUCCESFULLY], 0);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 SelectTool * select_tool_new()
 {
 	return g_object_new(GOSM_TYPE_SELECT_TOOL, NULL);
@@ -61,6 +67,9 @@ static void select_tool_class_init(SelectToolClass *class)
 		G_TYPE_NONE, 0);*/
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void select_tool_init(SelectTool *select_tool)
 {
 	GtkWidget *label_lon = gtk_label_new("Lon:");
@@ -147,7 +156,9 @@ static void select_tool_init(SelectTool *select_tool)
 	gtk_box_pack_start(GTK_BOX(select_tool), table, FALSE, FALSE, 0);
 }
 
-
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void select_tool_set_lons_n_lats(SelectTool * select_tool, double lon1, double lon2, double lat1, double lat2)
 {
 	double vals[4] = {lon1, lon2, lat1, lat2};

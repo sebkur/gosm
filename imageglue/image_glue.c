@@ -35,8 +35,14 @@
 #include "../map_types.h"
 #include "../atlas/atlas.h"
 
+/****************************************************************************************************
+* ImageGlue uses libpng to 'glue' some tiles together to form larger images
+****************************************************************************************************/
 G_DEFINE_TYPE (ImageGlue, image_glue, G_TYPE_OBJECT);
 
+/****************************************************************************************************
+* signals
+****************************************************************************************************/
 enum
 {
         TILE_COMPLETED,
@@ -45,9 +51,15 @@ enum
 
 static guint image_glue_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* function declarations
+****************************************************************************************************/
 void image_glue_single_thread_function(ImageGlue * image_glue);
 void image_glue_sequence_thread_function(ImageGlue * image_glue);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 ImageGlue * image_glue_new()
 {
 	ImageGlue * image_glue = g_object_new(GOSM_TYPE_IMAGE_GLUE, NULL);
@@ -70,6 +82,9 @@ static void image_glue_init(ImageGlue *image_glue)
 {
 }
 
+/****************************************************************************************************
+* the number of tiles that an area given by lons/lats/zoom covers
+****************************************************************************************************/
 int image_glue_single_get_number_of_tiles(int zoom, double lon1, double lon2, double lat1, double lat2)
 {
 	double x1_d = lon_to_x(lon1, zoom);
@@ -83,6 +98,12 @@ int image_glue_single_get_number_of_tiles(int zoom, double lon1, double lon2, do
 	return (x2 - x1 + 1) * (y2 - y1 + 1);
 }
 
+/****************************************************************************************************
+* the number of tiles that an area given by a selection covers
+* this function is for generating multiple images, where the number of tiles may be greater than at
+* image_glue_single_get_number_of_tiles, since all images are concerned that are (maybe paritially)
+* covered by the selection
+****************************************************************************************************/
 int image_glue_sequence_get_number_of_tiles(int zoom, Selection selection, ImageDimension image_dimension, int intersect_x, int intersect_y)
 {
 	int count = 0;
@@ -121,6 +142,9 @@ int image_glue_sequence_get_number_of_tiles(int zoom, Selection selection, Image
 	return count;
 }
 
+/****************************************************************************************************
+* figure out the number of sequence images will be procues by a given selection and image_dimension
+****************************************************************************************************/
 void image_glue_sequence_get_number_of_parts(int * parts_x, int * parts_y,
 	int zoom, Selection selection, ImageDimension image_dimension, int intersect_x, int intersect_y)
 {
@@ -142,6 +166,9 @@ void image_glue_sequence_get_number_of_parts(int * parts_x, int * parts_y,
 	*parts_y = 1 + ceil(((double)(height - image_dimension.height)) / (image_dimension.height - intersect_y));
 }
 
+/****************************************************************************************************
+* setup ImageGlue for creating a single image
+****************************************************************************************************/
 void image_glue_single_setup(ImageGlue * image_glue, char * filename, char * cache_dir, int zoom, double lon1, double lon2, double lat1, double lat2)
 {
 	ImageJobSingle job;
@@ -163,6 +190,9 @@ void image_glue_single_setup(ImageGlue * image_glue, char * filename, char * cac
 	image_glue -> job_single = job;
 }
 
+/****************************************************************************************************
+* setup ImageGlue for creating a sequence of images
+****************************************************************************************************/
 void image_glue_sequence_setup(ImageGlue * image_glue, char * filename, char * cache_dir, int zoom,
                                Selection selection, ImageDimension image_dimension, int intersect_x, int intersect_y)
 {
@@ -177,6 +207,9 @@ void image_glue_sequence_setup(ImageGlue * image_glue, char * filename, char * c
 	image_glue -> job_sequence = job;
 }
 
+/****************************************************************************************************
+* after setup, now create the image in another thread
+****************************************************************************************************/
 void image_glue_single_process(ImageGlue * image_glue)
 {
 	pthread_t thread;
@@ -184,12 +217,18 @@ void image_glue_single_process(ImageGlue * image_glue)
 }
 
 
+/****************************************************************************************************
+* after setup, now create the images in another thread
+****************************************************************************************************/
 void image_glue_sequence_process(ImageGlue * image_glue)
 {
 	pthread_t thread;
 	int p = pthread_create(&thread, NULL, (void *) image_glue_sequence_thread_function, image_glue);
 }
 
+/****************************************************************************************************
+* this function calls the actual image-generating function, used for threading
+****************************************************************************************************/
 void image_glue_single_thread_function(ImageGlue * image_glue)
 {
 	ImageJobSingle job = image_glue -> job_single;
@@ -198,6 +237,9 @@ void image_glue_single_thread_function(ImageGlue * image_glue)
 			job.x1_o, job.x2_o, job.y1_o, job.y2_o);
 }
 
+/****************************************************************************************************
+* this function calls the actual image-generating functions, used for threading
+****************************************************************************************************/
 void image_glue_sequence_thread_function(ImageGlue * image_glue)
 {
 	ImageJobSequence job = image_glue -> job_sequence;
@@ -246,6 +288,9 @@ void image_glue_sequence_thread_function(ImageGlue * image_glue)
 }
 
 
+/****************************************************************************************************
+* create an image, simple interface
+****************************************************************************************************/
 int make_image(ImageGlue * image_glue, char * filename, char * cache_dir, int zoom, double lon1, double lon2, double lat1, double lat2) 
 {
 	double x1_d = lon_to_x(lon1, zoom);
@@ -265,12 +310,18 @@ int make_image(ImageGlue * image_glue, char * filename, char * cache_dir, int zo
 	make_image_1(image_glue, filename, cache_dir, zoom, x1, x2, y1, y2, x1_o, x2_o, y1_o, y2_o);
 }
 
-// just for a small commandline-tool for easy handling
+/****************************************************************************************************
+* another simple interface for a small commandline-tool for easy handling
+***************************************************************************************************/
 int make_image_simple(ImageGlue * image_glue, char * filename, int zoom, int x1, int x2, int y1, int y2)
 {
 	//make_image_1(image_glue, filename, zoom, x1, x2, y1, y2, 0, 0, 256, 256);
 }
 
+/****************************************************************************************************
+* this is the function that actually does the work. it's interface is quite complex, so that
+* some easyier ones are provieded
+****************************************************************************************************/
 int make_image_1(ImageGlue * image_glue, char * filename, char * cache_dir, int zoom,
 			int x1,   int x2,   int y1,   int y2,
 			int x1_o, int x2_o, int y1_o, int y2_o){

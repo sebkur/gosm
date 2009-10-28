@@ -30,6 +30,10 @@
 #include "../paths.h"
 #include "distance_tool.h"
 
+/****************************************************************************************************
+* this widget displays an entry with the current distance measured and some buttons for conrolling
+* the current measurement-path
+****************************************************************************************************/
 G_DEFINE_TYPE (DistanceTool, distance_tool, GTK_TYPE_VBOX);
 
 GtkWidget * distance_tool_new()
@@ -42,6 +46,9 @@ static void distance_tool_class_init(DistanceToolClass *class)
 {
 }
 
+/****************************************************************************************************
+* construct the widget
+****************************************************************************************************/
 static void distance_tool_init(DistanceTool *distance_tool)
 {
 	distance_tool -> entry_distance = gtk_entry_new();
@@ -71,6 +78,10 @@ static void distance_tool_init(DistanceTool *distance_tool)
 	gtk_box_pack_start(GTK_BOX(distance_tool), box_buttons, FALSE, FALSE, 0);
 }
 
+/****************************************************************************************************
+* set the distance currently displayed
+* TODO: this function is neither implemented nor used, though it should be
+****************************************************************************************************/
 void distance_tool_set_distance(DistanceTool * select_tool, int meters)
 {
 }

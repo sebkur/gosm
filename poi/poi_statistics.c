@@ -29,6 +29,9 @@
 #include "poi_statistics.h"
 #include "osm_reader.h"
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (PoiStatistics, poi_statistics, G_TYPE_OBJECT);
 
 /*enum
@@ -41,6 +44,9 @@ G_DEFINE_TYPE (PoiStatistics, poi_statistics, G_TYPE_OBJECT);
 //static guint poi_statistics_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, poi_statistics_signals[SIGNAL_NAME_n], 0);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 PoiStatistics * poi_statistics_new()
 {
 	PoiStatistics * poi_statistics = g_object_new(GOSM_TYPE_POI_STATISTICS, NULL);
@@ -64,6 +70,9 @@ static void poi_statistics_init(PoiStatistics *poi_statistics)
 {
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean tree_inspect2 (gpointer k, gpointer v, gpointer data)
 {
 	PoiStatistics * poi_stats = (PoiStatistics*) data;
@@ -74,6 +83,9 @@ gboolean tree_inspect2 (gpointer k, gpointer v, gpointer data)
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean tree_inspect1 (gpointer k, gpointer v, gpointer data)
 {
 	PoiStatistics * poi_stats = (PoiStatistics*) data;
@@ -82,6 +94,9 @@ gboolean tree_inspect1 (gpointer k, gpointer v, gpointer data)
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 int key_val_count_compare(gconstpointer a, gconstpointer b)
 {
 	KeyValueCount * c1 = (KeyValueCount*)a;
@@ -89,6 +104,9 @@ int key_val_count_compare(gconstpointer a, gconstpointer b)
 	return c2 -> count - c1 -> count;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_statistics_analyze(PoiStatistics * poi_statistics, OsmReader * osm_reader)
 {
 	g_tree_foreach(osm_reader -> tree_tags, tree_inspect1, (gpointer)poi_statistics);
@@ -102,6 +120,9 @@ void poi_statistics_analyze(PoiStatistics * poi_statistics, OsmReader * osm_read
 //	}
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 enum {
 	COL_KEY = 0,
 	COL_VAL,
@@ -109,6 +130,9 @@ enum {
 	NUM_COLS
 };
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_statistics_show_window(PoiStatistics * poi_statistics)
 {
 	GtkWidget * window = gtk_window_new(GTK_WINDOW_TOPLEVEL);

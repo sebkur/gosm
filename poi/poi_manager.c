@@ -42,8 +42,14 @@
 #include "../tool.h"
 #include "poi_statistics.h"
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (PoiManager, poi_manager, G_TYPE_OBJECT);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 enum
 {
 	LAYER_TOGGLED,
@@ -65,6 +71,9 @@ enum
 
 static guint poi_manager_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean poi_manager_create_default_poi_layers();
 gboolean poi_manager_read_poi_sources(PoiManager * poi_manager);
 gboolean poi_manager_read_poi_layers(PoiManager * poi_manager);
@@ -72,6 +81,9 @@ void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set);
 static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int status, gpointer data);
 static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, int status, gpointer data);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 PoiManager * poi_manager_new()
 {
 	PoiManager * poi_manager = g_object_new(GOSM_TYPE_POI_MANAGER, NULL);
@@ -101,6 +113,9 @@ PoiManager * poi_manager_new()
 	return poi_manager;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void poi_manager_class_init(PoiManagerClass *class)
 {
         poi_manager_signals[LAYER_TOGGLED] = g_signal_new(
@@ -221,6 +236,9 @@ static void poi_manager_init(PoiManager *poi_manager)
 {
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_manager_add_poi_source(PoiManager * poi_manager, char * filename, gboolean load_on_startup)
 {
 	PoiSource * poi_source = malloc(sizeof(PoiSource));
@@ -233,6 +251,9 @@ void poi_manager_add_poi_source(PoiManager * poi_manager, char * filename, gbool
 	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ADDED], 0, poi_manager -> poi_sources -> len - 1);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 //TODO: splitting in only 100 lines is stupid
 gboolean poi_manager_read_poi_sources(PoiManager * poi_manager)
 {
@@ -275,6 +296,9 @@ gboolean poi_manager_read_poi_sources(PoiManager * poi_manager)
 	return TRUE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean poi_manager_create_default_poi_layers()
 {
 	char * from = GOSM_POI_DIR "res/poi_layers";
@@ -284,6 +308,9 @@ gboolean poi_manager_create_default_poi_layers()
 	return ret == 0;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean poi_manager_read_poi_layers(PoiManager * poi_manager)
 {
 	char * filepath = config_get_poi_layers_file();
@@ -330,6 +357,9 @@ gboolean poi_manager_read_poi_layers(PoiManager * poi_manager)
 	return TRUE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active,
 	double r, double g, double b, double a)
 {
@@ -340,6 +370,9 @@ void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value,
 	g_signal_emit (poi_manager, poi_manager_signals[LAYER_ADDED], 0, poi_manager -> poi_sets -> len - 1);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_manager_delete_poi_set(PoiManager * poi_manager, int index)
 {
 	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, index);
@@ -348,6 +381,9 @@ void poi_manager_delete_poi_set(PoiManager * poi_manager, int index)
 	g_signal_emit (poi_manager, poi_manager_signals[LAYER_DELETED], 0, index);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set)
 {
 	char * key = named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set));
@@ -371,6 +407,9 @@ void poi_manager_fill_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set)
 	}
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_manager_toggle_poi_set(PoiManager * poi_manager, int index)
 {
 	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, index);
@@ -379,26 +418,41 @@ void poi_manager_toggle_poi_set(PoiManager * poi_manager, int index)
 	g_signal_emit (poi_manager, poi_manager_signals[LAYER_TOGGLED], 0, index);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 int poi_manager_get_number_of_poi_sets(PoiManager * poi_manager)
 {
 	return poi_manager -> poi_sets -> len;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index)
 {
 	return g_array_index(poi_manager -> poi_sets, StyledPoiSet*, index);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 int poi_manager_get_number_of_poi_sources(PoiManager * poi_manager)
 {
 	return poi_manager -> poi_sources -> len;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 PoiSource * poi_manager_get_poi_source(PoiManager * poi_manager, int index)
 {
 	return g_array_index(poi_manager -> poi_sources, PoiSource*, index);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
 {
 	int old = poi_manager -> active_poi_source;
@@ -422,6 +476,9 @@ void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
 	}
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int status, gpointer data)
 {
 	PoiManager * poi_manager = GOSM_POI_MANAGER(data);
@@ -438,6 +495,9 @@ static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int s
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, int status, gpointer data)
 {
 	PoiManager * poi_manager = GOSM_POI_MANAGER(data);
@@ -452,6 +512,9 @@ static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, i
 	return FALSE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double r, double g, double b, double a)
 {
 	StyledPoiSet * poi_set = g_array_index(poi_manager -> poi_sets, StyledPoiSet*, index);
@@ -459,6 +522,9 @@ void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double 
 	g_signal_emit (poi_manager, poi_manager_signals[COLOUR_CHANGED], 0, index);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean poi_manager_layers_save(PoiManager * poi_manager)
 {
 	printf("saving poi layers\n");
@@ -505,6 +571,9 @@ gboolean poi_manager_layers_save(PoiManager * poi_manager)
 	return TRUE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean poi_manager_sources_save(PoiManager * poi_manager)
 {
 	printf("saving poi sources\n");
@@ -533,17 +602,26 @@ gboolean poi_manager_sources_save(PoiManager * poi_manager)
 	return TRUE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean poi_manager_layers_revert(PoiManager * poi_manager)
 {
 	printf("reverting poi layers\n");
 	return TRUE;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean poi_manager_sources_add(PoiManager * poi_manager, char * path)
 {
 	poi_manager_add_poi_source(poi_manager, path, FALSE);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean poi_manager_sources_delete(PoiManager * poi_manager, int index)
 {
 	if (index == poi_manager -> active_poi_source){
@@ -558,11 +636,17 @@ gboolean poi_manager_sources_delete(PoiManager * poi_manager, int index)
 	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_DELETED], 0, index);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_manager_set_map_area(PoiManager * poi_manager, MapArea * map_area)
 {
 	poi_manager -> map_area = map_area;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_manager_api_request(PoiManager * poi_manager)
 {
 	double min_lon, min_lat, max_lon, max_lat;
@@ -575,6 +659,9 @@ void poi_manager_api_request(PoiManager * poi_manager)
 	osm_reader_parse_api_url(poi_manager -> osm_reader, buf);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_manager_print_node_information(PoiManager * poi_manager, int node_id)
 {
 	printf("Node id = %d\n", node_id);
@@ -587,6 +674,9 @@ void poi_manager_print_node_information(PoiManager * poi_manager, int node_id)
 	}
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 LonLatTags * poi_manager_get_node(PoiManager * poi_manager, int node_id)
 {
 	LonLatTags * llt = (LonLatTags*) g_tree_lookup(poi_manager -> osm_reader -> tree_ids, &node_id);

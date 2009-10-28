@@ -42,8 +42,14 @@
 #include "../customio.h"
 
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (OsmReader, osm_reader, G_TYPE_OBJECT);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 enum
 {
         READING_PROGRESS,
@@ -54,25 +60,40 @@ enum
 
 static guint osm_reader_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void destroy_int_p(gpointer data)
 {
 	//printf("%d\n", (int*)data);
 	free(data);
 }
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void destroy_string(gpointer data)
 {
 	//printf("%s\n", (char*)data);
 	free(data);
 }
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void destroy_value_trees(gpointer data)
 {
 	//printf("DESTROY value_tree\n");
 	g_tree_destroy((GTree*)data);
 }
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void destroy_element_arrays(gpointer data)
 {	//printf("DESTROY element array\n");
 	g_array_free((GArray*)data, TRUE);
 }
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void destroy_lon_lat_tags(gpointer data)
 {	//printf("DESTROY lon lat tags\n");
 	LonLatTags * llt = (LonLatTags*) data;
@@ -80,16 +101,25 @@ void destroy_lon_lat_tags(gpointer data)
 	free(llt);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gint osm_reader_compare_strings(gconstpointer a, gconstpointer b, gpointer user_data)
 {
 	return strcmp(a, b);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gint osm_reader_compare_ints(gconstpointer a, gconstpointer b, gpointer user_data)
 {
 	return *(int*)a - *(int*)b;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void osm_reader_constructor(OsmReader * osm_reader)
 {
 	osm_reader -> tree_tags = g_tree_new_full(osm_reader_compare_strings, NULL, destroy_string, destroy_value_trees);
@@ -99,6 +129,9 @@ void osm_reader_constructor(OsmReader * osm_reader)
 	osm_reader -> current_id = 0;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 OsmReader * osm_reader_new()
 {
 	OsmReader * osm_reader = g_object_new(GOSM_TYPE_OSM_READER, NULL);
@@ -106,6 +139,9 @@ OsmReader * osm_reader_new()
 	return osm_reader;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void osm_reader_clear(OsmReader * osm_reader)
 {
 	g_tree_destroy(osm_reader -> tree_tags);
@@ -113,6 +149,9 @@ void osm_reader_clear(OsmReader * osm_reader)
 	osm_reader_constructor(osm_reader);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void osm_reader_class_init(OsmReaderClass *class)
 {
         osm_reader_signals[READING_PROGRESS] = g_signal_new(
@@ -145,6 +184,9 @@ static void osm_reader_init(OsmReader *osm_reader)
 {
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 const char * osm_reader_get_value(const XML_Char ** atts, char * search_key)
 {
 	const XML_Char ** ptr = atts;
@@ -159,6 +201,9 @@ const char * osm_reader_get_value(const XML_Char ** atts, char * search_key)
 	return NULL;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 						const XML_Char * name,
 						const XML_Char ** atts)
@@ -225,6 +270,9 @@ static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 	//printf("%s\n", name);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void XMLCALL osm_reader_EndElementCallback(	void * userData,
 					const XML_Char * name)
 {
@@ -245,8 +293,14 @@ static void XMLCALL osm_reader_EndElementCallback(	void * userData,
 	}
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void osm_reader_parse_file_thread_fun(OsmReader * osm_reader);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 int osm_reader_parse_file(OsmReader * osm_reader, char * filename)
 {
 	osm_reader -> filename = filename;
@@ -254,6 +308,9 @@ int osm_reader_parse_file(OsmReader * osm_reader, char * filename)
 	int p_id = pthread_create(&thread, NULL, (void*) osm_reader_parse_file_thread_fun, osm_reader);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void osm_reader_parse_file_thread_fun(OsmReader * osm_reader)
 {
 	XML_Parser parser = XML_ParserCreate(NULL);
@@ -330,6 +387,10 @@ void osm_reader_parse_file_thread_fun(OsmReader * osm_reader)
 	}
 	g_signal_emit (osm_reader, osm_reader_signals[READING_FINISHED], 0, 0);
 }
+
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 GArray * osm_reader_find_ids_key_value(OsmReader * osm_reader, char * key, char * value)
 {
 	GTree * tree = (GTree*) g_tree_lookup(osm_reader -> tree_tags, key);
@@ -353,6 +414,9 @@ GArray * osm_reader_find_ids_key_value(OsmReader * osm_reader, char * key, char 
 //	g_tree_foreach(osm_reader->tree_ids, traverse, NULL);
 //}
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 size_t curl_cb(void * data, size_t size, size_t nmemb, void * parser)
 {
 	char * buf = malloc(sizeof(char) * (size * nmemb + 1));
@@ -363,8 +427,14 @@ size_t curl_cb(void * data, size_t size, size_t nmemb, void * parser)
 	return size * nmemb;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void osm_reader_parse_api_url_thread_fun(OsmReader * osm_reader);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void osm_reader_parse_api_url(OsmReader * osm_reader, char * url)
 {
 	osm_reader -> url = url;
@@ -372,6 +442,9 @@ void osm_reader_parse_api_url(OsmReader * osm_reader, char * url)
 	int p_id = pthread_create(&thread, NULL, (void*) osm_reader_parse_api_url_thread_fun, osm_reader);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void osm_reader_parse_api_url_thread_fun(OsmReader * osm_reader)
 {
 	XML_Parser parser = XML_ParserCreate(NULL);

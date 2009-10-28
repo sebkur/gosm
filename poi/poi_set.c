@@ -32,6 +32,10 @@
 #include "../customio.h"
 #include "../map_types.h"
 
+/****************************************************************************************************
+* a PoiSet is a set of points (lon/lat) that are stored in an RTree for efficient retrieval of points
+* that are contained within an given area
+****************************************************************************************************/
 G_DEFINE_TYPE (PoiSet, poi_set, G_TYPE_OBJECT);
 
 /*enum
@@ -44,6 +48,9 @@ G_DEFINE_TYPE (PoiSet, poi_set, G_TYPE_OBJECT);
 //static guint poi_set_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, poi_set_signals[SIGNAL_NAME_n], 0);
 
+/****************************************************************************************************
+* create a new PoiSet
+****************************************************************************************************/
 PoiSet * poi_set_new()
 {
 	PoiSet * poi_set = g_object_new(GOSM_TYPE_POI_SET, NULL);
@@ -52,6 +59,9 @@ PoiSet * poi_set_new()
 	return poi_set;
 }
 
+/****************************************************************************************************
+* constructor is an own function so that it can be called from *_new and from *_clear
+****************************************************************************************************/
 void poi_set_constructor(PoiSet * poi_set)
 {
 	poi_set -> root = RTreeNewIndex();
@@ -59,6 +69,10 @@ void poi_set_constructor(PoiSet * poi_set)
 	poi_set -> points = g_array_new(FALSE, FALSE, sizeof(LonLatPairData));
 }
 
+/****************************************************************************************************
+* remove all points from PoiSet and call constructor, so that it can be used as if it was just
+* created
+****************************************************************************************************/
 void poi_set_clear(PoiSet * poi_set)
 {
 	//RTreeFreeNode(poi_set -> root);
@@ -88,6 +102,9 @@ static void poi_set_init(PoiSet *poi_set)
 {
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_set_add(PoiSet * poi_set, double lon, double lat, void * data)
 {
 	int array_index = poi_set -> node_index - 1;
@@ -107,6 +124,9 @@ void poi_set_add(PoiSet * poi_set, double lon, double lat, void * data)
 	used as a callback for searching the RTree.
 	this function adds found nodes to the resultset
 */
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 int poi_set_search_cb(int id, void* arg)
 {
 	PoiSet * poi_set = (PoiSet*) arg;
@@ -119,6 +139,9 @@ int poi_set_search_cb(int id, void* arg)
 	poi_set -> result_index++;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 LonLatPairData * poi_set_get(PoiSet * poi_set, int* count, double min_lon, double min_lat, double max_lon, double max_lat)
 {
 	struct Rect rect;
@@ -144,11 +167,17 @@ LonLatPairData * poi_set_get(PoiSet * poi_set, int* count, double min_lon, doubl
 	return poi_set -> results;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_set_set_visible(PoiSet * poi_set, gboolean visible)
 {
 	poi_set -> visible = visible;
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 gboolean poi_set_get_visible(PoiSet * poi_set)
 {
 	return poi_set -> visible;

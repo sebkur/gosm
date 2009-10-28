@@ -28,6 +28,9 @@
 
 #include "poi_source_load_progress.h"
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 G_DEFINE_TYPE (PoiSourceLoadProgress, poi_source_load_progress, G_TYPE_OBJECT);
 
 /*enum
@@ -40,6 +43,9 @@ G_DEFINE_TYPE (PoiSourceLoadProgress, poi_source_load_progress, G_TYPE_OBJECT);
 //static guint poi_source_load_progress_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, poi_source_load_progress_signals[SIGNAL_NAME_n], 0);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 PoiSourceLoadProgress * poi_source_load_progress_new()
 {
 	PoiSourceLoadProgress * poi_source_load_progress = g_object_new(GOSM_TYPE_POI_SOURCE_LOAD_PROGRESS, NULL);
@@ -58,12 +64,21 @@ static void poi_source_load_progress_class_init(PoiSourceLoadProgressClass *clas
                 G_TYPE_NONE, 0);*/
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static void poi_source_load_progress_init(PoiSourceLoadProgress *poi_source_load_progress)
 {
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_source_load_progress_progress_cb(OsmReader * osm_reader, int percent, gpointer data);
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_source_load_progress_show(
 	PoiSourceLoadProgress * poi_source_load_progress, 
 	GtkWindow * parent,
@@ -89,6 +104,9 @@ void poi_source_load_progress_show(
 	gtk_widget_show_all(dialog);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 void poi_source_load_progress_destroy(
 	PoiSourceLoadProgress * poi_source_load_progress
 )
@@ -97,6 +115,9 @@ void poi_source_load_progress_destroy(
 	gtk_widget_destroy(poi_source_load_progress -> dialog);
 }
 
+/****************************************************************************************************
+* 
+****************************************************************************************************/
 static gboolean poi_source_load_progress_progress_cb(OsmReader * osm_reader, int percent, gpointer data)
 {
 	gdk_threads_enter();

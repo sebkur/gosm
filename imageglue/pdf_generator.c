@@ -38,8 +38,16 @@
 #include "../paths.h"
 #include "image_glue.h"
 
+/****************************************************************************************************
+* PdfGenerator takes a sequence of images as input and creates a PDF from it.
+* for this purpose, a new process is spawned, that executes java to use the iText library to generate
+* the document
+****************************************************************************************************/
 G_DEFINE_TYPE (PdfGenerator, pdf_generator, G_TYPE_OBJECT);
 
+/****************************************************************************************************
+* signals
+****************************************************************************************************/
 enum
 {
         PAGE_PROGRESS,
@@ -48,8 +56,14 @@ enum
 
 static guint pdf_generator_signals[LAST_SIGNAL] = { 0 };
 
+/****************************************************************************************************
+* method declarations
+****************************************************************************************************/
 void pdf_generator_thread_function(PdfGenerator * pdf_generator);
 
+/****************************************************************************************************
+* constructor
+****************************************************************************************************/
 PdfGenerator * pdf_generator_new()
 {
 	PdfGenerator * pdf_generator = g_object_new(GOSM_TYPE_PDF_GENERATOR, NULL);
@@ -72,6 +86,9 @@ static void pdf_generator_init(PdfGenerator *pdf_generator)
 {
 }
 
+/****************************************************************************************************
+* set the path to the java binary that PdfGenerator should use
+****************************************************************************************************/
 void pdf_generator_set_java_binary(PdfGenerator * pdf_generator, char * path)
 {
 	if (pdf_generator -> java_binary != NULL) free (pdf_generator -> java_binary);
@@ -79,6 +96,9 @@ void pdf_generator_set_java_binary(PdfGenerator * pdf_generator, char * path)
 	strcpy(pdf_generator -> java_binary, path);
 }
 
+/****************************************************************************************************
+* setup PdfGenerator for processing some files
+****************************************************************************************************/
 void pdf_generator_setup(PdfGenerator * pdf_generator, PageInformation page_info, char * file_prefix, int parts_x, int parts_y)
 {
 	pdf_generator -> page_info = page_info;
@@ -87,12 +107,19 @@ void pdf_generator_setup(PdfGenerator * pdf_generator, PageInformation page_info
 	pdf_generator -> parts_y = parts_y;
 }
 
+/****************************************************************************************************
+* create a new thread for the actual processing
+****************************************************************************************************/
 void pdf_generator_process(PdfGenerator * pdf_generator)
 {
 	pthread_t thread;
 	int p = pthread_create(&thread, NULL, (void *) pdf_generator_thread_function, pdf_generator);
 }
 
+/****************************************************************************************************
+* do the actual work here
+* prepare command line arguments and execute java to build PDF
+****************************************************************************************************/
 void pdf_generator_thread_function(PdfGenerator * pdf_generator)
 {
 	PageInformation page_info = pdf_generator -> page_info;
@@ -218,6 +245,10 @@ void pdf_generator_thread_function(PdfGenerator * pdf_generator)
 	wait(&status);
 }*/
 
+/****************************************************************************************************
+* an old testing function
+* TODO: remove this function, it's not used anywhere
+****************************************************************************************************/
 void generate_pdf(PdfGenerator * pdf_gen, char * cache_dir, Selection selection, PageInformation page_info,
 	ImageDimension image_dimension, int intersect_x, int intersect_y, int zoom)
 {

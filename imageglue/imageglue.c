@@ -27,6 +27,14 @@
 
 #include "../tiles/tilemath.h"
 
+/****************************************************************************************************
+* these functions provide easyer access to the parts of libpng needed by ImageGlue
+****************************************************************************************************/
+
+/****************************************************************************************************
+* create png_structs for reading for the given FILE.
+* return 0 on success, negative otherwise
+****************************************************************************************************/
 int create_read_structs(FILE * fp, png_structp * png_ptr, png_infop * info_ptr)
 {
 	if (fp == NULL){
@@ -71,6 +79,10 @@ int create_read_structs(FILE * fp, png_structp * png_ptr, png_infop * info_ptr)
 	return 0;
 }
 
+/****************************************************************************************************
+* create png_structs for writing for the given FILE.
+* return 0 on success, negative otherwise
+****************************************************************************************************/
 int create_write_structs(FILE * fp, png_structp * png_ptr, png_infop * info_ptr, png_colorp * palette, int width, int height)
 {
 	if (fp == NULL){

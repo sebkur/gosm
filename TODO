@@ -27,6 +27,7 @@ There is a of work to do in general:
 	- clean up!!!
 	- take care of memory. use free() more often!
 
+- remove or rename testing files that lie around in the project
 - DONE use makefile for building
 - PARTIALLY (only colors) update changed preferences without restart
 - DONE add color selection buttons in configuration window
