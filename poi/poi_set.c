@@ -48,6 +48,19 @@ G_DEFINE_TYPE (PoiSet, poi_set, G_TYPE_OBJECT);
 //static guint poi_set_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, poi_set_signals[SIGNAL_NAME_n], 0);
 
+
+/****************************************************************************************************
+* functions for the binary tree
+****************************************************************************************************/
+gint poi_set_compare_ints(gconstpointer a, gconstpointer b, gpointer user_data)
+{
+        return *(int*)a - *(int*)b;
+}
+void destroy_just_free(gpointer data)
+{
+	free(data);
+}
+
 /****************************************************************************************************
 * create a new PoiSet
 ****************************************************************************************************/
@@ -65,8 +78,7 @@ PoiSet * poi_set_new()
 void poi_set_constructor(PoiSet * poi_set)
 {
 	poi_set -> root = RTreeNewIndex();
-	poi_set -> node_index = 1;
-	poi_set -> points = g_array_new(FALSE, FALSE, sizeof(LonLatPairData));
+	poi_set -> points = g_tree_new_full(poi_set_compare_ints, NULL, destroy_just_free, destroy_just_free);
 }
 
 /****************************************************************************************************
@@ -75,14 +87,9 @@ void poi_set_constructor(PoiSet * poi_set)
 ****************************************************************************************************/
 void poi_set_clear(PoiSet * poi_set)
 {
-	//RTreeFreeNode(poi_set -> root);
 	RTreeClear(poi_set -> root);
 	int i;
-	for (i = 0; i < poi_set -> points -> len; i++){
-		LonLatPairData * llpd = &g_array_index(poi_set -> points, LonLatPairData, i);
-		free(llpd -> data);
-	}
-	g_array_free(poi_set -> points, TRUE);
+	// TODO: free of tree
 	poi_set_constructor(poi_set);
 }
 
@@ -105,41 +112,83 @@ static void poi_set_init(PoiSet *poi_set)
 /****************************************************************************************************
 * add a point to the PoiSet
 ****************************************************************************************************/
-void poi_set_add(PoiSet * poi_set, double lon, double lat, void * data)
+void poi_set_add(PoiSet * poi_set, double lon, double lat, int id)
 {
-	int array_index = poi_set -> node_index - 1;
-	LonLatPairData llpd = {lon, lat, data};
-	g_array_append_val(poi_set -> points, llpd);
-	struct Rect * rect = malloc(sizeof(struct Rect));
-	rect -> boundary[0] = lon;
-	rect -> boundary[1] = lat;
-	rect -> boundary[2] = lon;
-	rect -> boundary[3] = lat;
-	RTreeInsertRect(rect, poi_set -> node_index, &(poi_set -> root), 0);
-	free(rect);
-	poi_set -> node_index++;
+	LonLatPair * llp = malloc(sizeof(LonLatPair));
+	llp -> lon = lon;
+	llp -> lat = lat;
+	/* a node might be added, that is already present */
+	if (g_tree_lookup(poi_set -> points, &id) == NULL){
+		/* insert into binary tree */
+		int * id_p = malloc(sizeof(int));
+		*id_p = id;
+		g_tree_insert(poi_set -> points, id_p, llp);
+		/* insert into rtree */
+		struct Rect * rect = malloc(sizeof(struct Rect));
+		rect -> boundary[0] = lon;
+		rect -> boundary[1] = lat;
+		rect -> boundary[2] = lon;
+		rect -> boundary[3] = lat;
+		RTreeInsertRect(rect, id, &(poi_set -> root), 0);
+		free(rect);
+	}
 }
 
 /****************************************************************************************************
 * used as a callback for searching the RTree.
 * this function adds found nodes to the resultset
 ****************************************************************************************************/
-int poi_set_search_cb(int id, void* arg)
+int poi_set_search_cb(int node_id, void* arg)
 {
 	PoiSet * poi_set = (PoiSet*) arg;
-	int array_index = id - 1;
-	int i = poi_set -> result_index;
-	LonLatPairData * llpd = &g_array_index(poi_set -> points, LonLatPairData, array_index);
-	poi_set -> results[i].lon = llpd -> lon;
-	poi_set -> results[i].lat = llpd -> lat;
-	poi_set -> results[i].data = llpd -> data;
-	poi_set -> result_index++;
+	LonLatPair * llp = g_tree_lookup(poi_set -> points, &node_id);
+	LonLatPairId llpi = {llp -> lon, llp -> lat, node_id};
+	g_array_append_val(poi_set -> results, llpi);
+}
+
+/****************************************************************************************************
+* removes the points found in the given area
+****************************************************************************************************/
+void poi_set_clear_area(PoiSet * poi_set, double min_lon, double min_lat, double max_lon, double max_lat)
+{
+	GArray * points = poi_set_get(poi_set, min_lon, min_lat, max_lon, max_lat);
+	int i;
+	for (i = 0; i < points -> len; i++){
+		LonLatPairId llpi = g_array_index(points, LonLatPairId, i);
+		/* remove from rtree */
+		struct Rect * rect = malloc(sizeof(struct Rect));
+		rect -> boundary[0] = llpi.lon;
+		rect -> boundary[1] = llpi.lat;
+		rect -> boundary[2] = llpi.lon;
+		rect -> boundary[3] = llpi.lat;
+		RTreeDeleteRect(rect, llpi.node_id, &(poi_set -> root));
+		free(rect);
+		/* remove from binary tree */
+		g_tree_remove(poi_set -> points, &llpi.node_id);
+	}
+	g_array_free(points, TRUE);
+}
+
+/****************************************************************************************************
+* remove a single point
+****************************************************************************************************/
+void poi_set_remove_point(PoiSet * poi_set, double lon, double lat, int node_id)
+{
+		struct Rect * rect = malloc(sizeof(struct Rect));
+		rect -> boundary[0] = lon;
+		rect -> boundary[1] = lat;
+		rect -> boundary[2] = lon;
+		rect -> boundary[3] = lat;
+		RTreeDeleteRect(rect, node_id, &(poi_set -> root));
+		free(rect);
+		/* remove from binary tree */
+		g_tree_remove(poi_set -> points, &node_id);
 }
 
 /****************************************************************************************************
 * return the points found in the given area
 ****************************************************************************************************/
-LonLatPairData * poi_set_get(PoiSet * poi_set, int* count, double min_lon, double min_lat, double max_lon, double max_lat)
+GArray * poi_set_get(PoiSet * poi_set, double min_lon, double min_lat, double max_lon, double max_lat)
 {
 	struct Rect rect;
 	if (min_lon > max_lon){
@@ -156,10 +205,7 @@ LonLatPairData * poi_set_get(PoiSet * poi_set, int* count, double min_lon, doubl
 	rect.boundary[1] = min_lat;
 	rect.boundary[2] = max_lon;
 	rect.boundary[3] = max_lat;
-	int number_of_results = RTreeSearch(poi_set -> root, &rect, NULL, 0);
-	*count = number_of_results;
-	poi_set -> results = malloc(sizeof(LonLatPairData) * number_of_results);
-	poi_set -> result_index = 0;
+	poi_set -> results = g_array_sized_new(FALSE, FALSE, sizeof(LonLatPairId), 1);
 	int n = RTreeSearch(poi_set -> root, &rect, poi_set_search_cb, (void*)poi_set);
 	return poi_set -> results;
 }

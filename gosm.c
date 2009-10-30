@@ -1035,6 +1035,6 @@ static gboolean map_node_cb(GtkWidget *widget, gpointer llt_p)
 void foo()
 {
 	PoiStatistics * poi_stats = poi_statistics_new();
-	poi_statistics_analyze(poi_stats, poi_manager -> osm_reader);
+	poi_statistics_analyze(poi_stats, poi_manager);
 	poi_statistics_show_window(poi_stats);
 }

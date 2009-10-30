@@ -29,7 +29,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "osm_reader.h"
+#include "poi_manager.h"
 
 #define GOSM_TYPE_POI_STATISTICS           (poi_statistics_get_type ())
 #define GOSM_POI_STATISTICS(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_POI_STATISTICS, PoiStatistics))
@@ -64,7 +64,7 @@ struct _PoiStatisticsClass
 
 PoiStatistics * poi_statistics_new();
 
-void poi_statistics_analyze(PoiStatistics * poi_statistics, OsmReader * osm_reader);
+void poi_statistics_analyze(PoiStatistics * poi_statistics, PoiManager * poi_manager);
 
 void poi_statistics_show_window(PoiStatistics * poi_statistics);
 

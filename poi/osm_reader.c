@@ -143,8 +143,9 @@ gint osm_reader_compare_ints(gconstpointer a, gconstpointer b, gpointer user_dat
 ****************************************************************************************************/
 void osm_reader_constructor(OsmReader * osm_reader)
 {
-	osm_reader -> tree_tags = g_tree_new_full(osm_reader_compare_strings, NULL, destroy_string, destroy_value_trees);
-	osm_reader -> tree_ids =  g_tree_new_full(osm_reader_compare_ints, NULL, destroy_int_p, destroy_lon_lat_tags);
+	//osm_reader -> tree_tags = g_tree_new_full(osm_reader_compare_strings, NULL, destroy_string, destroy_value_trees);
+	//osm_reader -> tree_ids =  g_tree_new_full(osm_reader_compare_ints, NULL, destroy_int_p, destroy_lon_lat_tags);
+	osm_reader -> tree_ids = g_tree_new_full(osm_reader_compare_ints, NULL, NULL, NULL);
 	osm_reader -> current_level = 0;
 	osm_reader -> current_element = 0;
 	osm_reader -> current_id = 0;
@@ -165,7 +166,7 @@ OsmReader * osm_reader_new()
 ****************************************************************************************************/
 void osm_reader_clear(OsmReader * osm_reader)
 {
-	g_tree_destroy(osm_reader -> tree_tags);
+	//g_tree_destroy(osm_reader -> tree_tags);
 	g_tree_destroy(osm_reader -> tree_ids);
 	osm_reader_constructor(osm_reader);
 }
@@ -264,27 +265,27 @@ static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 				strcpy(key_map, k);
 				strcpy(val_map, v);
 				g_hash_table_insert(osm_reader -> current_node -> tags, key_map, val_map);
-				/* put node into tag-tree */
-				gpointer lookup1 = g_tree_lookup(osm_reader -> tree_tags, k);
-				GTree * tree1 = (GTree*)lookup1;
-				if (lookup1 == NULL){
-					/* no key found on first level (k not present) */
-					tree1 = g_tree_new_full(osm_reader_compare_strings, NULL, destroy_string, destroy_element_arrays);
-					char * key_insert = malloc(sizeof(char) * len_k);
-					strcpy(key_insert, k);
-					g_tree_insert(osm_reader -> tree_tags, key_insert, tree1);
-				}
-				/* now tree1 exists */
-				gpointer lookup2 = g_tree_lookup(tree1, v);
-				GArray * elements = (GArray*)lookup2;
-				if (lookup2 == NULL){
-					elements = g_array_new(FALSE, FALSE, sizeof(int));
-					char * val_insert = malloc(sizeof(char) * len_v);
-					strcpy(val_insert, v);
-					g_tree_insert(tree1, val_insert, elements);
-				}
-				/* now elements exists */
-				g_array_append_val(elements, osm_reader -> current_id);
+//				/* put node into tag-tree */
+//				gpointer lookup1 = g_tree_lookup(osm_reader -> tree_tags, k);
+//				GTree * tree1 = (GTree*)lookup1;
+//				if (lookup1 == NULL){
+//					/* no key found on first level (k not present) */
+//					tree1 = g_tree_new_full(osm_reader_compare_strings, NULL, destroy_string, destroy_element_arrays);
+//					char * key_insert = malloc(sizeof(char) * len_k);
+//					strcpy(key_insert, k);
+//					g_tree_insert(osm_reader -> tree_tags, key_insert, tree1);
+//				}
+//				/* now tree1 exists */
+//				gpointer lookup2 = g_tree_lookup(tree1, v);
+//				GArray * elements = (GArray*)lookup2;
+//				if (lookup2 == NULL){
+//					elements = g_array_new(FALSE, FALSE, sizeof(int));
+//					char * val_insert = malloc(sizeof(char) * len_v);
+//					strcpy(val_insert, v);
+//					g_tree_insert(tree1, val_insert, elements);
+//				}
+//				/* now elements exists */
+//				g_array_append_val(elements, osm_reader -> current_id);
 			}
 		}
 	}

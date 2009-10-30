@@ -27,7 +27,7 @@
 #include <gdk/gdk.h>
 
 #include "poi_statistics.h"
-#include "osm_reader.h"
+#include "poi_manager.h"
 
 /****************************************************************************************************
 * let the user inspect what tags are present in the currently loaded PoiSource
@@ -77,8 +77,8 @@ gboolean tree_inspect2 (gpointer k, gpointer v, gpointer data)
 {
 	PoiStatistics * poi_stats = (PoiStatistics*) data;
 	char * val = (char*)k;
-	GArray * array = (GArray*)v;
-	KeyValueCount kvc = {poi_stats -> current_key, val, array -> len};
+	GSequence * elements = (GSequence*)v;
+	KeyValueCount kvc = {poi_stats -> current_key, val, g_sequence_get_length(elements)};
 	g_array_append_val(poi_stats -> key_value, kvc);
 	return FALSE;
 }
@@ -108,9 +108,9 @@ int key_val_count_compare(gconstpointer a, gconstpointer b)
 * analyse the currently loaded pois
 * inspect all tags and save each tag associated with the number of occurences
 ****************************************************************************************************/
-void poi_statistics_analyze(PoiStatistics * poi_statistics, OsmReader * osm_reader)
+void poi_statistics_analyze(PoiStatistics * poi_statistics, PoiManager * poi_manager)
 {
-	g_tree_foreach(osm_reader -> tree_tags, tree_inspect1, (gpointer)poi_statistics);
+	g_tree_foreach(poi_manager -> tag_tree, tree_inspect1, (gpointer)poi_statistics);
 	g_array_sort(poi_statistics -> key_value, key_val_count_compare);
 	printf("size of key-val-list: %d\n", poi_statistics -> key_value -> len);
 //	int i;

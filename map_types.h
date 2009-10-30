@@ -39,6 +39,16 @@ typedef struct MapPosition {
 } MapPosition;
 
 /****************************************************************************************************
+* a bounding box
+****************************************************************************************************/
+typedef struct {
+	double min_lon;
+	double min_lat;
+	double max_lon;
+	double max_lat;
+} BoundingBox;
+
+/****************************************************************************************************
 * a selection on the area, either defined by x/y coordinates on the screen or by lon/lat
 ****************************************************************************************************/
 typedef struct Selection {
@@ -92,6 +102,15 @@ typedef struct LonLatPair {
 } LonLatPair;
 
 /****************************************************************************************************
+* longitude and lattitude associated a node id
+****************************************************************************************************/
+typedef struct LonLatPairId {
+	double lon;
+	double lat;
+	int node_id;
+} LonLatPairId;
+
+/****************************************************************************************************
 * longitude and lattitude associated with some data
 ****************************************************************************************************/
 typedef struct LonLatPairData {
@@ -108,14 +127,6 @@ typedef struct LonLatTags {
 	double lat;
 	GHashTable * tags;
 } LonLatTags;
-
-/****************************************************************************************************
-* an id + a name
-****************************************************************************************************/
-typedef struct IdAndName {
-	int id;
-	char * name;
-} IdAndName;
 
 /****************************************************************************************************
 * used to store 4 double values that represent a colour

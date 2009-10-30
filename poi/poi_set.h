@@ -47,12 +47,10 @@ struct _PoiSet
 	GObject parent;
 
 	struct Node * root;
-	int node_index;
-	GArray * points;
-	void * data;
+	GTree * points;
 	gboolean visible;
 
-	LonLatPairData * results;
+	GArray * results;
 	int result_index;
 };
 
@@ -67,8 +65,10 @@ PoiSet * poi_set_new();
 void poi_set_constructor(PoiSet * poi_set);
 void poi_set_clear(PoiSet * poi_set);
 
-void poi_set_add(PoiSet * poi_set, double lon, double lat, void * data);
-LonLatPairData * poi_set_get(PoiSet * poi_set, int* count, double min_lon, double min_lat, double max_lon, double max_lat);
+void poi_set_add(PoiSet * poi_set, double lon, double lat, int id);
+void poi_set_clear_area(PoiSet * poi_set, double min_lon, double min_lat, double max_lon, double max_lat);
+void poi_set_remove_point(PoiSet * poi_set, double lon, double lat, int node_id);
+GArray * poi_set_get(PoiSet * poi_set, double min_lon, double min_lat, double max_lon, double max_lat);
 void poi_set_set_visible(PoiSet * poi_set, gboolean visible);
 gboolean poi_set_get_visible(PoiSet * poi_set);
 

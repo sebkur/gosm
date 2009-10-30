@@ -928,7 +928,6 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 			double lat2 = map_area_y_to_lat(map_area, (int) (event -> y - squaresize / 2));
 			//printf("%f %f %f %f\n", lon1, lon2, lat1, lat2);
 			
-			int marker_count;
 			int num_poi_sets = poi_manager_get_number_of_poi_sets(map_area -> poi_manager);
 			int poi;
 			int new_active_id = 0;
@@ -936,12 +935,11 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 			for (poi = 0; poi < num_poi_sets; poi++){
 				PoiSet * poi_set = GOSM_POI_SET(poi_manager_get_poi_set(map_area -> poi_manager, poi));
 				if (poi_set_get_visible(poi_set)){
-					LonLatPairData * points = poi_set_get(poi_set, &marker_count, lon1, lat1, lon2, lat2);
-					if (marker_count > 0){
-						IdAndName * id_name = (IdAndName*)points -> data;
-						new_active_id = id_name -> id;
+					GArray * points = poi_set_get(poi_set, lon1, lat1, lon2, lat2);
+					if (points -> len > 0){
+						new_active_id = g_array_index(points, LonLatPairId, 0).node_id;
 					}
-					free(points);
+					g_array_free(points, TRUE);
 				}
 			}
 			map_area -> poi_active_id = new_active_id;
@@ -1316,20 +1314,20 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	cairo_fill(cr_arcs);
 	cairo_destroy(cr_lines);
 	cairo_destroy(cr_arcs);
+	//gettimeofday(&t1, NULL);
 	/* DRAW MARKERS */
 	if (map_area -> icon_marker == NULL){
 		map_area -> icon_marker = cairo_image_surface_create_from_png(GOSM_ICON_DIR "point.png");
 	}
 	double min_lon, min_lat, max_lon, max_lat;
 	map_area_get_visible_area(map_area, &min_lon, &min_lat, &max_lon, &max_lat);
-	int marker_count;
 	int num_poi_sets = poi_manager_get_number_of_poi_sets(map_area -> poi_manager);
 	int poi;
 	int active_x, active_y;
 	double active_r, active_g, active_b, active_a;
 	int n_active = -1;
 	int p_active = -1;
-	IdAndName * id_name_active;
+	//IdAndName * id_name_active;
 	
 	/* adjust visible size */
 	double square_size = map_area_get_poi_square_size(map_area);
@@ -1338,8 +1336,8 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	for (poi = 0; poi < num_poi_sets; poi++){
 		StyledPoiSet * poi_set = poi_manager_get_poi_set(map_area -> poi_manager, poi);
 		if (poi_set_get_visible(GOSM_POI_SET(poi_set))){
-			LonLatPairData * points = poi_set_get(
-				GOSM_POI_SET(poi_set), &marker_count, min_lon, min_lat, max_lon, max_lat);
+			GArray * points = poi_set_get(
+				GOSM_POI_SET(poi_set), min_lon, min_lat, max_lon, max_lat);
 			cairo_t * cr_marker = gdk_cairo_create(widget->window);
 //			cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(0.85, 0.25, 0.25, 0.9);
 			cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(
@@ -1348,12 +1346,12 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			/* n_active is the one, where mouse is over */
 			int p;
 			//printf("%d\n", map_area -> poi_active_id);
-			for (p = 0; p < marker_count; p++){
-				int x = map_area_lon_to_area_x(map_area, points[p].lon);
-				int y = map_area_lat_to_area_y(map_area, points[p].lat);
+			for (p = 0; p < points -> len; p++){
+				LonLatPairId * llpi = &g_array_index(points, LonLatPairId, p);
+				int x = map_area_lon_to_area_x(map_area, llpi -> lon);
+				int y = map_area_lat_to_area_y(map_area, llpi -> lat);
 				cairo_move_to(cr_marker, x, y);
-				IdAndName * id_name = (IdAndName*) points[p].data;
-				if (id_name -> id != map_area -> poi_active_id){
+				if (llpi -> node_id != map_area -> poi_active_id){
 					cairo_rectangle(cr_marker, x-square_size_half, y-square_size_half, square_size, square_size); 
 					//cairo_arc(cr_marker, x, y, 3, 0.0, 2 * 3.1415927);
 					//cairo_set_source_surface(cr_marker, map_area -> icon_marker, x - 12, y - 12);
@@ -1362,7 +1360,8 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 				}else{
 					n_active = p;
 					p_active = poi;
-					id_name_active = (IdAndName*) points[p].data;
+					//id_name_active = (IdAndName*) points[p].data;
+					map_area -> poi_active_id = llpi -> node_id;
 					active_x = x;
 					active_y = y;
 					active_r = poi_set -> r;
@@ -1373,11 +1372,16 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			}
 			cairo_fill(cr_marker);
 			/* n_active == -1 means: mouse not over any marker */
-			free(points);
+			g_array_free(points, TRUE);
 			cairo_destroy(cr_marker);
 		}
 	}
 	if (n_active >= 0){
+		LonLatTags * llt = (LonLatTags*) g_tree_lookup(map_area -> poi_manager -> tree_ids, &(map_area -> poi_active_id));
+		char * name = g_hash_table_lookup(llt -> tags, "name");
+		if (name == NULL){
+			name = "";
+		}
 		cairo_t * cr_marker = gdk_cairo_create(widget->window);
 		cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(active_r, active_g, active_b, active_a);
 		cairo_set_source(cr_marker, pat_dots);
@@ -1393,7 +1397,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		cairo_t * cr_font = gdk_cairo_create(widget->window);
 		PangoContext * pc_marker = pango_cairo_create_context(cr_font);
 		PangoLayout * pl_marker = pango_layout_new(pc_marker);
-		pango_layout_set_text(pl_marker, id_name_active -> name, -1);
+		pango_layout_set_text(pl_marker, name, -1);
 		PangoAttrList * attrs = pango_attr_list_new();
 		PangoAttribute * weight = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
 		PangoAttribute * size = pango_attr_size_new(PANGO_SCALE * 14);
@@ -1426,6 +1430,8 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		cairo_fill(cr_marker);
 		cairo_destroy(cr_marker);
 	}
+	//gettimeofday(&t2, NULL);
+	//printf("time %d\n", time_diff(&t1, &t2));
 	/* cairo_t * cr_font = gdk_cairo_create(widget->window);
 	cairo_pattern_t * pat_font = cairo_pattern_create_rgba(0.85, 0.25, 0.25, 0.9);
 	cairo_set_source(cr_font, pat_font);

@@ -23,7 +23,11 @@ void RTreeClear(struct Node* N)
 		for (i = 0; i < N -> count; i++){
 			RTreeClear(N -> branch[i].child);
 		}
-		free(N);
+		if (N != NULL){
+			free(N);
+		}else{
+			printf("propably an error\n");
+		}
 	}
 }
 
