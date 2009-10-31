@@ -41,6 +41,7 @@
 #include "../map_area.h"
 #include "../tool.h"
 #include "poi_statistics.h"
+#include "tag_tree.h"
 
 /****************************************************************************************************
 * PoiManager is the central management unit for Points of interests
@@ -96,7 +97,7 @@ PoiManager * poi_manager_new()
 {
 	PoiManager * poi_manager = g_object_new(GOSM_TYPE_POI_MANAGER, NULL);
 	poi_manager -> all_pois = poi_set_new();
-	poi_manager -> tag_tree = g_tree_new_full(poi_manager_compare_strings, NULL, NULL, NULL);
+	poi_manager -> tag_tree = tag_tree_new();
 	poi_manager -> tree_ids = g_tree_new_full(poi_manager_compare_ints, NULL, NULL, NULL);
 	poi_manager -> poi_sets = g_array_new(FALSE, FALSE, sizeof(StyledPoiSet*));
 	poi_manager -> poi_sources = g_array_new(FALSE, FALSE, sizeof(PoiSource*));
@@ -389,49 +390,18 @@ void poi_manager_delete_poi_set(PoiManager * poi_manager, int index)
 }
 
 /****************************************************************************************************
-* insert all pois, that are currently available through OsmReader into the given PoiSet
+* insert all pois, that are currently available into the given PoiSet
 ****************************************************************************************************/
 void poi_manager_fill_poi_set(PoiManager * poi_manager, PoiSet * poi_set)
 {
 	char * key = named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set));
 	char * value = named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set));
-        GTree * tree = (GTree*) g_tree_lookup(poi_manager -> tag_tree, key);
-        if (tree == NULL) return;
-        //GArray * ids = (GArray*) g_tree_lookup(tree, value);
-	GSequence * ids = (GSequence*) g_tree_lookup(tree, value);
+	GSequence * ids = tag_tree_get_nodes(poi_manager -> tag_tree, key, value);
 	if (ids == NULL) return;
-	//int i;
-	//for (i = 0; i < ids -> len; i++){
 	GSequenceIter * iter = g_sequence_get_begin_iter(ids);
 	while(!g_sequence_iter_is_end(iter)){
 		int id = *(int*)g_sequence_get(iter);
 		//int id = g_array_index(ids, int, i);
-		int * id_p = malloc(sizeof(int));
-		*id_p = id;
-		LonLatTags * llt = g_tree_lookup(poi_manager -> tree_ids, (gpointer)id_p);
-		poi_set_add(GOSM_POI_SET(poi_set), llt -> lon, llt -> lat, id);
-		iter = g_sequence_iter_next(iter);
-	}
-}
-
-/****************************************************************************************************
-* add only those pois to a PoiSet that have been retrieved by an api-request recently
-****************************************************************************************************/
-void poi_manager_add_new_to_poi_set(PoiManager * poi_manager, StyledPoiSet * poi_set)
-{
-	char * key = named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set));
-	char * value = named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set));
-        GTree * tree = (GTree*) g_tree_lookup(poi_manager -> tag_tree_new, key);
-        if (tree == NULL) return;
-        //GArray * ids = (GArray*) g_tree_lookup(tree, value);
-	GSequence * ids = (GSequence*) g_tree_lookup(tree, value);
-	if (ids == NULL) return;
-	//int i;
-	//for (i = 0; i < ids -> len; i++){
-	//	int id = g_array_index(ids, int, i);
-	GSequenceIter * iter = g_sequence_get_begin_iter(ids);
-	while(!g_sequence_iter_is_end(iter)){
-		int id = *(int*)g_sequence_get(iter);
 		int * id_p = malloc(sizeof(int));
 		*id_p = id;
 		LonLatTags * llt = g_tree_lookup(poi_manager -> tree_ids, (gpointer)id_p);
@@ -483,132 +453,6 @@ PoiSource * poi_manager_get_poi_source(PoiManager * poi_manager, int index)
 	return g_array_index(poi_manager -> poi_sources, PoiSource*, index);
 }
 
-/****************************************************************************************************
-* iterator functions that are called by iterating the node_id-binarytree
-****************************************************************************************************/
-void remove_tags_from_tree(GTree * tag_tree, LonLatTags * llt, int node_id){
-	GHashTableIter iter;
-	g_hash_table_iter_init(&iter, llt -> tags);
-	gpointer key, val;
-	while(g_hash_table_iter_next(&iter, &key, &val)){
-		GTree * tree = (GTree*) g_tree_lookup(tag_tree, key);
-		if (tree == NULL) continue;
-		GSequence * ids = (GSequence*) g_tree_lookup(tree, val);
-		if (ids == NULL) continue;
-		GSequenceIter * iter = g_sequence_get_begin_iter(ids);
-		int sc = 0;
-		while(!g_sequence_iter_is_end(iter)){
-			int id = *(int*)g_sequence_get(iter);
-			if (id == node_id){
-				g_sequence_remove(iter);
-				break;
-			}
-			sc++;
-			iter = g_sequence_iter_next(iter);
-		}
-	}
-}
-
-void add_tags_to_tree(GTree * tag_tree, LonLatTags * llt, int node_id){
-	GHashTableIter iter;
-	g_hash_table_iter_init(&iter, llt -> tags);
-	gpointer key, val;
-	while(g_hash_table_iter_next(&iter, &key, &val)){
-		/* put node into tag-tree */
-		gpointer lookup1 = g_tree_lookup(tag_tree, key);
-		GTree * tree1 = (GTree*)lookup1;
-		if (lookup1 == NULL){
-			/* no key found on first level (key not present) */
-			tree1 = g_tree_new_full(poi_manager_compare_strings, NULL, NULL, NULL);
-			int len_k = strlen(key) + 1;
-			char * key_insert = malloc(sizeof(char) * len_k);
-			strcpy(key_insert, key);
-			g_tree_insert(tag_tree, key_insert, tree1);
-		}
-		/* now tree1 exists */
-		gpointer lookup2 = g_tree_lookup(tree1, val);
-		GSequence * elements = (GSequence*)lookup2;
-		if (lookup2 == NULL){
-			elements = g_sequence_new(NULL);
-			int len_v = strlen(val) + 1;
-			char * val_insert = malloc(sizeof(char) * len_v);
-			strcpy(val_insert, val);
-			g_tree_insert(tree1, val_insert, elements);
-		}
-		/* now elements exists */
-		//g_array_append_val(elements, id);
-		int * id_p = malloc(sizeof(int));
-		*id_p = node_id;
-		g_sequence_insert_sorted(elements, id_p, poi_manager_compare_ints, NULL);
-	}
-}
-
-gboolean handle_new_nodes(gpointer k, gpointer v, gpointer data)
-{
-	PoiManager * poi_manager = GOSM_POI_MANAGER(data);
-	int node_id = *(int*)k;
-	LonLatTags * llt = (LonLatTags*)v;
-	LonLatTags * llt_old = (LonLatTags*)g_tree_lookup(poi_manager -> tree_ids, &node_id);
-	if (llt_old != NULL){
-		// the id has been in before, old tags have to be removed
-		remove_tags_from_tree(poi_manager -> tag_tree, llt, node_id);
-		// TODO: remove from PoiSets
-	}else{
-		int * key_insert = malloc(sizeof(int));
-		*key_insert = node_id;
-		g_tree_insert(poi_manager -> tree_ids, key_insert, llt);
-	}
-	// now, the node_id is in tree_ids either case
-	// put into PoiSet that hold every node TODO: only on not in before
-	//poi_set_add(poi_manager -> all_pois, llt -> lon, llt -> lat, *(int*)k);
-	// add to tag tree
-	add_tags_to_tree(poi_manager -> tag_tree, llt, node_id);
-	//add_tags_to_tree(poi_manager -> tag_tree_new, llt, node_id);
-	return FALSE;
-}
-
-// insert all nodes into the tag tree
-gboolean node_to_tag_tree(gpointer k, gpointer v, gpointer data)
-{
-	PoiManager * poi_manager = GOSM_POI_MANAGER(data);
-	int id = *(int*)k;
-	LonLatTags * llt = (LonLatTags*)v;
-	// iterate the hash table
-	GHashTableIter iter;
-	g_hash_table_iter_init(&iter, llt -> tags);
-	gpointer key, val;
-	while(g_hash_table_iter_next(&iter, &key, &val)){
-		//printf("key %s\n", key);
-		/* put node into tag-tree */
-		gpointer lookup1 = g_tree_lookup(poi_manager -> tag_tree_insertion, key);
-		GTree * tree1 = (GTree*)lookup1;
-		if (lookup1 == NULL){
-			/* no key found on first level (key not present) */
-			tree1 = g_tree_new_full(poi_manager_compare_strings, NULL, NULL, NULL);
-			int len_k = strlen(key) + 1;
-			char * key_insert = malloc(sizeof(char) * len_k);
-			strcpy(key_insert, key);
-			g_tree_insert(poi_manager -> tag_tree_insertion, key_insert, tree1);
-		}
-		/* now tree1 exists */
-		gpointer lookup2 = g_tree_lookup(tree1, val);
-		GSequence * elements = (GSequence*)lookup2;
-		if (lookup2 == NULL){
-			elements = g_sequence_new(NULL);
-			int len_v = strlen(val) + 1;
-			char * val_insert = malloc(sizeof(char) * len_v);
-			strcpy(val_insert, val);
-			g_tree_insert(tree1, val_insert, elements);
-		}
-		/* now elements exists */
-		//g_array_append_val(elements, id);
-		int * id_p = malloc(sizeof(int));
-		*id_p = id;
-		g_sequence_insert_sorted(elements, id_p, poi_manager_compare_ints, NULL);
-		//printf("sequence size is now %d\n", g_sequence_get_length(elements));
-	}
-	return FALSE;
-}
 // insert all nodes into the binary node_id tree
 gboolean node_to_id_tree(gpointer k, gpointer v, gpointer data)
 {
@@ -628,6 +472,153 @@ gboolean node_to_poi_set_all(gpointer k, gpointer v, gpointer data)
 	poi_set_add(poi_set, llt -> lon, llt -> lat, *(int*)k);
 	return FALSE;
 }
+/****************************************************************************************************
+* return a new GTree.
+* the key-set of the returned tree is the intersection of both tree's keysets.
+* the values in the tree are those, that are referenced by tree1's keys.
+****************************************************************************************************/
+gboolean poi_manager_tree_intersection__iter(gpointer node_id_p, gpointer llt_p, gpointer data_p);
+
+GTree * poi_manager_tree_intersection(GTree * tree1, GTree * tree2)
+{
+	GTree * tree = g_tree_new_full(poi_manager_compare_ints, NULL, NULL, NULL);
+	gpointer data[2] = {tree, tree1};
+	g_tree_foreach(tree2, poi_manager_tree_intersection__iter, (gpointer)data);
+	return tree;
+}
+
+gboolean poi_manager_tree_intersection__iter(gpointer node_id_p, gpointer llt_p, gpointer data_p)
+{
+	gpointer * data = (gpointer*) data_p;
+	GTree * tree = data[0];
+	GTree * tree1 = data[1];
+	gpointer llt = g_tree_lookup(tree1, node_id_p);
+	if (llt != NULL){
+		g_tree_insert(tree, node_id_p, llt);
+	}
+	return FALSE;
+}
+
+/****************************************************************************************************
+* create a TagTree from a tree of Nodes
+****************************************************************************************************/
+gboolean poi_manager_build_tag_tree__iter(gpointer node_id_p, gpointer llt_p, gpointer tag_tree_p);
+
+TagTree * poi_manager_build_tag_tree(GTree * tree_ids)
+{
+	TagTree * tag_tree = tag_tree_new();
+	g_tree_foreach(tree_ids, poi_manager_build_tag_tree__iter, (gpointer)tag_tree);
+	return tag_tree;
+}
+
+gboolean poi_manager_build_tag_tree__iter(gpointer node_id_p, gpointer llt_p, gpointer tag_tree_p)
+{
+	int node_id = *(int*) node_id_p;
+	LonLatTags * llt = (LonLatTags*) llt_p;
+	TagTree * tag_tree = GOSM_TAG_TREE(tag_tree_p);
+	tag_tree_add_node(tag_tree, node_id, llt -> tags);
+	return FALSE;
+}
+
+/****************************************************************************************************
+* remove the given nodes from poi_manager's all_pois
+****************************************************************************************************/
+gboolean poi_manager_remove_nodes_from_all_pois__iter(gpointer node_id_p, gpointer llt_p, gpointer all_pois_p);
+
+poi_manager_remove_nodes_from_all_pois(PoiManager * poi_manager, GTree * tree_ids)
+{
+	g_tree_foreach(tree_ids, poi_manager_remove_nodes_from_all_pois__iter, (gpointer)poi_manager -> all_pois);
+}
+
+gboolean poi_manager_remove_nodes_from_all_pois__iter(gpointer node_id_p, gpointer llt_p, gpointer all_pois_p)
+{
+	int node_id = *(int*) node_id_p;
+	LonLatTags * llt = (LonLatTags*) llt_p;
+	PoiSet * poi_set = GOSM_POI_SET(all_pois_p);
+	poi_set_remove_point(poi_set, llt -> lon, llt -> lat, node_id);
+	return FALSE;
+}
+
+/****************************************************************************************************
+* remove the given nodes from poi_manager's tree_ids
+****************************************************************************************************/
+gboolean poi_manager_remove_nodes_from_tree_ids__iter(gpointer node_id_p, gpointer llt_p, gpointer tree_ids_p);
+
+poi_manager_remove_nodes_from_tree_ids(PoiManager * poi_manager, GTree * tree_ids)
+{
+	g_tree_foreach(tree_ids, poi_manager_remove_nodes_from_tree_ids__iter, (gpointer)poi_manager -> tree_ids);
+}
+
+gboolean poi_manager_remove_nodes_from_tree_ids__iter(gpointer node_id_p, gpointer llt_p, gpointer tree_ids_p)
+{
+	GTree * tree_ids = (GTree*) tree_ids_p;
+	g_tree_remove(tree_ids, node_id_p);
+	return FALSE;
+}
+
+/****************************************************************************************************
+* remove a tree of nodes from PoiManager
+****************************************************************************************************/
+void poi_manager_remove_nodes(PoiManager * poi_manager, GTree * tree_ids_old)
+{
+	TagTree * tag_tree_old = poi_manager_build_tag_tree(tree_ids_old);
+	/* remove from PoiSets */
+	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager); int n;
+	for (n = 0; n < num_poi_sets; n++){
+		PoiSet * poi_set = GOSM_POI_SET(poi_manager_get_poi_set(poi_manager, n));
+		char * key = named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set));
+		char * val = named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set));
+		GSequence * elements = tag_tree_get_nodes(tag_tree_old, key, val);
+		if (elements != NULL){
+			GSequenceIter * iter = g_sequence_get_begin_iter(elements);
+			while(!g_sequence_iter_is_end(iter)){
+				gpointer id_p = g_sequence_get(iter);
+				int id = *(int*)id_p;
+				LonLatTags * llt = g_tree_lookup(tree_ids_old, id_p);
+				poi_set_remove_point(poi_set, llt -> lon, llt -> lat, id);
+				iter = g_sequence_iter_next(iter);
+			}
+		}
+	}
+	/* remove from all_pois */
+	poi_manager_remove_nodes_from_all_pois(poi_manager, tree_ids_old);
+	/* remove from tag_tree */
+	tag_tree_subtract_tag_tree(poi_manager -> tag_tree, tag_tree_old);
+	/* remove from tree_ids */
+	poi_manager_remove_nodes_from_tree_ids(poi_manager, tree_ids_old);
+}
+
+/****************************************************************************************************
+* add a tree of nodes to PoiManager
+****************************************************************************************************/
+poi_manager_add_nodes(PoiManager * poi_manager, GTree * tree_ids_new)
+{
+	/* add to tree_ids */
+	g_tree_foreach(tree_ids_new, node_to_id_tree, (gpointer)poi_manager);
+	/* add to tag_tree */
+	TagTree * tag_tree = poi_manager_build_tag_tree(tree_ids_new);
+	tag_tree_add_tag_tree(poi_manager -> tag_tree, tag_tree);
+	/* add to all_pois */
+	g_tree_foreach(tree_ids_new, node_to_poi_set_all, (gpointer) poi_manager -> all_pois);
+	/* add to PoiSets */
+	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager); int n;
+	for (n = 0; n < num_poi_sets; n++){
+		PoiSet * poi_set = GOSM_POI_SET(poi_manager_get_poi_set(poi_manager, n));
+		char * key = named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set));
+		char * val = named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set));
+		GSequence * elements = tag_tree_get_nodes(tag_tree, key, val);
+		if (elements != NULL){
+			GSequenceIter * iter = g_sequence_get_begin_iter(elements);
+			while(!g_sequence_iter_is_end(iter)){
+				gpointer id_p = g_sequence_get(iter);
+				int id = *(int*)id_p;
+				LonLatTags * llt = g_tree_lookup(poi_manager -> tree_ids, id_p);
+				poi_set_add(poi_set, llt -> lon, llt -> lat, id);
+				iter = g_sequence_iter_next(iter);
+			}
+		}
+	}
+}
 
 /****************************************************************************************************
 * set the index's poi-source file as the current
@@ -644,10 +635,6 @@ void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
 		int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
 		osm_reader_clear(poi_manager -> osm_reader);
 		int n;
-//		for (n = 0; n < num_poi_sets; n++){
-//			StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
-//			poi_set_clear(GOSM_POI_SET(poi_set));
-//		}
 		if (index >= 0){
 			PoiSource * poi_source = poi_manager_get_poi_source(poi_manager, index);
 			g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_STARTED], 0, index);
@@ -662,21 +649,15 @@ void poi_manager_activate_poi_source(PoiManager * poi_manager, int index)
 static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int status, gpointer data)
 {
 	PoiManager * poi_manager = GOSM_POI_MANAGER(data);
-//	poi_manager -> tag_tree_insertion = poi_manager -> tag_tree;
-//	g_tree_foreach(osm_reader -> tree_ids, node_to_tag_tree, data);
-//	g_tree_foreach(osm_reader -> tree_ids, node_to_id_tree, data);
-//	g_tree_foreach(osm_reader -> tree_ids, node_to_poi_set_all, (gpointer)(poi_manager -> all_pois));
-	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
-	int n;
-	g_tree_foreach(osm_reader -> tree_ids, handle_new_nodes, data);
-	for (n = 0; n < num_poi_sets; n++){
-		StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
-		poi_set_clear(GOSM_POI_SET(poi_set));
-		poi_manager_fill_poi_set(poi_manager, GOSM_POI_SET(poi_set));
-	}
-	if (poi_manager -> active_poi_source >= 0){
-		g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_ENDED], 0);
-	}
+	/* build intersection tree to update already present node_ids */
+	GTree * tree_ids_old = poi_manager_tree_intersection(poi_manager -> tree_ids, osm_reader -> tree_ids);
+	printf("number of reloaded ids %d\n", g_tree_nnodes(tree_ids_old));
+	/* remove old nodes */
+	poi_manager_remove_nodes(poi_manager, tree_ids_old);
+	/* add new nodes */
+	poi_manager_add_nodes(poi_manager, osm_reader -> tree_ids);
+	/* emit signals */
+	g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_ENDED], 0);
 	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, poi_manager -> active_poi_source);
 	return FALSE;
 }
@@ -711,37 +692,33 @@ void poi_manager_api_request(PoiManager * poi_manager)
 static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, int status, gpointer data)
 {
 	PoiManager * poi_manager = GOSM_POI_MANAGER(data);
-//	double min_lon = poi_manager -> bbox_api_query.min_lon;
-//	double min_lat = poi_manager -> bbox_api_query.min_lat;
-//	double max_lon = poi_manager -> bbox_api_query.max_lon;
-//	double max_lat = poi_manager -> bbox_api_query.max_lat;
-	/* remove all pois that have been in the requested area before */
-	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
-	int n;
-//	for (n = 0; n < num_poi_sets; n++){
-//		PoiSet * poi_set = GOSM_POI_SET(poi_manager_get_poi_set(poi_manager, n));
-//		poi_set_clear_area(poi_set, min_lon, min_lat, max_lon, max_lat);
-//	}
-	/* insert new pois */
-	//poi_manager -> tag_tree_new = g_tree_new_full(poi_manager_compare_strings, NULL, NULL, NULL);
-	g_tree_foreach(osm_reader -> tree_ids, handle_new_nodes, data);
-//	poi_manager -> tag_tree_insertion = poi_manager -> tag_tree;
-//	g_tree_foreach(osm_reader -> tree_ids, node_to_tag_tree, data);
-//
-//	poi_manager -> tag_tree_insertion = poi_manager -> tag_tree_new;
-//	g_tree_foreach(osm_reader -> tree_ids, node_to_tag_tree, data);
-//
-//	g_tree_foreach(osm_reader -> tree_ids, node_to_id_tree, data);
-//	printf("%d nodes\n", g_tree_nnodes(poi_manager -> tree_ids));
-//	g_tree_foreach(osm_reader -> tree_ids, node_to_poi_set_all, (gpointer)(poi_manager -> all_pois));
-	for (n = 0; n < num_poi_sets; n++){
-		StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, n);
-		//poi_manager_add_new_to_poi_set(poi_manager, poi_set);
-		//TODO: instead of clear & reload, the double node's old values could be removed from PoiSets
-		// and new values inserted
-		poi_set_clear(GOSM_POI_SET(poi_set));
-		poi_manager_fill_poi_set(poi_manager, GOSM_POI_SET(poi_set));
+	if (status != 0){
+		g_signal_emit (poi_manager, poi_manager_signals[API_REQUEST_ENDED], 0, status);
+		return FALSE;
 	}
+	double min_lon = poi_manager -> bbox_api_query.min_lon;
+	double min_lat = poi_manager -> bbox_api_query.min_lat;
+	double max_lon = poi_manager -> bbox_api_query.max_lon;
+	double max_lat = poi_manager -> bbox_api_query.max_lat;
+	/* remove all pois that have been in the requested area before */
+	GArray * points = poi_set_get(poi_manager -> all_pois, min_lon, min_lat, max_lon, max_lat);
+	GTree * tree_ids_area = g_tree_new_full(poi_manager_compare_ints, NULL, NULL, NULL);
+	int i; for (i = 0; i < points -> len; i++){
+		LonLatPairId * llpi = &g_array_index(points, LonLatPairId, i);
+		LonLatTags * llt = g_tree_lookup(poi_manager -> tree_ids, &(llpi -> node_id));
+		g_tree_insert(tree_ids_area, &(llpi -> node_id), llt);
+	}
+	printf("number of area ids removed %d\n", g_tree_nnodes(tree_ids_area));
+	/* remove area nodes */
+	poi_manager_remove_nodes(poi_manager, tree_ids_area);
+	/* build intersection tree to update already present node_ids */
+	GTree * tree_ids_old = poi_manager_tree_intersection(poi_manager -> tree_ids, osm_reader -> tree_ids);
+	printf("number of reloaded ids %d\n", g_tree_nnodes(tree_ids_old));
+	/* remove old nodes */
+	poi_manager_remove_nodes(poi_manager, tree_ids_old);
+	/* add new nodes */
+	poi_manager_add_nodes(poi_manager, osm_reader -> tree_ids);
+	/* emit signals */
 	g_signal_emit (poi_manager, poi_manager_signals[API_REQUEST_ENDED], 0, status);
 	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, poi_manager -> active_poi_source);
 	return FALSE;

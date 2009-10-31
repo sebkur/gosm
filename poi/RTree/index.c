@@ -19,15 +19,13 @@ struct Node * RTreeNewIndex()
 void RTreeClear(struct Node* N)
 {
 	int i;
-	if (N -> level > 0){
+	if (N != NULL && N -> level > 0){
 		for (i = 0; i < N -> count; i++){
 			RTreeClear(N -> branch[i].child);
 		}
-		if (N != NULL){
-			free(N);
-		}else{
-			printf("propably an error\n");
-		}
+		free(N);
+	}else{
+		if (N==NULL) printf("RTreeClear failure?\n");
 	}
 }
 

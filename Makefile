@@ -57,6 +57,7 @@ poi/styled_poi_set.c \
 poi/poi_source_selector.c \
 poi/cell_renderer_colour.c \
 poi/poi_source_load_progress.c \
+poi/tag_tree.c \
 poi/node_tool.c \
 poi/poi_statistics.c \
 gtk_safety.c \
@@ -121,6 +122,7 @@ poi/styled_poi_set.o \
 poi/poi_source_selector.o \
 poi/cell_renderer_colour.o \
 poi/poi_source_load_progress.o \
+poi/tag_tree.o \
 poi/node_tool.o \
 poi/poi_statistics.o \
 gtk_safety.o \

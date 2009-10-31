@@ -481,7 +481,10 @@ void osm_reader_parse_api_url_thread_fun(OsmReader * osm_reader)
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, (gpointer)parser);
 	curl_easy_setopt(handle, CURLOPT_USERAGENT, "Pure Data");
 	int perform = curl_easy_perform(handle);
-	if (perform != 0){
+	long response;
+	int status  = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response);
+	printf("response code: %ld\n", response);
+	if (response != 200){
 		printf("unable to receive data\n");
 		g_signal_emit (osm_reader, osm_reader_signals[API_FINISHED], 0, 1);
 		return;

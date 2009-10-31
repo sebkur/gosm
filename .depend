@@ -2,15 +2,15 @@ menu.o: menu.c menu.h map_area.h map_types.h tiles/tile_manager.h \
   tiles/tile_cache.h tiles/ringbuffer.h tiles/../map_types.h \
   tiles/tilesets.h poi/poi_set.h poi/RTree/index.h poi/../map_types.h \
   poi/poi_manager.h poi/poi_set.h poi/named_poi_set.h \
-  poi/styled_poi_set.h poi/osm_reader.h poi/../map_area.h config/config.h \
-  about/about.h about/../map_area.h manual/manual.h \
+  poi/styled_poi_set.h poi/osm_reader.h poi/../map_area.h poi/tag_tree.h \
+  config/config.h about/about.h about/../map_area.h manual/manual.h \
   config/config_widget.h config/config.h
 toolbar.o: toolbar.c toolbar.h map_area.h map_types.h \
   tiles/tile_manager.h tiles/tile_cache.h tiles/ringbuffer.h \
   tiles/../map_types.h tiles/tilesets.h poi/poi_set.h poi/RTree/index.h \
   poi/../map_types.h poi/poi_manager.h poi/poi_set.h poi/named_poi_set.h \
-  poi/styled_poi_set.h poi/osm_reader.h poi/../map_area.h map_navigator.h \
-  config/config.h paths.h
+  poi/styled_poi_set.h poi/osm_reader.h poi/../map_area.h poi/tag_tree.h \
+  map_navigator.h config/config.h paths.h
 tool.o: tool.c tool.h
 ringbuffer.o: tiles/ringbuffer.c tiles/ringbuffer.h
 tile_cache.o: tiles/tile_cache.c tiles/tile_cache.h tiles/ringbuffer.h
@@ -69,7 +69,8 @@ wizzard_delete_tiles.o: wizzard/wizzard_delete_tiles.c \
   wizzard/../poi/poi_manager.h wizzard/../poi/poi_set.h \
   wizzard/../poi/named_poi_set.h wizzard/../poi/styled_poi_set.h \
   wizzard/../poi/osm_reader.h wizzard/../poi/../map_area.h \
-  wizzard/wizzard_delete_tiles_window.h wizzard/../tiles/tilemath.h
+  wizzard/../poi/tag_tree.h wizzard/wizzard_delete_tiles_window.h \
+  wizzard/../tiles/tilemath.h
 wizzard_delete_tiles_window.o: wizzard/wizzard_delete_tiles_window.c \
   wizzard/wizzard_delete_tiles_window.h
 about.o: about/about.c about/about.h about/../map_area.h \
@@ -80,7 +81,8 @@ about.o: about/about.c about/about.h about/../map_area.h \
   about/../poi/../map_types.h about/../poi/poi_manager.h \
   about/../poi/poi_set.h about/../poi/named_poi_set.h \
   about/../poi/styled_poi_set.h about/../poi/osm_reader.h \
-  about/../poi/../map_area.h about/../tool.h about/../paths.h
+  about/../poi/../map_area.h about/../poi/tag_tree.h about/../tool.h \
+  about/../paths.h
 manual.o: manual/manual.c manual/manual.h manual/../tool.h \
   manual/../paths.h
 tile_manager.o: tiles/tile_manager.c tiles/tile_manager.h \
@@ -93,13 +95,14 @@ map_area.o: map_area.c map_area.h map_types.h tiles/tile_manager.h \
   tiles/tile_cache.h tiles/ringbuffer.h tiles/../map_types.h \
   tiles/tilesets.h poi/poi_set.h poi/RTree/index.h poi/../map_types.h \
   poi/poi_manager.h poi/poi_set.h poi/named_poi_set.h \
-  poi/styled_poi_set.h poi/osm_reader.h poi/../map_area.h tool.h \
-  tiles/tilemath.h tiles/tile_cache.h paths.h
+  poi/styled_poi_set.h poi/osm_reader.h poi/../map_area.h poi/tag_tree.h \
+  tool.h tiles/tilemath.h tiles/tile_cache.h paths.h
 map_navigator.o: map_navigator.c map_area.h map_types.h \
   tiles/tile_manager.h tiles/tile_cache.h tiles/ringbuffer.h \
   tiles/../map_types.h tiles/tilesets.h poi/poi_set.h poi/RTree/index.h \
   poi/../map_types.h poi/poi_manager.h poi/poi_set.h poi/named_poi_set.h \
-  poi/styled_poi_set.h poi/osm_reader.h poi/../map_area.h map_navigator.h
+  poi/styled_poi_set.h poi/osm_reader.h poi/../map_area.h poi/tag_tree.h \
+  map_navigator.h
 imageglue.o: imageglue/imageglue.c imageglue/../tiles/tilemath.h
 image_glue.o: imageglue/image_glue.c imageglue/imageglue.h \
   imageglue/image_glue.h imageglue/../map_types.h \
@@ -144,7 +147,7 @@ poi_selector.o: poi/poi_selector.c poi/poi_selector.h poi/poi_manager.h \
   poi/../map_types.h poi/../tiles/tile_manager.h \
   poi/../tiles/tile_cache.h poi/../tiles/ringbuffer.h \
   poi/../tiles/../map_types.h poi/../tiles/tilesets.h \
-  poi/../poi/poi_set.h poi/../poi/poi_manager.h \
+  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/tag_tree.h \
   poi/cell_renderer_colour.h poi/../config/color_button.h
 poi_manager.o: poi/poi_manager.c poi/poi_set.h poi/RTree/index.h \
   poi/../map_types.h poi/named_poi_set.h poi/poi_manager.h \
@@ -152,8 +155,8 @@ poi_manager.o: poi/poi_manager.c poi/poi_set.h poi/RTree/index.h \
   poi/../map_types.h poi/../tiles/tile_manager.h \
   poi/../tiles/tile_cache.h poi/../tiles/ringbuffer.h \
   poi/../tiles/../map_types.h poi/../tiles/tilesets.h \
-  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/../paths.h \
-  poi/../config/config.h poi/../customio.h poi/../tool.h \
+  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/tag_tree.h \
+  poi/../paths.h poi/../config/config.h poi/../customio.h poi/../tool.h \
   poi/poi_statistics.h
 poi_tool.o: poi/poi_tool.c poi/poi_tool.h poi/poi_manager.h poi/poi_set.h \
   poi/RTree/index.h poi/../map_types.h poi/named_poi_set.h \
@@ -161,8 +164,9 @@ poi_tool.o: poi/poi_tool.c poi/poi_tool.h poi/poi_manager.h poi/poi_set.h \
   poi/../map_types.h poi/../tiles/tile_manager.h \
   poi/../tiles/tile_cache.h poi/../tiles/ringbuffer.h \
   poi/../tiles/../map_types.h poi/../tiles/tilesets.h \
-  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/poi_selector.h \
-  poi/poi_source_selector.h poi/../config/color_button_auto.h
+  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/tag_tree.h \
+  poi/poi_selector.h poi/poi_source_selector.h \
+  poi/../config/color_button_auto.h
 named_poi_set.o: poi/named_poi_set.c poi/named_poi_set.h poi/poi_set.h \
   poi/RTree/index.h poi/../map_types.h
 styled_poi_set.o: poi/styled_poi_set.c poi/styled_poi_set.h \
@@ -174,14 +178,20 @@ poi_source_selector.o: poi/poi_source_selector.c \
   poi/../map_types.h poi/../tiles/tile_manager.h \
   poi/../tiles/tile_cache.h poi/../tiles/ringbuffer.h \
   poi/../tiles/../map_types.h poi/../tiles/tilesets.h \
-  poi/../poi/poi_set.h poi/../poi/poi_manager.h
+  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/tag_tree.h
 cell_renderer_colour.o: poi/cell_renderer_colour.c \
   poi/cell_renderer_colour.h
 poi_source_load_progress.o: poi/poi_source_load_progress.c \
   poi/poi_source_load_progress.h poi/osm_reader.h poi/../map_types.h
+tag_tree.o: poi/tag_tree.c poi/tag_tree.h
 node_tool.o: poi/node_tool.c poi/node_tool.h poi/../map_types.h
 poi_statistics.o: poi/poi_statistics.c poi/poi_statistics.h \
-  poi/osm_reader.h poi/../map_types.h
+  poi/poi_manager.h poi/poi_set.h poi/RTree/index.h poi/../map_types.h \
+  poi/named_poi_set.h poi/styled_poi_set.h poi/osm_reader.h \
+  poi/../map_area.h poi/../map_types.h poi/../tiles/tile_manager.h \
+  poi/../tiles/tile_cache.h poi/../tiles/ringbuffer.h \
+  poi/../tiles/../map_types.h poi/../tiles/tilesets.h \
+  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/tag_tree.h
 gtk_safety.o: gtk_safety.c namefinder/namefinder_countries.h \
   namefinder/namefinder_cities.h map_navigator.h tiles/tile_manager.h \
   tiles/tile_cache.h tiles/ringbuffer.h tiles/../map_types.h \
@@ -191,7 +201,8 @@ gtk_safety.o: gtk_safety.c namefinder/namefinder_countries.h \
   poi/../map_area.h poi/../map_types.h poi/../tiles/tile_manager.h \
   poi/../tiles/tile_cache.h poi/../tiles/ringbuffer.h \
   poi/../tiles/../map_types.h poi/../tiles/tilesets.h \
-  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/poi_selector.h \
+  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/tag_tree.h \
+  poi/poi_selector.h poi/poi_statistics.h poi/tag_tree.h \
   poi/named_poi_set.h poi/node_tool.h poi/osm_reader.h \
   poi/poi_source_load_progress.h poi/cell_renderer_colour.h poi/poi_set.h \
   poi/poi_manager.h poi/poi_tool.h poi/poi_selector.h \
@@ -230,17 +241,18 @@ gosm.o: gosm.c gosm.h tiles/tilesets.h poi/poi_set.h poi/RTree/index.h \
   poi/../map_types.h poi/../tiles/tile_manager.h \
   poi/../tiles/tile_cache.h poi/../tiles/ringbuffer.h \
   poi/../tiles/../map_types.h poi/../tiles/tilesets.h \
-  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/poi_selector.h \
-  poi/poi_manager.h config/config_widget.h config/config.h menu.h \
-  map_area.h config/config.h toolbar.h map_navigator.h customio.h tool.h \
-  paths.h select/select_tool.h distance/distance_tool.h atlas/atlas.h \
-  atlas/atlas_tool.h atlas/atlas.h namefinder/namefinder_cities.h \
-  namefinder/namefinder_countries.h wizzard/wizzard_download.h \
-  wizzard/select_use_window.h wizzard/../map_types.h \
-  wizzard/tile_download_window.h wizzard/../tiles/tile_loader.h \
-  wizzard/../tiles/../map_types.h wizzard/wizzard_export.h \
-  wizzard/select_export_window.h wizzard/atlas_template_dialog.h \
-  wizzard/../atlas/atlas.h wizzard/wizzard_atlas_sequence.h \
+  poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/tag_tree.h \
+  poi/poi_selector.h poi/poi_manager.h config/config_widget.h \
+  config/config.h menu.h map_area.h config/config.h toolbar.h \
+  map_navigator.h customio.h tool.h paths.h select/select_tool.h \
+  distance/distance_tool.h atlas/atlas.h atlas/atlas_tool.h atlas/atlas.h \
+  namefinder/namefinder_cities.h namefinder/namefinder_countries.h \
+  wizzard/wizzard_download.h wizzard/select_use_window.h \
+  wizzard/../map_types.h wizzard/tile_download_window.h \
+  wizzard/../tiles/tile_loader.h wizzard/../tiles/../map_types.h \
+  wizzard/wizzard_export.h wizzard/select_export_window.h \
+  wizzard/atlas_template_dialog.h wizzard/../atlas/atlas.h \
+  wizzard/wizzard_atlas_sequence.h \
   wizzard/wizzard_atlas_sequence_window.h \
   wizzard/../imageglue/image_glue.h wizzard/../imageglue/../map_types.h \
   wizzard/../imageglue/../atlas/atlas.h wizzard/wizzard_atlas_pdf.h \

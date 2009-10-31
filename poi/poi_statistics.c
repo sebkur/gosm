@@ -110,7 +110,7 @@ int key_val_count_compare(gconstpointer a, gconstpointer b)
 ****************************************************************************************************/
 void poi_statistics_analyze(PoiStatistics * poi_statistics, PoiManager * poi_manager)
 {
-	g_tree_foreach(poi_manager -> tag_tree, tree_inspect1, (gpointer)poi_statistics);
+	g_tree_foreach(poi_manager -> tag_tree -> tree, tree_inspect1, (gpointer)poi_statistics);
 	g_array_sort(poi_statistics -> key_value, key_val_count_compare);
 	printf("size of key-val-list: %d\n", poi_statistics -> key_value -> len);
 //	int i;

@@ -342,11 +342,13 @@ static gboolean poi_tool_api_start_cb(PoiManager * poi_manager, gpointer data)
 }
 
 /****************************************************************************************************
-* callback; when api-request enden, acitvate the api-button, so that the next api-request can be 
+* callback; when api-request ended, acitvate the api-button, so that the next api-request can be 
 * stated
 ****************************************************************************************************/
 static gboolean poi_tool_api_end_cb(PoiManager * poi_manager, int index, gpointer data)
 {
 	PoiTool * poi_tool = GOSM_POI_TOOL(data);
+	gdk_threads_enter();
 	gtk_widget_set_sensitive(poi_tool -> button_api, TRUE);
+	gdk_threads_leave();
 }

@@ -22,6 +22,8 @@
 #include "manual/manual.h"
 #include "poi/poi_source_selector.h"
 #include "poi/poi_selector.h"
+#include "poi/poi_statistics.h"
+#include "poi/tag_tree.h"
 #include "poi/named_poi_set.h"
 #include "poi/node_tool.h"
 #include "poi/osm_reader.h"
@@ -74,6 +76,8 @@ void make_gtk_types_safe()
 	dummy = GOSM_TYPE_MANUAL_DIALOG;
 	dummy = GOSM_TYPE_POI_SOURCE_SELECTOR;
 	dummy = GOSM_TYPE_POI_SELECTOR;
+	dummy = GOSM_TYPE_POI_STATISTICS;
+	dummy = GOSM_TYPE_TAG_TREE;
 	dummy = GOSM_TYPE_NAMED_POI_SET;
 	dummy = GOSM_TYPE_NODE_TOOL;
 	dummy = GOSM_TYPE_OSM_READER;

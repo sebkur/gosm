@@ -38,6 +38,7 @@ typedef struct _PoiManagerClass   PoiManagerClass;
 #include "osm_reader.h"
 #include "../map_area.h"
 #include "../map_types.h"
+#include "tag_tree.h"
 
 #define GOSM_TYPE_POI_MANAGER           (poi_manager_get_type ())
 #define GOSM_POI_MANAGER(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_POI_MANAGER, PoiManager))
@@ -59,9 +60,9 @@ struct _PoiManager
 
 	PoiSet * all_pois;
 	GTree * tree_ids;
-	GTree * tag_tree;
-	GTree * tag_tree_new;
-	GTree * tag_tree_insertion;
+	TagTree * tag_tree;
+	TagTree * tag_tree_new;
+	TagTree * tag_tree_insertion;
 	BoundingBox bbox_api_query;
 	GArray * poi_sets;
 	GArray * poi_sources;
