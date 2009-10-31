@@ -113,12 +113,12 @@ static void poi_set_init(PoiSet *poi_set)
 ****************************************************************************************************/
 void poi_set_add(PoiSet * poi_set, double lon, double lat, int id)
 {
-	LonLatPair * llp = malloc(sizeof(LonLatPair));
-	llp -> lon = lon;
-	llp -> lat = lat;
 	/* a node might be added, that is already present */
 	// TODO: this should be obsolete now
 	if (g_tree_lookup(poi_set -> points, &id) == NULL){
+		LonLatPair * llp = malloc(sizeof(LonLatPair));
+		llp -> lon = lon;
+		llp -> lat = lat;
 		/* insert into binary tree */
 		int * id_p = malloc(sizeof(int));
 		*id_p = id;

@@ -747,6 +747,19 @@ static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, i
 }
 
 /****************************************************************************************************
+* remove all nodes that are in the PoiManager currently
+****************************************************************************************************/
+void poi_manager_clear_pois(PoiManager * poi_manager)
+{
+	// TODO: this could abviously be done more efficient, since we don't have to build the tag_tree
+	// for just removing all nodes. but this currently is kind of a test of consistency of data-
+	// structures
+	poi_manager_remove_nodes(poi_manager, poi_manager -> tree_ids);
+	poi_manager_activate_poi_source(poi_manager, -1);
+	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, poi_manager -> active_poi_source);
+}
+
+/****************************************************************************************************
 * change a PoiSets' colour
 ****************************************************************************************************/
 void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double r, double g, double b, double a)

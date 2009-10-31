@@ -174,11 +174,14 @@ deb:
 	mkdir packages/deb/usr/share/gosm/icons 
 	mkdir packages/deb/usr/share/gosm/manual 
 	mkdir packages/deb/usr/share/gosm/namefinder 
+	mkdir packages/deb/usr/share/gosm/namefinder/res
 	mkdir packages/deb/usr/share/gosm/legend 
 	mkdir packages/deb/usr/share/gosm/legend/mapnik 
 	mkdir packages/deb/usr/share/gosm/legend/mapnik/images 
 	mkdir packages/deb/usr/share/gosm/legend/cycle 
 	mkdir packages/deb/usr/share/gosm/legend/cycle/images 
+	mkdir packages/deb/usr/share/gosm/poi
+	mkdir packages/deb/usr/share/gosm/poi/res
 	mkdir packages/deb/usr/lib 
 	mkdir packages/deb/usr/lib/gosm 
 	mkdir packages/deb/usr/lib/gosm/imageglue 
@@ -191,7 +194,7 @@ deb:
 	cp icons/* packages/deb/usr/share/gosm/icons/ 
 	cp manual/*png packages/deb/usr/share/gosm/manual 
 	cp manual/*html packages/deb/usr/share/gosm/manual 
-	cp namefinder/*txt packages/deb/usr/share/gosm/namefinder 
+	cp namefinder/res/*txt packages/deb/usr/share/gosm/namefinder/res
 	cp legend/*html packages/deb/usr/share/gosm/legend 
 	cp legend/mapnik/*html packages/deb/usr/share/gosm/legend/mapnik 
 	cp legend/mapnik/images/*png* packages/deb/usr/share/gosm/legend/mapnik/images 
@@ -199,6 +202,7 @@ deb:
 	cp legend/cycle/images/*png* packages/deb/usr/share/gosm/legend/cycle/images 
 	cp imageglue/pdf_creator/*jar packages/deb/usr/lib/gosm/imageglue/pdf_creator 
 	cp imageglue/pdf_creator/pdf/*class packages/deb/usr/lib/gosm/imageglue/pdf_creator/pdf 
+	cp poi/res/poi_layers packages/deb/usr/share/gosm/poi/res
 	echo "creating control file"
 	cd packages/deb/DEBIAN &&\
 	touch control &&\
@@ -212,6 +216,7 @@ deb:
 	echo "Depends: libpng12-0 (>= 1.2.27)" >> control &&\
 	echo "Depends: libgtk2.0-0 (>= 2.16.1)" >> control &&\
 	echo "Depends: libcairo2 (>= 1.8.6)" >> control &&\
+	echo "Depends: libbz2-1.0 (>= 1.0.5)" >> control &&\
 	echo "Installed-Size: 329" >> control &&\
 	echo "Maintainer: Sebastian Kürten <sebastian.kuerten@fu-berlin.de>" >> control &&\
 	echo "Description: Viewer for the OpenStreetMap" >> control

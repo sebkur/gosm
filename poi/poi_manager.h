@@ -124,4 +124,6 @@ void poi_manager_print_node_information(PoiManager * poi_manager, int node_id);
 
 LonLatTags * poi_manager_get_node(PoiManager * poi_manager, int node_id);
 
+void poi_manager_clear_pois(PoiManager * poi_manager);
+
 #endif /* _GOSM_POI_MANAGER_H */
