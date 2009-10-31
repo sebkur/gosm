@@ -54,15 +54,33 @@ gint tag_tree_compare_ints(gconstpointer a, gconstpointer b, gpointer user_data)
 {
         return *(int*)a - *(int*)b;
 }
-void tag_tree_just_free(gpointer data)
+void tag_tree_destroy_just_free(gpointer data)
 {
 	free(data);
+}
+/****************************************************************************************************
+* free a GTree
+****************************************************************************************************/
+void tag_tree_destroy_value_trees(gpointer data)
+{
+	//printf("DESTROY value_tree\n");
+	g_tree_destroy((GTree*)data);
+}
+/****************************************************************************************************
+* free a GSequence
+****************************************************************************************************/
+void tag_tree_destroy_element_sequences(gpointer data)
+{	//printf("DESTROY element array\n");
+	g_sequence_free((GSequence*)data);
 }
 
 TagTree * tag_tree_new()
 {
 	TagTree * tag_tree = g_object_new(GOSM_TYPE_TAG_TREE, NULL);
-	tag_tree -> tree = g_tree_new_full(tag_tree_compare_strings, NULL, NULL, NULL);
+	tag_tree -> tree = g_tree_new_full(
+		tag_tree_compare_strings, NULL, 
+		tag_tree_destroy_just_free, 
+		tag_tree_destroy_value_trees);
 	return tag_tree;
 }
 
@@ -72,6 +90,12 @@ static void tag_tree_class_init(TagTreeClass *class)
 
 static void tag_tree_init(TagTree *tag_tree)
 {
+}
+
+void tag_tree_destroy(
+	TagTree * tag_tree)
+{
+	g_tree_destroy(tag_tree -> tree);
 }
 
 void tag_tree_add_node(
@@ -86,7 +110,9 @@ void tag_tree_add_node(
 		GTree * tree1 = (GTree*)g_tree_lookup(tag_tree -> tree, key);
 		if (tree1 == NULL){
 			/* key not found on first level */
-			tree1 = g_tree_new_full(tag_tree_compare_strings, NULL, NULL, NULL);
+			tree1 = g_tree_new_full(
+				tag_tree_compare_strings, NULL, 
+				tag_tree_destroy_just_free, tag_tree_destroy_element_sequences);
 			int len_k = strlen(key) + 1;
 			char * key_insert = malloc(sizeof(char) * len_k);
 			strcpy(key_insert, key);
@@ -96,7 +122,7 @@ void tag_tree_add_node(
 		GSequence * elements = (GSequence*)g_tree_lookup(tree1, val);
 		if (elements == NULL){
 			/* val not found on second level */
-			elements = g_sequence_new(NULL);
+			elements = g_sequence_new(tag_tree_destroy_just_free);
 			int len_v = strlen(val) + 1;
 			char * val_insert = malloc(sizeof(char) * len_v);
 			strcpy(val_insert, val);
@@ -263,7 +289,9 @@ GSequence * tag_tree_get_nodes_create(
 	GTree * tree1 = (GTree*)g_tree_lookup(tag_tree -> tree, key);
 	if (tree1 == NULL){
 		/* key not found on first level */
-		tree1 = g_tree_new_full(tag_tree_compare_strings, NULL, NULL, NULL);
+		tree1 = g_tree_new_full(
+				tag_tree_compare_strings, NULL, 
+				tag_tree_destroy_just_free, tag_tree_destroy_element_sequences);
 		int len_k = strlen(key) + 1;
 		char * key_insert = malloc(sizeof(char) * len_k);
 		strcpy(key_insert, key);
@@ -273,7 +301,7 @@ GSequence * tag_tree_get_nodes_create(
 	GSequence * elements = (GSequence*)g_tree_lookup(tree1, value);
 	if (elements == NULL){
 		/* val not found on second level */
-		elements = g_sequence_new(NULL);
+		elements = g_sequence_new(tag_tree_destroy_just_free);
 		int len_v = strlen(value) + 1;
 		char * val_insert = malloc(sizeof(char) * len_v);
 		strcpy(val_insert, value);

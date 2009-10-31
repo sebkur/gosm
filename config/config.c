@@ -231,9 +231,11 @@ gboolean config_load_config_file(Config * config)
 	                        gchar * part2 = g_strstrip(splitline[1]);
 				config_set_entry(config, part1, part2);
 			}
+			g_strfreev(splitline);
                 }
                 current = splitted[++i];
         }
+	g_strfreev(splitted);
 	//TODO: free ?
 }
 

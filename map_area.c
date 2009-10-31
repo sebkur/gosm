@@ -1373,6 +1373,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			cairo_fill(cr_marker);
 			/* n_active == -1 means: mouse not over any marker */
 			g_array_free(points, TRUE);
+			cairo_pattern_destroy(pat_dots);
 			cairo_destroy(cr_marker);
 		}
 	}

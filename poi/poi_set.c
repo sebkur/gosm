@@ -88,7 +88,6 @@ void poi_set_constructor(PoiSet * poi_set)
 void poi_set_clear(PoiSet * poi_set)
 {
 	RTreeClear(poi_set -> root);
-	int i;
 	// TODO: free of tree
 	poi_set_constructor(poi_set);
 }

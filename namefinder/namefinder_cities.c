@@ -126,7 +126,9 @@ static void namefinder_cities_init(NamefinderCities *namefinder_cities)
 		strcpy(namefinder_cities -> cities[c].name, split2[0]);
 		namefinder_cities -> cities[c].lon = lon;
 		namefinder_cities -> cities[c].lat = lat;
+		g_strfreev(split2);
 	}
+	g_strfreev(splitted);
 	qsort(namefinder_cities -> cities, l-1, sizeof(city), cmpstringp);
 	//for (c = 0; c < l-1; c++){
 		//printf("%s, %f, %f\n", cities[c].name, cities[c].lon, cities[c].lat);

@@ -139,6 +139,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		cairo_line_to(cr, 3.0/4.0 * BUTTONSIZE, 1.0 * BUTTONSIZE);
 	}
 	cairo_fill(cr);
+	cairo_destroy(cr);
 	return FALSE;
 }
 

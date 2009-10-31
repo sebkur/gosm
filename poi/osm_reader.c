@@ -100,15 +100,6 @@ void destroy_element_arrays(gpointer data)
 {	//printf("DESTROY element array\n");
 	g_array_free((GArray*)data, TRUE);
 }
-/****************************************************************************************************
-* free a LonLatTags element
-****************************************************************************************************/
-void destroy_lon_lat_tags(gpointer data)
-{	//printf("DESTROY lon lat tags\n");
-	LonLatTags * llt = (LonLatTags*) data;
-	g_hash_table_destroy(llt -> tags);
-	free(llt);
-}
 
 /****************************************************************************************************
 *****************************************************************************************************
@@ -143,9 +134,7 @@ gint osm_reader_compare_ints(gconstpointer a, gconstpointer b, gpointer user_dat
 ****************************************************************************************************/
 void osm_reader_constructor(OsmReader * osm_reader)
 {
-	//osm_reader -> tree_tags = g_tree_new_full(osm_reader_compare_strings, NULL, destroy_string, destroy_value_trees);
-	//osm_reader -> tree_ids =  g_tree_new_full(osm_reader_compare_ints, NULL, destroy_int_p, destroy_lon_lat_tags);
-	osm_reader -> tree_ids = g_tree_new_full(osm_reader_compare_ints, NULL, NULL, NULL);
+	osm_reader -> tree_ids =  g_tree_new_full(osm_reader_compare_ints, NULL, destroy_int_p, NULL);
 	osm_reader -> current_level = 0;
 	osm_reader -> current_element = 0;
 	osm_reader -> current_id = 0;
@@ -166,7 +155,6 @@ OsmReader * osm_reader_new()
 ****************************************************************************************************/
 void osm_reader_clear(OsmReader * osm_reader)
 {
-	//g_tree_destroy(osm_reader -> tree_tags);
 	g_tree_destroy(osm_reader -> tree_ids);
 	osm_reader_constructor(osm_reader);
 }
@@ -265,27 +253,6 @@ static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 				strcpy(key_map, k);
 				strcpy(val_map, v);
 				g_hash_table_insert(osm_reader -> current_node -> tags, key_map, val_map);
-//				/* put node into tag-tree */
-//				gpointer lookup1 = g_tree_lookup(osm_reader -> tree_tags, k);
-//				GTree * tree1 = (GTree*)lookup1;
-//				if (lookup1 == NULL){
-//					/* no key found on first level (k not present) */
-//					tree1 = g_tree_new_full(osm_reader_compare_strings, NULL, destroy_string, destroy_element_arrays);
-//					char * key_insert = malloc(sizeof(char) * len_k);
-//					strcpy(key_insert, k);
-//					g_tree_insert(osm_reader -> tree_tags, key_insert, tree1);
-//				}
-//				/* now tree1 exists */
-//				gpointer lookup2 = g_tree_lookup(tree1, v);
-//				GArray * elements = (GArray*)lookup2;
-//				if (lookup2 == NULL){
-//					elements = g_array_new(FALSE, FALSE, sizeof(int));
-//					char * val_insert = malloc(sizeof(char) * len_v);
-//					strcpy(val_insert, v);
-//					g_tree_insert(tree1, val_insert, elements);
-//				}
-//				/* now elements exists */
-//				g_array_append_val(elements, osm_reader -> current_id);
 			}
 		}
 	}
@@ -327,7 +294,13 @@ int osm_reader_parse_file(OsmReader * osm_reader, char * filename)
 {
 	osm_reader -> filename = filename;
 	pthread_t thread;
-	int p_id = pthread_create(&thread, NULL, (void*) osm_reader_parse_file_thread_fun, osm_reader);
+	pthread_attr_t tattr;
+	pthread_attr_init(&tattr);
+	pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
+	size_t stacksize = PTHREAD_STACK_MIN * 8;
+	pthread_attr_setstacksize(&tattr, stacksize);
+	int p_id = pthread_create(&thread, &tattr, (void*) osm_reader_parse_file_thread_fun, osm_reader);
+	pthread_attr_destroy(&tattr);
 }
 
 /****************************************************************************************************
@@ -344,6 +317,7 @@ void osm_reader_parse_file_thread_fun(OsmReader * osm_reader)
 	int s = stat(osm_reader -> filename, &sb);
 	if (s < 0){
 		// file not found
+		XML_ParserFree(parser);
 		g_signal_emit (osm_reader, osm_reader_signals[READING_FINISHED], 0, 1);
 		return;
 	}
@@ -407,45 +381,21 @@ void osm_reader_parse_file_thread_fun(OsmReader * osm_reader)
 		fclose(file);
 		XML_Parse(parser, NULL, 0, 1);
 	}
+	XML_ParserFree(parser);
 	g_signal_emit (osm_reader, osm_reader_signals[READING_FINISHED], 0, 0);
 }
-
-/****************************************************************************************************
-* find all nodes that have the given tag (key/value)
-****************************************************************************************************/
-GArray * osm_reader_find_ids_key_value(OsmReader * osm_reader, char * key, char * value)
-{
-	GTree * tree = (GTree*) g_tree_lookup(osm_reader -> tree_tags, key);
-	if (tree == NULL){
-		return NULL;
-	}
-	GArray * array = (GArray*) g_tree_lookup(tree, value);
-	if (array == NULL){
-		return NULL;
-	}
-	return array;
-}
-
-//int main(int argc, char * argv[])
-//{
-//	printf("foo\n");
-//	g_type_init();
-//	OsmReader * osm_reader = osm_reader_new();
-//	osm_reader_parse_file(osm_reader, "vienna.osm");
-//	osm_reader_find_ids_key_value(osm_reader, "shop", "supermarket");
-//	g_tree_foreach(osm_reader->tree_ids, traverse, NULL);
-//}
 
 /****************************************************************************************************
 * a callback for curl-downloading. used for displaying progress
 ****************************************************************************************************/
 size_t curl_cb(void * data, size_t size, size_t nmemb, void * parser)
 {
-	char * buf = malloc(sizeof(char) * (size * nmemb + 1));
-	strncpy(buf, data, size * nmemb);
-	buf[size * nmemb] = '\0';
+	//char * buf = malloc(sizeof(char) * (size * nmemb + 1));
+	//strncpy(buf, data, size * nmemb);
+	//buf[size * nmemb] = '\0';
 	//printf("%s\n", buf);
-	XML_Parse((XML_Parser)parser, buf, size * nmemb, 0);
+	//XML_Parse((XML_Parser)parser, buf, size * nmemb, 0);
+	XML_Parse((XML_Parser)parser, data, size * nmemb, 0);
 	return size * nmemb;
 }
 
@@ -461,7 +411,13 @@ void osm_reader_parse_api_url(OsmReader * osm_reader, char * url)
 {
 	osm_reader -> url = url;
 	pthread_t thread;
-	int p_id = pthread_create(&thread, NULL, (void*) osm_reader_parse_api_url_thread_fun, osm_reader);
+	pthread_attr_t tattr;
+	pthread_attr_init(&tattr);
+	pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
+	size_t stacksize = PTHREAD_STACK_MIN * 8;
+	pthread_attr_setstacksize(&tattr, stacksize);
+	int p_id = pthread_create(&thread, &tattr, (void*) osm_reader_parse_api_url_thread_fun, osm_reader);
+	pthread_attr_destroy(&tattr);
 }
 
 /****************************************************************************************************
@@ -481,15 +437,19 @@ void osm_reader_parse_api_url_thread_fun(OsmReader * osm_reader)
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, (gpointer)parser);
 	curl_easy_setopt(handle, CURLOPT_USERAGENT, "Pure Data");
 	int perform = curl_easy_perform(handle);
+	free(osm_reader -> url);
 	long response;
 	int status  = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response);
 	printf("response code: %ld\n", response);
 	if (response != 200){
 		printf("unable to receive data\n");
+		XML_ParserFree(parser);
 		g_signal_emit (osm_reader, osm_reader_signals[API_FINISHED], 0, 1);
 		return;
 	}
 	printf("succesfully got data\n");
 	XML_Parse(parser, NULL, 0, 1);
+	XML_ParserFree(parser);
+	curl_easy_cleanup(handle);
 	g_signal_emit (osm_reader, osm_reader_signals[API_FINISHED], 0, 0);
 }

@@ -90,6 +90,20 @@ gint poi_manager_compare_ints(gconstpointer a, gconstpointer b, gpointer user_da
 {
 	        return *(int*)a - *(int*)b;
 }
+
+/****************************************************************************************************
+* free a LonLatTags element
+****************************************************************************************************/
+void poi_manager_destroy_lon_lat_tags(gpointer data)
+{
+	LonLatTags * llt = (LonLatTags*) data;
+	g_hash_table_destroy(llt -> tags);
+	free(llt);
+}
+void poi_manager_destroy_just_free(gpointer data)
+{
+	free(data);
+}
 /****************************************************************************************************
 * constructor
 ****************************************************************************************************/
@@ -98,7 +112,8 @@ PoiManager * poi_manager_new()
 	PoiManager * poi_manager = g_object_new(GOSM_TYPE_POI_MANAGER, NULL);
 	poi_manager -> all_pois = poi_set_new();
 	poi_manager -> tag_tree = tag_tree_new();
-	poi_manager -> tree_ids = g_tree_new_full(poi_manager_compare_ints, NULL, NULL, NULL);
+	poi_manager -> tree_ids = g_tree_new_full(poi_manager_compare_ints, NULL, 
+			poi_manager_destroy_just_free, poi_manager_destroy_lon_lat_tags);
 	poi_manager -> poi_sets = g_array_new(FALSE, FALSE, sizeof(StyledPoiSet*));
 	poi_manager -> poi_sources = g_array_new(FALSE, FALSE, sizeof(PoiSource*));
 	poi_manager -> active_poi_source = -1;
@@ -586,6 +601,7 @@ void poi_manager_remove_nodes(PoiManager * poi_manager, GTree * tree_ids_old)
 	tag_tree_subtract_tag_tree(poi_manager -> tag_tree, tag_tree_old);
 	/* remove from tree_ids */
 	poi_manager_remove_nodes_from_tree_ids(poi_manager, tree_ids_old);
+	tag_tree_destroy(tag_tree_old);
 }
 
 /****************************************************************************************************
@@ -654,6 +670,7 @@ static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int s
 	printf("number of reloaded ids %d\n", g_tree_nnodes(tree_ids_old));
 	/* remove old nodes */
 	poi_manager_remove_nodes(poi_manager, tree_ids_old);
+	g_tree_destroy(tree_ids_old);
 	/* add new nodes */
 	poi_manager_add_nodes(poi_manager, osm_reader -> tree_ids);
 	/* emit signals */
@@ -711,11 +728,14 @@ static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, i
 	printf("number of area ids removed %d\n", g_tree_nnodes(tree_ids_area));
 	/* remove area nodes */
 	poi_manager_remove_nodes(poi_manager, tree_ids_area);
+	g_array_free(points, TRUE);
+	g_tree_destroy(tree_ids_area);
 	/* build intersection tree to update already present node_ids */
 	GTree * tree_ids_old = poi_manager_tree_intersection(poi_manager -> tree_ids, osm_reader -> tree_ids);
 	printf("number of reloaded ids %d\n", g_tree_nnodes(tree_ids_old));
 	/* remove old nodes */
 	poi_manager_remove_nodes(poi_manager, tree_ids_old);
+	g_tree_destroy(tree_ids_old);
 	/* add new nodes */
 	poi_manager_add_nodes(poi_manager, osm_reader -> tree_ids);
 	/* emit signals */

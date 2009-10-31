@@ -132,14 +132,17 @@ static void tile_manager_init(TileManager *tile_manager)
 	ret = pthread_attr_getschedparam (&tattr, &param);
 	param.sched_priority = newprio;
 	ret = pthread_attr_setschedparam (&tattr, &param);
+	size_t stacksize = PTHREAD_STACK_MIN * 8;
+	pthread_attr_setstacksize(&tattr, stacksize);
 	int p_disk = pthread_create(&thread_disk, &tattr, (void *) function_load_from_disk, tile_manager);
+	pthread_attr_destroy(&tattr);
 	int x = 0; for (x = 0; x < 8; x++){
 		pthread_attr_t tattrn;
 		pthread_attr_init(&tattrn);
-		size_t stacksize;
-		pthread_attr_getstacksize(&tattrn, &stacksize);
+		size_t stacksize = PTHREAD_STACK_MIN * 8;
 		pthread_attr_setstacksize(&tattrn, stacksize);
 		int p_netw = pthread_create(&thread_netw, &tattrn, (void *) function_load_from_netw, tile_manager);
+		pthread_attr_destroy(&tattrn);
 	}
 }
 

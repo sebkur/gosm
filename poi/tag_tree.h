@@ -78,4 +78,7 @@ GSequence * tag_tree_get_nodes(
 	char * key,
 	char * value);
 
+void tag_tree_destroy(
+	TagTree * tag_tree);
+
 #endif /* _TAG_TREE_H_ */
