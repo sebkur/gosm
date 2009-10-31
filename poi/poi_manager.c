@@ -615,7 +615,6 @@ poi_manager_add_nodes(PoiManager * poi_manager, GTree * tree_ids_new)
 	/* add to tag_tree */
 	TagTree * tag_tree = poi_manager_build_tag_tree(tree_ids_new);
 	tag_tree_add_tag_tree(poi_manager -> tag_tree, tag_tree);
-	tag_tree_destroy(tag_tree);
 	/* add to all_pois */
 	g_tree_foreach(tree_ids_new, node_to_poi_set_all, (gpointer) poi_manager -> all_pois);
 	/* add to PoiSets */
@@ -636,6 +635,7 @@ poi_manager_add_nodes(PoiManager * poi_manager, GTree * tree_ids_new)
 			}
 		}
 	}
+	tag_tree_destroy(tag_tree);
 }
 
 /****************************************************************************************************
