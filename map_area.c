@@ -38,6 +38,8 @@
 #include "tiles/tilesets.h"
 #include "paths.h"
 
+#include "poi/api_control.h"
+
 #define MATCHES(a,b)	((a & b) == b)
 #define TILESIZE	256
 #define CACHE_SIZE	164
@@ -792,6 +794,9 @@ void map_area_add_marker(MapArea *map_area, double lon, double lat)
 	strcpy(id_name -> name, "");
 	poi_set_add(map_area -> poi_set, lon, lat, (void*)id_name);
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));*/
+	printf("TEST adding poi to %e %e\n", lon, lat);
+	ApiControl * api_control = api_control_new();
+	api_control_test(api_control, lon, lat);
 }
 
 /****************************************************************************************************

@@ -102,7 +102,9 @@ GObject * config_new()
 		{"color_atlas_lines",   TYPE_COLOR,     "0.5,0.0,0.5,0.7",	NULL},
 		{"use_proxy",           TYPE_BOOLEAN,   "FALSE",		NULL},
 		{"proxy_host",          TYPE_IP,        "proxy.ip.add",		NULL},
-		{"proxy_port",          TYPE_INT,       "80",			NULL}
+		{"proxy_port",          TYPE_INT,       "80",			NULL},
+		{"osm_account_user",    TYPE_STRING,    "",			NULL},
+		{"osm_account_pass",    TYPE_PASSWORD,  "",			NULL}
 	};
 	/* create the current instance of configuration */
 	config -> entries = malloc(sizeof(ConfEntries));
@@ -356,6 +358,7 @@ gboolean config_set_entry_data(ConfEntry * ce, char * data_str)
 		return TRUE;
 	}
 	case TYPE_STRING:
+	case TYPE_PASSWORD:
 	case TYPE_DIR:
 	case TYPE_IP:{
 		int size_new = strlen(data_str) + 1;

@@ -60,6 +60,7 @@ enum {
         TYPE_INT,
         TYPE_DOUBLE,
         TYPE_STRING,
+        TYPE_PASSWORD,
         TYPE_COLOR,
 	TYPE_DIR,
 	TYPE_IP

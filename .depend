@@ -96,7 +96,7 @@ map_area.o: map_area.c map_area.h map_types.h tiles/tile_manager.h \
   tiles/tilesets.h poi/poi_set.h poi/RTree/index.h poi/../map_types.h \
   poi/poi_manager.h poi/poi_set.h poi/named_poi_set.h \
   poi/styled_poi_set.h poi/osm_reader.h poi/../map_area.h poi/tag_tree.h \
-  tool.h tiles/tilemath.h tiles/tile_cache.h paths.h
+  tool.h tiles/tilemath.h tiles/tile_cache.h paths.h poi/api_control.h
 map_navigator.o: map_navigator.c map_area.h map_types.h \
   tiles/tile_manager.h tiles/tile_cache.h tiles/ringbuffer.h \
   tiles/../map_types.h tiles/tilesets.h poi/poi_set.h poi/RTree/index.h \
@@ -192,6 +192,20 @@ poi_statistics.o: poi/poi_statistics.c poi/poi_statistics.h \
   poi/../tiles/tile_cache.h poi/../tiles/ringbuffer.h \
   poi/../tiles/../map_types.h poi/../tiles/tilesets.h \
   poi/../poi/poi_set.h poi/../poi/poi_manager.h poi/tag_tree.h
+api_control.o: poi/api_control.c poi/api_control.h
+edit_action.o: poi/edit/edit_action.c poi/edit/edit_action.h
+edit_action_add_node.o: poi/edit/edit_action_add_node.c \
+  poi/edit/edit_action_add_node.h poi/edit/edit_action.h
+edit_action_add_tag.o: poi/edit/edit_action_add_tag.c \
+  poi/edit/edit_action_add_tag.h poi/edit/edit_action.h
+edit_action_change_position.o: poi/edit/edit_action_change_position.c \
+  poi/edit/edit_action_change_position.h poi/edit/edit_action.h
+edit_action_change_tag.o: poi/edit/edit_action_change_tag.c \
+  poi/edit/edit_action_change_tag.h poi/edit/edit_action.h
+edit_action_remove_node.o: poi/edit/edit_action_remove_node.c \
+  poi/edit/edit_action_remove_node.h poi/edit/edit_action.h
+edit_action_remove_tag.o: poi/edit/edit_action_remove_tag.c \
+  poi/edit/edit_action_remove_tag.h poi/edit/edit_action.h
 gtk_safety.o: gtk_safety.c namefinder/namefinder_countries.h \
   namefinder/namefinder_cities.h map_navigator.h tiles/tile_manager.h \
   tiles/tile_cache.h tiles/ringbuffer.h tiles/../map_types.h \
@@ -265,4 +279,6 @@ gosm.o: gosm.c gosm.h tiles/tilesets.h poi/poi_set.h poi/RTree/index.h \
   imageglue/../atlas/atlas.h imageglue/../map_types.h poi/poi_tool.h \
   poi/poi_selector.h poi/poi_source_selector.h \
   poi/poi_source_load_progress.h poi/node_tool.h poi/poi_statistics.h \
+  poi/edit/edit_action.h poi/edit/edit_action_add_node.h \
+  poi/edit/edit_action.h poi/edit/edit_action_change_position.h \
   gtk_safety.h widget/gtk_custom_frame.h

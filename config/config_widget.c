@@ -184,10 +184,18 @@ config_widget_construct(ConfigWidget * config_widget, Config * config)
 		ConfEntry ce = config -> entries[i];
 		labels[i] = gtk_label_new(ce.name);
 		switch (ce.type){
+		case TYPE_STRING:
 		case TYPE_DIR:
 		case TYPE_IP:{
 			sprintf(buf, "%s", (char*)ce.data);
 			entries[i] = gtk_entry_new();
+			gtk_entry_set_text(GTK_ENTRY(entries[i]), buf) ;
+			break;
+		}
+		case TYPE_PASSWORD:{
+			sprintf(buf, "%s", (char*)ce.data);
+			entries[i] = gtk_entry_new();
+			gtk_entry_set_visibility(GTK_ENTRY(entries[i]), FALSE);
 			gtk_entry_set_text(GTK_ENTRY(entries[i]), buf) ;
 			break;
 		}
@@ -222,7 +230,6 @@ config_widget_construct(ConfigWidget * config_widget, Config * config)
 			break;
 		}
 		default:{
-			printf("default\n");
 			entries[i] = gtk_entry_new();
 			gtk_entry_set_text(GTK_ENTRY(entries[i]), ce.data_str);
 		}

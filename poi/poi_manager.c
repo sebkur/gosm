@@ -115,6 +115,7 @@ PoiManager * poi_manager_new()
 	poi_manager -> tree_ids = g_tree_new_full(poi_manager_compare_ints, NULL, 
 			poi_manager_destroy_just_free, poi_manager_destroy_lon_lat_tags);
 	poi_manager -> poi_sets = g_array_new(FALSE, FALSE, sizeof(StyledPoiSet*));
+
 	poi_manager -> poi_sources = g_array_new(FALSE, FALSE, sizeof(PoiSource*));
 	poi_manager -> active_poi_source = -1;
 	poi_manager -> osm_reader = osm_reader_new();

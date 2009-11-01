@@ -71,6 +71,10 @@
 #include "poi/poi_source_load_progress.h"
 #include "poi/node_tool.h"
 #include "poi/poi_statistics.h"
+//TODO: remove those again, was just for some testing
+#include "poi/edit/edit_action.h"
+#include "poi/edit/edit_action_add_node.h"
+#include "poi/edit/edit_action_change_position.h"
 
 #include <unistd.h>
 #include <wait.h>
@@ -392,6 +396,13 @@ int main(int argc, char *argv[])
 	set_widget_visibility(statusbar, show_statusbar);
 	set_widget_visibility(sidebar_right, show_sidebar_right);
 	set_widget_visibility(sidebar_left, show_sidebar_left);
+
+//	printf("poimanager %d %d\n", GOSM_TYPE_POI_MANAGER, G_OBJECT_TYPE(poi_manager));
+//	printf("%d\n", G_OBJECT_TYPE(poi_manager) == GOSM_TYPE_POI_MANAGER);
+//	EditAction * ean = edit_action_add_node_new();	
+//	EditAction * eap = edit_action_change_position_new();
+//	printf("Add Node: %d %d\n", GOSM_TYPE_EDIT_ACTION_ADD_NODE, G_OBJECT_TYPE(ean));
+//	printf("Change p: %d %d\n", GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION, G_OBJECT_TYPE(eap));
 
 	/***************************************************************************
 	 * main loop
