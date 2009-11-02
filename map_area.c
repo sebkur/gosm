@@ -89,6 +89,13 @@ static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event);
 static gboolean scroll_cb(MapArea *map_area, GdkEventScroll *event);
 static gboolean tile_loaded_cb(TileManager * tile_manager, MapArea *map_area);
 
+void mouse_motion_drag_map(MapArea * map_area, int x, int y);
+void mouse_motion_drag_poi(MapArea * map_area, int x, int y);
+void mouse_motion_poi(MapArea * map_area, int x, int y);
+void mouse_motion_selection(MapArea * map_area, int x, int y);
+void mouse_motion_selection_drag(MapArea * map_area, int x, int y);
+void mouse_motion_selection_create(MapArea * map_area, int x, int y);
+
 void map_has_moved(MapArea *map_area);
 void map_area_adjust_map_position_values(MapArea *map_area);
 void map_area_adjust_tile_count_information(MapArea *map_area);
@@ -795,7 +802,8 @@ void map_area_add_marker(MapArea *map_area, double lon, double lat)
 	strcpy(id_name -> name, "");
 	poi_set_add(map_area -> poi_set, lon, lat, (void*)id_name);
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));*/
-	printf("TEST adding poi to %e %e\n", lon, lat);
+	poi_manager_add_node(map_area -> poi_manager, lon, lat);
+	map_area_repaint(map_area);
 	//ApiControl * api_control = api_control_new();
 	//api_control_test(api_control, lon, lat);
 }
@@ -859,11 +867,13 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 	double lat = map_area_y_to_lat(map_area, y);
 	//printf("button %f %f\n", lon, lat);
 	if (event -> type == GDK_2BUTTON_PRESS){
-		if (event -> button == 1){
-			map_area_zoom_in(map_area);
-		}
-		if (event -> button == 3){
-			map_area_zoom_out(map_area);
+		if (map_area -> mouse_mode == MAP_MODE_MOVE){
+			if (event -> button == 1){
+				map_area_zoom_in(map_area);
+			}
+			if (event -> button == 3){
+				map_area_zoom_out(map_area);
+			}
 		}
 	}
 	if (event -> type == GDK_BUTTON_PRESS){
@@ -897,23 +907,18 @@ static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event
 		if(map_area -> mouse_mode == MAP_MODE_POI){
 			if (map_area -> point_drag_start.x == x && map_area -> point_drag_start.y == y){
 				if (map_area -> poi_active_id == 0){
+					printf("ACTION: add poi\n");
 					map_area_add_marker(map_area, lon, lat);
+					mouse_motion_poi(map_area, x, y);
 				}
 			}else{
 				if (map_area -> poi_active_id != 0){
-					printf("dragged poi\n");
+					printf("ACTION: dragged poi\n");
 				}
 			}
 		}
 	}
 }
-
-void mouse_motion_drag_map(MapArea * map_area, int x, int y);
-void mouse_motion_drag_poi(MapArea * map_area, int x, int y);
-void mouse_motion_poi(MapArea * map_area, int x, int y);
-void mouse_motion_selection(MapArea * map_area, int x, int y);
-void mouse_motion_selection_drag(MapArea * map_area, int x, int y);
-void mouse_motion_selection_create(MapArea * map_area, int x, int y);
 
 /****************************************************************************************************
 * when the mouse has been moved around on the map-widget
@@ -1022,8 +1027,10 @@ void mouse_motion_poi(MapArea * map_area, int x, int y)
 	int poi;
 	int new_active_id = 0;
 	int old_active_id = map_area -> poi_active_id;
-	for (poi = 0; poi < num_poi_sets; poi++){
-		PoiSet * poi_set = GOSM_POI_SET(poi_manager_get_poi_set(map_area -> poi_manager, poi));
+	for (poi = 0; poi <= num_poi_sets; poi++){
+		PoiSet * poi_set = poi < num_poi_sets
+			? GOSM_POI_SET(poi_manager_get_poi_set(map_area -> poi_manager, poi))
+			: map_area -> poi_manager -> remaining_pois;
 		if (poi_set_get_visible(poi_set)){
 			GArray * points = poi_set_get(poi_set, lon1, lat1, lon2, lat2);
 			if (points -> len > 0){
@@ -1412,8 +1419,10 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	double square_size = map_area_get_poi_square_size(map_area);
 	double square_size_half = square_size / 2;
 	/* iterate poi sets */
-	for (poi = 0; poi < num_poi_sets; poi++){
-		StyledPoiSet * poi_set = poi_manager_get_poi_set(map_area -> poi_manager, poi);
+	for (poi = 0; poi <= num_poi_sets; poi++){
+		StyledPoiSet * poi_set = poi < num_poi_sets
+			? poi_manager_get_poi_set(map_area -> poi_manager, poi)
+			: GOSM_STYLED_POI_SET(map_area -> poi_manager -> remaining_pois);
 		if (poi_set_get_visible(GOSM_POI_SET(poi_set))){
 			GArray * points = poi_set_get(
 				GOSM_POI_SET(poi_set), min_lon, min_lat, max_lon, max_lat);

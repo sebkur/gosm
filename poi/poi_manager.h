@@ -59,6 +59,7 @@ struct _PoiManager
 	GObject parent;
 
 	PoiSet * all_pois;
+	PoiSet * remaining_pois;
 	GTree * tree_ids;
 	TagTree * tag_tree;
 	TagTree * tag_tree_new;
@@ -69,6 +70,7 @@ struct _PoiManager
 	OsmReader * osm_reader;
 
 	int active_poi_source;
+	int next_node_id;
 
 	MapArea * map_area;
 };
@@ -127,5 +129,7 @@ LonLatTags * poi_manager_get_node(PoiManager * poi_manager, int node_id);
 void poi_manager_clear_pois(PoiManager * poi_manager);
 
 void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, double lat);
+
+void poi_manager_add_node(PoiManager * poi_manager, double lon, double lat);
 
 #endif /* _GOSM_POI_MANAGER_H */

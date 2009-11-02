@@ -234,6 +234,7 @@ static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 			LonLatTags * llt = malloc(sizeof(LonLatTags));
 			llt -> lon = lon;
 			llt -> lat = lat;
+			llt -> refs = 0;
 			llt -> tags = tags;
 			osm_reader -> current_node = llt;
 		}else{

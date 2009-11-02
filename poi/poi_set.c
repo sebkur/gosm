@@ -78,7 +78,7 @@ PoiSet * poi_set_new()
 void poi_set_constructor(PoiSet * poi_set)
 {
 	poi_set -> root = RTreeNewIndex();
-	poi_set -> points = g_tree_new_full(poi_set_compare_ints, NULL, destroy_just_free, destroy_just_free);
+	poi_set -> points = g_tree_new_full(poi_set_compare_ints, NULL, destroy_just_free, NULL);
 }
 
 /****************************************************************************************************
@@ -111,24 +111,21 @@ static void poi_set_init(PoiSet *poi_set)
 /****************************************************************************************************
 * add a point to the PoiSet
 ****************************************************************************************************/
-void poi_set_add(PoiSet * poi_set, double lon, double lat, int id)
+void poi_set_add(PoiSet * poi_set, LonLatTags * llt, int id)
 {
 	/* a node might be added, that is already present */
 	// TODO: this should be obsolete now
 	if (g_tree_lookup(poi_set -> points, &id) == NULL){
-		LonLatPair * llp = malloc(sizeof(LonLatPair));
-		llp -> lon = lon;
-		llp -> lat = lat;
 		/* insert into binary tree */
 		int * id_p = malloc(sizeof(int));
 		*id_p = id;
-		g_tree_insert(poi_set -> points, id_p, llp);
+		g_tree_insert(poi_set -> points, id_p, llt);
 		/* insert into rtree */
 		struct Rect * rect = malloc(sizeof(struct Rect));
-		rect -> boundary[0] = lon;
-		rect -> boundary[1] = lat;
-		rect -> boundary[2] = lon;
-		rect -> boundary[3] = lat;
+		rect -> boundary[0] = llt -> lon;
+		rect -> boundary[1] = llt -> lat;
+		rect -> boundary[2] = llt -> lon;
+		rect -> boundary[3] = llt -> lat;
 		RTreeInsertRect(rect, id, &(poi_set -> root), 0);
 		free(rect);
 	}
@@ -141,8 +138,8 @@ void poi_set_add(PoiSet * poi_set, double lon, double lat, int id)
 int poi_set_search_cb(int node_id, void* arg)
 {
 	PoiSet * poi_set = (PoiSet*) arg;
-	LonLatPair * llp = g_tree_lookup(poi_set -> points, &node_id);
-	LonLatPairId llpi = {llp -> lon, llp -> lat, node_id};
+	LonLatTags * llt = g_tree_lookup(poi_set -> points, &node_id);
+	LonLatPairId llpi = {llt -> lon, llt -> lat, node_id};
 	g_array_append_val(poi_set -> results, llpi);
 }
 
@@ -183,6 +180,12 @@ void poi_set_remove_point(PoiSet * poi_set, double lon, double lat, int node_id)
 		free(rect);
 		/* remove from binary tree */
 		g_tree_remove(poi_set -> points, &node_id);
+}
+
+void poi_set_remove_node(PoiSet * poi_set, int node_id)
+{
+	LonLatTags * llt = (LonLatTags*) g_tree_lookup(poi_set -> points, &node_id);
+	poi_set_remove_point(poi_set, llt -> lon, llt -> lat, node_id);
 }
 
 /****************************************************************************************************
@@ -232,8 +235,6 @@ void poi_set_reposition(PoiSet * poi_set, int node_id, double new_lon, double ne
 	LonLatTags * llt = (LonLatTags*) g_tree_lookup(poi_set -> points, &(node_id));
 	double old_lon = llt -> lon;
 	double old_lat = llt -> lat;
-	llt -> lon = new_lon;
-	llt -> lat = new_lat;
 	struct Rect * rect = malloc(sizeof(struct Rect));
 	rect -> boundary[0] = old_lon;
 	rect -> boundary[1] = old_lat;

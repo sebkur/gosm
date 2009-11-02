@@ -125,6 +125,7 @@ typedef struct LonLatPairData {
 typedef struct LonLatTags {
 	double lon;
 	double lat;
+	int refs;
 	GHashTable * tags;
 } LonLatTags;
 

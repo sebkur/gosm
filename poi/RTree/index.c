@@ -229,7 +229,7 @@ RTreeDeleteRect2(struct Rect *R, int Tid, struct Node *N, struct ListNode **Ee)
 	register int i;
 
 	assert(r && n && ee);
-	assert(tid >= 0);
+	//assert(tid >= 0);
 	assert(n->level >= 0);
 
 	if (n->level > 0)  // not a leaf node
@@ -291,7 +291,7 @@ int RTreeDeleteRect(struct Rect *R, int Tid, struct Node**Nn)
 
 	assert(r && nn);
 	assert(*nn);
-	assert(tid >= 0);
+	//assert(tid >= 0);
 
 	if (!RTreeDeleteRect2(r, tid, *nn, &reInsertList))
 	{
