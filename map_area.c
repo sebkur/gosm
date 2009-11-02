@@ -41,6 +41,7 @@
 #include "poi/api_control.h"
 
 #define MATCHES(a,b)	((a & b) == b)
+#define MOUSE_PRESSED(a) (MATCHES(a, GDK_BUTTON1_MASK))
 #define TILESIZE	256
 #define CACHE_SIZE	164
 
@@ -81,7 +82,8 @@ extern char * urls[];
 struct timeval t1, t2;
 
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event);
-static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event);
+static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event);
+static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event);
 static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event);
 static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event);
 static gboolean scroll_cb(MapArea *map_area, GdkEventScroll *event);
@@ -246,8 +248,8 @@ static void map_area_init(MapArea *map_area)
 	map_area -> path			= g_list_alloc();
 
 	g_signal_connect(G_OBJECT(map_area), "motion_notify_event",	G_CALLBACK(mouse_motion_cb),	NULL);
-	g_signal_connect(G_OBJECT(map_area), "button_press_event", 	G_CALLBACK(mouse_button_cb),	NULL);
-	g_signal_connect(G_OBJECT(map_area), "button_release_event",	G_CALLBACK(mouse_button_cb),	NULL);
+	g_signal_connect(G_OBJECT(map_area), "button_press_event", 	G_CALLBACK(mouse_button_press_cb),	NULL);
+	g_signal_connect(G_OBJECT(map_area), "button_release_event",	G_CALLBACK(mouse_button_release_cb),	NULL);
 	g_signal_connect(G_OBJECT(map_area), "key_press_event",		G_CALLBACK(key_press_cb),	NULL);
 	g_signal_connect(G_OBJECT(map_area), "scroll_event",		G_CALLBACK(scroll_cb),		NULL);
 
@@ -281,7 +283,7 @@ void map_area_set_mouse_mode(MapArea *map_area, MouseMode mouse_mode)
 	switch(mouse_mode){
 		case MAP_MODE_SELECT:	cursor = gdk_cursor_new(GDK_CROSS); break;
 		case MAP_MODE_PATH:	cursor = gdk_cursor_new(GDK_TARGET); break;
-		case MAP_MODE_POI:	cursor = gdk_cursor_new(GDK_TARGET); break;
+		case MAP_MODE_POI:	cursor = gdk_cursor_new(GDK_ARROW); break;
 		default: 		cursor = gdk_cursor_new(GDK_ARROW); break;
 	}
 	gdk_window_set_cursor(GTK_WIDGET(map_area)->window, cursor);
@@ -784,7 +786,6 @@ void map_area_path_clear(MapArea *map_area)
 
 /****************************************************************************************************
 * add a marker to the area
-* TODO: this has to be adjusted for use by poi-editing
 ****************************************************************************************************/
 void map_area_add_marker(MapArea *map_area, double lon, double lat)
 {
@@ -795,8 +796,8 @@ void map_area_add_marker(MapArea *map_area, double lon, double lat)
 	poi_set_add(map_area -> poi_set, lon, lat, (void*)id_name);
 	gtk_widget_queue_draw(GTK_WIDGET(map_area));*/
 	printf("TEST adding poi to %e %e\n", lon, lat);
-	ApiControl * api_control = api_control_new();
-	api_control_test(api_control, lon, lat);
+	//ApiControl * api_control = api_control_new();
+	//api_control_test(api_control, lon, lat);
 }
 
 /****************************************************************************************************
@@ -845,20 +846,18 @@ static gboolean tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
 	gdk_threads_leave();
 }
 
-
-
 /****************************************************************************************************
-* when the mouse has been clicked on the map-widget
+* when the mouse has been pressed on the map-widget
 ****************************************************************************************************/
-static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
+static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
 	gtk_widget_grab_focus(widget);
-	double lon = map_area_x_to_lon(map_area, (int) event -> x);
-	double lat = map_area_y_to_lat(map_area, (int) event -> y);
+	int x = (int) event -> x;
+	int y = (int) event -> y;
+	double lon = map_area_x_to_lon(map_area, x);
+	double lat = map_area_y_to_lat(map_area, y);
 	//printf("button %f %f\n", lon, lat);
-	map_area -> point_drag.x = (int) event -> x;
-	map_area -> point_drag.y = (int) event -> y;
 	if (event -> type == GDK_2BUTTON_PRESS){
 		if (event -> button == 1){
 			map_area_zoom_in(map_area);
@@ -867,9 +866,12 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 			map_area_zoom_out(map_area);
 		}
 	}
-	// TODO: put action_state (== gosm.c.CURSOR) somewhere else
 	if (event -> type == GDK_BUTTON_PRESS){
-		if (map_area -> mouse_mode == MAP_MODE_MOVE){
+		map_area -> point_drag.x = x;
+		map_area -> point_drag.y = y;
+		map_area -> point_drag_start.x = x;
+		map_area -> point_drag_start.y = y;
+		if (map_area -> mouse_mode == MAP_MODE_MOVE || map_area -> mouse_mode == MAP_MODE_POI){
 			if (map_area -> poi_active_id != 0){
 				poi_manager_print_node_information(map_area -> poi_manager, map_area -> poi_active_id);
 				LonLatTags * llt = poi_manager_get_node(map_area -> poi_manager, map_area -> poi_active_id);
@@ -877,205 +879,277 @@ static gboolean mouse_button_cb(GtkWidget *widget, GdkEventButton *event)
 			}
 		}else if (map_area -> mouse_mode == MAP_MODE_PATH){
 			path_add_point(map_area, lon, lat);
-		}else if(map_area -> mouse_mode == MAP_MODE_POI){
-			map_area_add_marker(map_area, lon, lat);
 		}
 	}
 }
 
 /****************************************************************************************************
+* when the mouse has been released on the map-widget
+****************************************************************************************************/
+static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event)
+{
+	MapArea *map_area = GOSM_MAP_AREA(widget);
+	int x = (int) event -> x;
+	int y = (int) event -> y;
+	double lon = map_area_x_to_lon(map_area, x);
+	double lat = map_area_y_to_lat(map_area, y);
+	if (event -> type == GDK_BUTTON_RELEASE){
+		if(map_area -> mouse_mode == MAP_MODE_POI){
+			if (map_area -> point_drag_start.x == x && map_area -> point_drag_start.y == y){
+				if (map_area -> poi_active_id == 0){
+					map_area_add_marker(map_area, lon, lat);
+				}
+			}else{
+				if (map_area -> poi_active_id != 0){
+					printf("dragged poi\n");
+				}
+			}
+		}
+	}
+}
+
+void mouse_motion_drag_map(MapArea * map_area, int x, int y);
+void mouse_motion_drag_poi(MapArea * map_area, int x, int y);
+void mouse_motion_poi(MapArea * map_area, int x, int y);
+void mouse_motion_selection(MapArea * map_area, int x, int y);
+void mouse_motion_selection_drag(MapArea * map_area, int x, int y);
+void mouse_motion_selection_create(MapArea * map_area, int x, int y);
+
+/****************************************************************************************************
 * when the mouse has been moved around on the map-widget
-* TODO: this function could be split up into multiple functions
 ****************************************************************************************************/
 static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
 	MapPosition *map_position = &(map_area -> map_position);
-	// NAVIGATION mode
-	if (map_area -> mouse_mode == MAP_MODE_MOVE){
-		if (MATCHES(event->state, GDK_BUTTON1_MASK)){
-			//printf("motion %d\n", event->state);
-			//printf("x: %d, y: %d\n", (int)event->x, (int)event->y);
-			int diff_x = ((int) event -> x) - map_area -> point_drag.x;
-			int diff_y = ((int) event -> y) - map_area -> point_drag.y;
-			map_area -> point_drag.x = (int) event -> x;
-			map_area -> point_drag.y = (int) event -> y;
-			//printf("motion %d %d\n", diff_x, diff_y);
-			map_position -> tile_offset_x -= diff_x;
-			map_position -> tile_offset_y -= diff_y;
-			while (map_position -> tile_offset_x >= TILESIZE){
-				map_position -> tile_offset_x -= TILESIZE;
-				map_position -> tile_left += 1;
-			}
-			while (map_position -> tile_offset_x < 0){
-				map_position -> tile_offset_x += TILESIZE;
-				map_position -> tile_left -= 1;
-			}
-			while (map_position -> tile_offset_y >= TILESIZE){
-				map_position -> tile_offset_y -= TILESIZE;
-				map_position -> tile_top += 1;
-			}
-			while (map_position -> tile_offset_y < 0){
-				map_position -> tile_offset_y += TILESIZE;
-				map_position -> tile_top -= 1;
-			}
-			//printf("offset now: %d\n", map_position -> tile_offset_x);
-			map_has_moved(map_area);
-			gtk_widget_queue_draw(widget);
+	int x = (int) event -> x;
+	int y = (int) event -> y;
+	switch(map_area -> mouse_mode){
+	case(MAP_MODE_MOVE):{
+		if (MOUSE_PRESSED(event->state)){
+			mouse_motion_drag_map(map_area, x, y);
 		}else{
-			// NORMAL mode + mouse not pressed
-			double lon = map_area_x_to_lon(map_area, (int) event -> x);
-			double lat = map_area_y_to_lat(map_area, (int) event -> y);
-			double squaresize = map_area_get_poi_square_size(map_area);
-			double lon1 = map_area_x_to_lon(map_area, (int) (event -> x - squaresize / 2));
-			double lat1 = map_area_y_to_lat(map_area, (int) (event -> y + squaresize / 2));
-			double lon2 = map_area_x_to_lon(map_area, (int) (event -> x + squaresize / 2));
-			double lat2 = map_area_y_to_lat(map_area, (int) (event -> y - squaresize / 2));
-			//printf("%f %f %f %f\n", lon1, lon2, lat1, lat2);
-			
-			int num_poi_sets = poi_manager_get_number_of_poi_sets(map_area -> poi_manager);
-			int poi;
-			int new_active_id = 0;
-			int old_active_id = map_area -> poi_active_id;
-			for (poi = 0; poi < num_poi_sets; poi++){
-				PoiSet * poi_set = GOSM_POI_SET(poi_manager_get_poi_set(map_area -> poi_manager, poi));
-				if (poi_set_get_visible(poi_set)){
-					GArray * points = poi_set_get(poi_set, lon1, lat1, lon2, lat2);
-					if (points -> len > 0){
-						new_active_id = g_array_index(points, LonLatPairId, 0).node_id;
-					}
-					g_array_free(points, TRUE);
-				}
-			}
-			map_area -> poi_active_id = new_active_id;
-			if (new_active_id != old_active_id){
-				map_area_repaint(map_area);		
-			}
-			//printf("%d %f\n", marker_count, event -> x);
+			mouse_motion_poi(map_area, x, y);
 		}
+		break;
 	}
-	// SELECTION mode
-	if (map_area -> mouse_mode == MAP_MODE_SELECT){
-		/* RESCALE */
-		Selection selection = map_area -> selection;
-		int s_width = selection.x2 - selection.x1;
-		int s_height = selection.y2 - selection.y1;
-		int w = s_width / PAD_FRACTION > MAX_PAD_SIZE ? MAX_PAD_SIZE : s_width / PAD_FRACTION;
-		int h = s_height / PAD_FRACTION > MAX_PAD_SIZE ? MAX_PAD_SIZE : s_height / PAD_FRACTION;
-		int x = (int)event->x;
-		int y = (int)event->y;
-		int mouseover = 0;
-		// if mouse is not pressed:
-		// check if pointer is over one of the pads
-		if (!MATCHES(event->state, GDK_BUTTON1_MASK)){
-			if (y >= selection.y1 && y <= selection.y1 + h && x >= selection.x1 && x <= selection.x1 + w){
-				mouseover = DIRECTION_TOP_LEFT;
-			}
-			if (y >= selection.y1 && y <= selection.y1 + h && x >= selection.x2 - w && x <= selection.x2){
-				mouseover = DIRECTION_TOP_RIGHT;
-			}
-			if (y >= selection.y2 - h && y <= selection.y2 && x >= selection.x1 && x <= selection.x1 + w){
-				mouseover = DIRECTION_DOWN_LEFT;
-			}
-			if (y >= selection.y2 - h && y <= selection.y2 && x >= selection.x2 - w && x <= selection.x2){
-				mouseover = DIRECTION_DOWN_RIGHT;
-			}
-			if (y >= selection.y1 + h && y <= selection.y2 - h){
-				if (x >= selection.x1 && x <= selection.x1 + w){
-					mouseover = DIRECTION_LEFT;
-				}
-				if (x <= selection.x2 && x >= selection.x2 - w){
-					mouseover = DIRECTION_RIGHT;
-				}
-			}
-			if (x >= selection.x1 + w && x <= selection.x2 - w){
-				if (y >= selection.y1 && y <= selection.y1 + h){
-					mouseover = DIRECTION_TOP;
-				}
-				if (y <= selection.y2 && y >= selection.y2 - h){
-					mouseover = DIRECTION_DOWN;
-				}
-			}
-			if (map_area -> selection_mouseover != mouseover){
-				map_area -> selection_mouseover = mouseover;
-				gtk_widget_queue_draw(widget);
-			}
+	case(MAP_MODE_SELECT):{
+		if (!MOUSE_PRESSED(event->state)){
+			// check if pointer is over one of the pads
+			mouse_motion_selection(map_area, x, y);
 		}
-		// if mouse is pressed:
-		// check how selection pad has been dragged
-		if (MATCHES(event->state, GDK_BUTTON1_MASK)){
-			int mo = map_area -> selection_mouseover;
-			if (mo == DIRECTION_LEFT || mo == DIRECTION_TOP_LEFT || mo == DIRECTION_DOWN_LEFT){
-				int diff = x - map_area -> point_drag.x;
-				if (selection.x1 + diff < selection.x2){
-					map_area -> selection.x1 += diff;
-					map_area -> selection.lon1 = map_area_x_to_lon(map_area, map_area -> selection.x1),
-					map_area -> point_drag.x = x;
-					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
-					gtk_widget_queue_draw(widget);
-				}
-			}
-			if (mo == DIRECTION_RIGHT || mo == DIRECTION_TOP_RIGHT || mo == DIRECTION_DOWN_RIGHT){
-				int diff = x - map_area -> point_drag.x;
-				if (selection.x2 + diff > selection.x1){
-					map_area -> selection.x2 += diff;
-					map_area -> selection.lon2 = map_area_x_to_lon(map_area, map_area -> selection.x2),
-					map_area -> point_drag.x = x;
-					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
-					gtk_widget_queue_draw(widget);
-				}
-			}
-			if (mo == DIRECTION_TOP || mo == DIRECTION_TOP_LEFT || mo == DIRECTION_TOP_RIGHT){
-				int diff = y - map_area -> point_drag.y;
-				if (selection.y1 + diff < selection.y2){
-					map_area -> selection.y1 += diff;
-					map_area -> selection.lat1 = map_area_y_to_lat(map_area, map_area -> selection.y1),
-					map_area -> point_drag.y = y;
-					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
-					gtk_widget_queue_draw(widget);
-				}
-			}
-			if (mo == DIRECTION_DOWN || mo == DIRECTION_DOWN_LEFT || mo == DIRECTION_DOWN_RIGHT){
-				int diff = y - map_area -> point_drag.y;
-				if (selection.y2 + diff > selection.y1){
-					map_area -> selection.y2 += diff;
-					map_area -> selection.lat2 = map_area_y_to_lat(map_area, map_area -> selection.y2),
-					map_area -> point_drag.y = y;
-					g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
-					gtk_widget_queue_draw(widget);
-				}
-			}
-		}
-		/* RESCALE end */
-		/* SELECT */
-		// if mouse is not over a pad and mouse is pressed:
-		// set selection to:
-		// (last press position) to (current pointer position)
-		if (map_area -> selection_mouseover == 0 && MATCHES(event->state, GDK_BUTTON1_MASK)){
-			if (map_area -> point_drag.x > (int) event -> x){	
-				map_area -> selection.x1 = (int) event -> x;
-				map_area -> selection.x2 = map_area -> point_drag.x;
-			}else{	
-				map_area -> selection.x2 = (int) event -> x;
-				map_area -> selection.x1 = map_area -> point_drag.x;
-			}
-			if (map_area -> point_drag.y > (int) event -> y){
-				map_area -> selection.y1 = (int) event -> y;
-				map_area -> selection.y2 = map_area -> point_drag.y;
+		if (MOUSE_PRESSED(event->state)){
+			if (map_area -> selection_mouseover == DIRECTION_NONE){
+				// set selection to: {last press pos, current pointer pos}
+				mouse_motion_selection_create(map_area, x, y);
 			}else{
-				map_area -> selection.y2 = (int) event -> y;
-				map_area -> selection.y1 = map_area -> point_drag.y;
+				// check how selection pad has been dragged
+				mouse_motion_selection_drag(map_area, x, y);
 			}
-			map_area -> selection.lon1 = map_area_x_to_lon(map_area, map_area -> selection.x1),
-			map_area -> selection.lon2 = map_area_x_to_lon(map_area, map_area -> selection.x2),
-			map_area -> selection.lat1 = map_area_y_to_lat(map_area, map_area -> selection.y1),
-			map_area -> selection.lat2 = map_area_y_to_lat(map_area, map_area -> selection.y2);
-
-			g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
-			gtk_widget_queue_draw(widget);
 		}
-		/* SELECT end */
+		break;
 	}
+	case(MAP_MODE_POI):{
+		if (MOUSE_PRESSED(event -> state)){
+			if (map_area -> poi_active_id == 0){
+				mouse_motion_drag_map(map_area, x, y);
+			}else{
+				mouse_motion_drag_poi(map_area, x, y);
+			}
+		}else{
+			mouse_motion_poi(map_area, x, y);
+		}
+		break;
+	}
+	}
+}
+
+void mouse_motion_drag_map(MapArea * map_area, int x, int y)
+{
+	MapPosition *map_position = &(map_area -> map_position);
+	//printf("x: %d, y: %d\n", x, y);
+	int diff_x = x - map_area -> point_drag.x;
+	int diff_y = y - map_area -> point_drag.y;
+	map_area -> point_drag.x = x;
+	map_area -> point_drag.y = y;
+	//printf("motion %d %d\n", diff_x, diff_y);
+	map_position -> tile_offset_x -= diff_x;
+	map_position -> tile_offset_y -= diff_y;
+	while (map_position -> tile_offset_x >= TILESIZE){
+		map_position -> tile_offset_x -= TILESIZE;
+		map_position -> tile_left += 1;
+	}
+	while (map_position -> tile_offset_x < 0){
+		map_position -> tile_offset_x += TILESIZE;
+		map_position -> tile_left -= 1;
+	}
+	while (map_position -> tile_offset_y >= TILESIZE){
+		map_position -> tile_offset_y -= TILESIZE;
+		map_position -> tile_top += 1;
+	}
+	while (map_position -> tile_offset_y < 0){
+		map_position -> tile_offset_y += TILESIZE;
+		map_position -> tile_top -= 1;
+	}
+	//printf("offset now: %d\n", map_position -> tile_offset_x);
+	map_has_moved(map_area);
+	gtk_widget_queue_draw(GTK_WIDGET(map_area));
+}
+
+void mouse_motion_drag_poi(MapArea * map_area, int x, int y)
+{
+	int node_id = map_area -> poi_active_id;
+	if (map_area -> poi_active_id != 0){
+		double new_lon = map_area_x_to_lon(map_area, x);
+		double new_lat = map_area_y_to_lat(map_area, y);
+		poi_manager_reposition(map_area -> poi_manager, node_id, new_lon, new_lat);
+		gtk_widget_queue_draw(GTK_WIDGET(map_area));
+	}
+}
+
+void mouse_motion_poi(MapArea * map_area, int x, int y)
+{
+	double lon = map_area_x_to_lon(map_area, x);
+	double lat = map_area_y_to_lat(map_area, y);
+	double squaresize = map_area_get_poi_square_size(map_area);
+	double lon1 = map_area_x_to_lon(map_area, (int) (x - squaresize / 2));
+	double lat1 = map_area_y_to_lat(map_area, (int) (y + squaresize / 2));
+	double lon2 = map_area_x_to_lon(map_area, (int) (x + squaresize / 2));
+	double lat2 = map_area_y_to_lat(map_area, (int) (y - squaresize / 2));
+	//printf("%f %f %f %f\n", lon1, lon2, lat1, lat2);
+	
+	int num_poi_sets = poi_manager_get_number_of_poi_sets(map_area -> poi_manager);
+	int poi;
+	int new_active_id = 0;
+	int old_active_id = map_area -> poi_active_id;
+	for (poi = 0; poi < num_poi_sets; poi++){
+		PoiSet * poi_set = GOSM_POI_SET(poi_manager_get_poi_set(map_area -> poi_manager, poi));
+		if (poi_set_get_visible(poi_set)){
+			GArray * points = poi_set_get(poi_set, lon1, lat1, lon2, lat2);
+			if (points -> len > 0){
+				new_active_id = g_array_index(points, LonLatPairId, 0).node_id;
+			}
+			g_array_free(points, TRUE);
+		}
+	}
+	map_area -> poi_active_id = new_active_id;
+	if (new_active_id != old_active_id){
+		map_area_repaint(map_area);		
+	}
+	//printf("%d %f\n", marker_count, event -> x);
+}
+
+void mouse_motion_selection(MapArea * map_area, int x, int y)
+{
+	int mouseover = DIRECTION_NONE;
+	Selection selection = map_area -> selection;
+	int s_width = selection.x2 - selection.x1;
+	int s_height = selection.y2 - selection.y1;
+	int w = s_width / PAD_FRACTION > MAX_PAD_SIZE ? MAX_PAD_SIZE : s_width / PAD_FRACTION;
+	int h = s_height / PAD_FRACTION > MAX_PAD_SIZE ? MAX_PAD_SIZE : s_height / PAD_FRACTION;
+	if (y >= selection.y1 && y <= selection.y1 + h && x >= selection.x1 && x <= selection.x1 + w){
+		mouseover = DIRECTION_TOP_LEFT;
+	}
+	if (y >= selection.y1 && y <= selection.y1 + h && x >= selection.x2 - w && x <= selection.x2){
+		mouseover = DIRECTION_TOP_RIGHT;
+	}
+	if (y >= selection.y2 - h && y <= selection.y2 && x >= selection.x1 && x <= selection.x1 + w){
+		mouseover = DIRECTION_DOWN_LEFT;
+	}
+	if (y >= selection.y2 - h && y <= selection.y2 && x >= selection.x2 - w && x <= selection.x2){
+		mouseover = DIRECTION_DOWN_RIGHT;
+	}
+	if (y >= selection.y1 + h && y <= selection.y2 - h){
+		if (x >= selection.x1 && x <= selection.x1 + w){
+			mouseover = DIRECTION_LEFT;
+		}
+		if (x <= selection.x2 && x >= selection.x2 - w){
+			mouseover = DIRECTION_RIGHT;
+		}
+	}
+	if (x >= selection.x1 + w && x <= selection.x2 - w){
+		if (y >= selection.y1 && y <= selection.y1 + h){
+			mouseover = DIRECTION_TOP;
+		}
+		if (y <= selection.y2 && y >= selection.y2 - h){
+			mouseover = DIRECTION_DOWN;
+		}
+	}
+	if (map_area -> selection_mouseover != mouseover){
+		map_area -> selection_mouseover = mouseover;
+		gtk_widget_queue_draw(GTK_WIDGET(map_area));
+	}
+}
+
+void mouse_motion_selection_drag(MapArea * map_area, int x, int y)
+{
+	Selection selection = map_area -> selection;
+	int mo = map_area -> selection_mouseover;
+	if (mo == DIRECTION_LEFT || mo == DIRECTION_TOP_LEFT || mo == DIRECTION_DOWN_LEFT){
+		int diff = x - map_area -> point_drag.x;
+		if (selection.x1 + diff < selection.x2){
+			map_area -> selection.x1 += diff;
+			map_area -> selection.lon1 = map_area_x_to_lon(map_area, map_area -> selection.x1),
+			map_area -> point_drag.x = x;
+			g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
+			gtk_widget_queue_draw(GTK_WIDGET(map_area));
+		}
+	}
+	if (mo == DIRECTION_RIGHT || mo == DIRECTION_TOP_RIGHT || mo == DIRECTION_DOWN_RIGHT){
+		int diff = x - map_area -> point_drag.x;
+		if (selection.x2 + diff > selection.x1){
+			map_area -> selection.x2 += diff;
+			map_area -> selection.lon2 = map_area_x_to_lon(map_area, map_area -> selection.x2),
+			map_area -> point_drag.x = x;
+			g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
+			gtk_widget_queue_draw(GTK_WIDGET(map_area));
+		}
+	}
+	if (mo == DIRECTION_TOP || mo == DIRECTION_TOP_LEFT || mo == DIRECTION_TOP_RIGHT){
+		int diff = y - map_area -> point_drag.y;
+		if (selection.y1 + diff < selection.y2){
+			map_area -> selection.y1 += diff;
+			map_area -> selection.lat1 = map_area_y_to_lat(map_area, map_area -> selection.y1),
+			map_area -> point_drag.y = y;
+			g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
+			gtk_widget_queue_draw(GTK_WIDGET(map_area));
+		}
+	}
+	if (mo == DIRECTION_DOWN || mo == DIRECTION_DOWN_LEFT || mo == DIRECTION_DOWN_RIGHT){
+		int diff = y - map_area -> point_drag.y;
+		if (selection.y2 + diff > selection.y1){
+			map_area -> selection.y2 += diff;
+			map_area -> selection.lat2 = map_area_y_to_lat(map_area, map_area -> selection.y2),
+			map_area -> point_drag.y = y;
+			g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
+			gtk_widget_queue_draw(GTK_WIDGET(map_area));
+		}
+	}
+}
+
+void mouse_motion_selection_create(MapArea * map_area, int x, int y)
+{
+	if (map_area -> point_drag.x > x){	
+		map_area -> selection.x1 = x;
+		map_area -> selection.x2 = map_area -> point_drag.x;
+	}else{	
+		map_area -> selection.x2 = x;
+		map_area -> selection.x1 = map_area -> point_drag.x;
+	}
+	if (map_area -> point_drag.y > y){
+		map_area -> selection.y1 = y;
+		map_area -> selection.y2 = map_area -> point_drag.y;
+	}else{
+		map_area -> selection.y2 = y;
+		map_area -> selection.y1 = map_area -> point_drag.y;
+	}
+	map_area -> selection.lon1 = map_area_x_to_lon(map_area, map_area -> selection.x1),
+	map_area -> selection.lon2 = map_area_x_to_lon(map_area, map_area -> selection.x2),
+	map_area -> selection.lat1 = map_area_y_to_lat(map_area, map_area -> selection.y1),
+	map_area -> selection.lat2 = map_area_y_to_lat(map_area, map_area -> selection.y2);
+
+	g_signal_emit (GTK_WIDGET(map_area), map_area_signals[MAP_SELECTION_CHANGED], 0);
+	gtk_widget_queue_draw(GTK_WIDGET(map_area));
 }
 
 /****************************************************************************************************

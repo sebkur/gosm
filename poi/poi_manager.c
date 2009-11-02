@@ -917,3 +917,22 @@ LonLatTags * poi_manager_get_node(PoiManager * poi_manager, int node_id)
 	LonLatTags * llt = (LonLatTags*) g_tree_lookup(poi_manager -> tree_ids, &node_id);
 	return llt;
 }
+
+/****************************************************************************************************
+* update the position of a node
+****************************************************************************************************/
+void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, double lat)
+{
+	LonLatTags * llt = (LonLatTags*) g_tree_lookup(poi_manager -> tree_ids, &(node_id));
+	llt -> lon = lon;
+	llt -> lat = lat;
+	poi_set_reposition(poi_manager -> all_pois, node_id, lon, lat);
+	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
+	int poi;
+	for (poi = 0; poi < num_poi_sets; poi++){
+		PoiSet * poi_set = GOSM_POI_SET(poi_manager_get_poi_set(poi_manager, poi));
+		if (poi_set_contains_point(poi_set, node_id)){
+			poi_set_reposition(poi_set, node_id, lon, lat);
+		}
+	}
+}

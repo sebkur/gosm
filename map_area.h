@@ -41,6 +41,7 @@ typedef struct _MapAreaClass	MapAreaClass;
 #define GOSM_IS_MAP_AREA_CLASS(obj)	(G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_MAP_AREA))
 #define GOSM_MAP_AREA_GET_CLASS		(G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_MAP_AREA, MapAreaClass))
 
+#define DIRECTION_NONE		0
 #define DIRECTION_TOP_LEFT      1
 #define DIRECTION_TOP           2
 #define DIRECTION_TOP_RIGHT     3
@@ -83,6 +84,7 @@ struct _MapArea
 	gboolean need_repaint;
 	gboolean map_moved;
 	Point point_drag;
+	Point point_drag_start;
 
 	Tileset tileset;
 	TileManager * tile_manager[TILESET_LAST];

@@ -221,3 +221,30 @@ gboolean poi_set_get_visible(PoiSet * poi_set)
 {
 	return poi_set -> visible;
 }
+
+gboolean poi_set_contains_point(PoiSet * poi_set, int node_id)
+{
+	return g_tree_lookup(poi_set -> points, &node_id) != NULL;
+}
+
+void poi_set_reposition(PoiSet * poi_set, int node_id, double new_lon, double new_lat)
+{
+	LonLatTags * llt = (LonLatTags*) g_tree_lookup(poi_set -> points, &(node_id));
+	double old_lon = llt -> lon;
+	double old_lat = llt -> lat;
+	llt -> lon = new_lon;
+	llt -> lat = new_lat;
+	struct Rect * rect = malloc(sizeof(struct Rect));
+	rect -> boundary[0] = old_lon;
+	rect -> boundary[1] = old_lat;
+	rect -> boundary[2] = old_lon;
+	rect -> boundary[3] = old_lat;
+	RTreeDeleteRect(rect, node_id, &(poi_set -> root));
+	rect -> boundary[0] = new_lon;
+	rect -> boundary[1] = new_lat;
+	rect -> boundary[2] = new_lon;
+	rect -> boundary[3] = new_lat;
+	RTreeInsertRect(rect, node_id, &(poi_set -> root), 0);
+	free(rect);
+}
+
