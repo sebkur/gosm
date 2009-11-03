@@ -1026,3 +1026,20 @@ void poi_manager_add_node(PoiManager * poi_manager, double lon, double lat)
 	poi_set_add(poi_manager -> ods_edit -> all_pois, llt, node_id);
 	poi_set_add(poi_manager -> ods_edit -> remaining_pois, llt, node_id);
 }
+
+void poi_manager_remove_node(PoiManager * poi_manager, int node_id)
+{
+	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
+	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
+	int poi;
+	for (poi = 0; poi <= num_poi_sets; poi++){
+		PoiSet * poi_set = poi < num_poi_sets
+			? GOSM_POI_SET(poi_manager_get_poi_set_edit(poi_manager, poi))
+			: GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois);
+		if (poi_set_contains_point(poi_set, node_id)){
+			poi_set_remove_point(poi_set, node_id, llt -> lon, llt -> lat);
+		}
+		g_tree_remove(poi_manager -> ods_edit -> tree_ids, &node_id);
+		// TODO: remove from tag_tree (it does actually not matter up to now)
+	}
+}

@@ -136,6 +136,7 @@ void poi_manager_clear_pois(PoiManager * poi_manager);
 void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, double lat);
 
 void poi_manager_add_node(PoiManager * poi_manager, double lon, double lat);
+void poi_manager_remove_node(PoiManager * poi_manager, int node_id);
 
 GTree * poi_manager_tree_intersection(GTree * tree1, GTree * tree2);
 

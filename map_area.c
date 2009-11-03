@@ -100,6 +100,7 @@ void map_has_moved(MapArea *map_area);
 void map_area_adjust_map_position_values(MapArea *map_area);
 void map_area_adjust_tile_count_information(MapArea *map_area);
 double map_area_get_poi_square_size(MapArea *map_area);
+void map_area_remove_selected_poi(MapArea *map_area);
 
 GtkWidget * map_area_new()
 {
@@ -271,7 +272,7 @@ static void map_area_init(MapArea *map_area)
 		g_signal_connect(G_OBJECT(map_area -> tile_manager[i]), "tile_loaded_from_disk", G_CALLBACK(tile_loaded_cb), map_area);
 	}
 	map_area -> poi_active_id = 0;
-	map_area -> next_marker_id = 1;
+	map_area -> poi_selected_id = 0;
 }
 
 /****************************************************************************************************
@@ -796,16 +797,21 @@ void map_area_path_clear(MapArea *map_area)
 ****************************************************************************************************/
 void map_area_add_marker(MapArea *map_area, double lon, double lat)
 {
-	/*IdAndName * id_name = malloc(sizeof(IdAndName));
-	id_name -> id = map_area -> next_marker_id ++;
-	id_name -> name = malloc(sizeof(char));
-	strcpy(id_name -> name, "");
-	poi_set_add(map_area -> poi_set, lon, lat, (void*)id_name);
-	gtk_widget_queue_draw(GTK_WIDGET(map_area));*/
 	poi_manager_add_node(map_area -> poi_manager, lon, lat);
 	map_area_repaint(map_area);
 	//ApiControl * api_control = api_control_new();
 	//api_control_test(api_control, lon, lat);
+}
+
+void map_area_remove_selected_poi(MapArea *map_area)
+{
+	printf("ACTION: remove poi\n");
+	poi_manager_remove_node(map_area -> poi_manager, map_area -> poi_selected_id);
+	if (map_area -> poi_active_id == map_area -> poi_selected_id){
+		map_area -> poi_active_id = 0;
+	}
+	map_area -> poi_selected_id = 0;
+	map_area_repaint(map_area);
 }
 
 /****************************************************************************************************
@@ -827,6 +833,12 @@ static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event)
 		case 65364: map_area_move(map_area, DIRECTION_DOWN); break;
 		case 65365: map_area_zoom_in(map_area); break;
 		case 65366: map_area_zoom_out(map_area); break;
+		case 65535: {
+			if (!map_area -> mouse_button_pressed && map_area -> mouse_mode == MAP_MODE_POI){
+				map_area_remove_selected_poi(map_area);
+			}
+			break;
+		}
 	}
 	return FALSE;
 }
@@ -860,6 +872,7 @@ static gboolean tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
 static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
+	map_area -> mouse_button_pressed = TRUE;
 	gtk_widget_grab_focus(widget);
 	int x = (int) event -> x;
 	int y = (int) event -> y;
@@ -877,18 +890,32 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 		}
 	}
 	if (event -> type == GDK_BUTTON_PRESS){
-		map_area -> point_drag.x = x;
-		map_area -> point_drag.y = y;
-		map_area -> point_drag_start.x = x;
-		map_area -> point_drag_start.y = y;
-		if (map_area -> mouse_mode == MAP_MODE_MOVE || map_area -> mouse_mode == MAP_MODE_POI){
-			if (map_area -> poi_active_id != 0){
-				poi_manager_print_node_information(map_area -> poi_manager, map_area -> poi_active_id);
-				LonLatTags * llt = poi_manager_get_node(map_area -> poi_manager, map_area -> poi_active_id);
-				g_signal_emit (map_area, map_area_signals[MAP_NODE_SELECTED], 0, (gpointer)llt);
+		if (event -> button == 1){
+			map_area -> point_drag.x = x;
+			map_area -> point_drag.y = y;
+			map_area -> point_drag_start.x = x;
+			map_area -> point_drag_start.y = y;
+			if (map_area -> mouse_mode == MAP_MODE_MOVE || map_area -> mouse_mode == MAP_MODE_POI){
+				if (map_area -> poi_active_id != 0){
+					poi_manager_print_node_information(
+						map_area -> poi_manager, map_area -> poi_active_id);
+					LonLatTags * llt = poi_manager_get_node(
+						map_area -> poi_manager, map_area -> poi_active_id);
+					g_signal_emit (map_area, map_area_signals[MAP_NODE_SELECTED], 0, (gpointer)llt);
+					if (map_area -> poi_selected_id != map_area -> poi_active_id){
+						map_area -> poi_selected_id = map_area -> poi_active_id;
+						map_area_repaint(map_area);
+					}
+				}
+			}else if (map_area -> mouse_mode == MAP_MODE_PATH){
+				path_add_point(map_area, lon, lat);
 			}
-		}else if (map_area -> mouse_mode == MAP_MODE_PATH){
-			path_add_point(map_area, lon, lat);
+		}
+		if (event -> button == 3){
+			if (map_area -> poi_selected_id != 0){
+				map_area -> poi_selected_id = 0;
+				map_area_repaint(map_area);
+			}
 		}
 	}
 }
@@ -899,6 +926,7 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
+	map_area -> mouse_button_pressed = FALSE;
 	int x = (int) event -> x;
 	int y = (int) event -> y;
 	double lon = map_area_x_to_lon(map_area, x);
@@ -915,6 +943,12 @@ static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event
 				if (map_area -> poi_active_id != 0){
 					printf("ACTION: dragged poi\n");
 				}
+			}
+		}
+		if (map_area -> point_drag_start.x == x && map_area -> point_drag_start.y == y){
+			if (map_area -> poi_selected_id != map_area -> poi_active_id){
+				map_area -> poi_selected_id = map_area -> poi_active_id;
+				map_area_repaint(map_area);
 			}
 		}
 	}
@@ -1409,11 +1443,11 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	map_area_get_visible_area(map_area, &min_lon, &min_lat, &max_lon, &max_lat);
 	int num_poi_sets = poi_manager_get_number_of_poi_sets(map_area -> poi_manager);
 	int poi;
-	int active_x, active_y;
+	int active_x, active_y, selected_x, selected_y;
 	double active_r, active_g, active_b, active_a;
-	int n_active = -1;
-	int p_active = -1;
-	//IdAndName * id_name_active;
+	double selected_r, selected_g, selected_b, selected_a;
+	gboolean active_visible = FALSE;
+	gboolean selected_visible = FALSE;
 	
 	/* adjust visible size */
 	double square_size = map_area_get_poi_square_size(map_area);
@@ -1431,31 +1465,38 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(
 				poi_set -> r, poi_set -> g, poi_set -> b, poi_set -> a);
 			cairo_set_source(cr_marker, pat_dots);
-			/* n_active is the one, where mouse is over */
 			int p;
-			//printf("%d\n", map_area -> poi_active_id);
 			for (p = 0; p < points -> len; p++){
 				LonLatPairId * llpi = &g_array_index(points, LonLatPairId, p);
 				int x = map_area_lon_to_area_x(map_area, llpi -> lon);
 				int y = map_area_lat_to_area_y(map_area, llpi -> lat);
 				cairo_move_to(cr_marker, x, y);
-				if (llpi -> node_id != map_area -> poi_active_id){
+				if (llpi -> node_id != map_area -> poi_active_id
+					&& llpi -> node_id != map_area -> poi_selected_id){
 					cairo_rectangle(cr_marker, x-square_size_half, y-square_size_half, square_size, square_size); 
 					//cairo_arc(cr_marker, x, y, 3, 0.0, 2 * 3.1415927);
 					//cairo_set_source_surface(cr_marker, map_area -> icon_marker, x - 12, y - 12);
 					//cairo_rectangle(cr_marker, x-12, y-12, 24, 24);
 					//cairo_paint(cr_marker);
-				}else{
-					n_active = p;
-					p_active = poi;
-					//id_name_active = (IdAndName*) points[p].data;
-					map_area -> poi_active_id = llpi -> node_id;
+				}
+				if(llpi -> node_id == map_area -> poi_active_id){
+					active_visible = TRUE;
+					//map_area -> poi_active_id = llpi -> node_id;
 					active_x = x;
 					active_y = y;
 					active_r = poi_set -> r;
 					active_g = poi_set -> g;
 					active_b = poi_set -> b;
 					active_a = poi_set -> a;
+				}
+				if(llpi -> node_id == map_area -> poi_selected_id){
+					selected_visible = TRUE;
+					selected_x = x;
+					selected_y = y;
+					selected_r = poi_set -> r;
+					selected_g = poi_set -> g;
+					selected_b = poi_set -> b;
+					selected_a = poi_set -> a;
 				}
 			}
 			cairo_fill(cr_marker);
@@ -1465,7 +1506,21 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 			cairo_destroy(cr_marker);
 		}
 	}
-	if (n_active >= 0){
+	if (selected_visible){
+		LonLatTags * llt = (LonLatTags*) g_tree_lookup(
+			map_area -> poi_manager -> ods_edit -> tree_ids, &(map_area -> poi_selected_id));
+		cairo_t * cr_marker = gdk_cairo_create(widget->window);
+		cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(selected_r, selected_g, selected_b, selected_a);
+		cairo_set_source(cr_marker, pat_dots);
+		int x = selected_x;
+		int y = selected_y;
+		cairo_move_to(cr_marker, x, y);
+		cairo_rectangle(cr_marker, x-square_size, y-square_size, square_size * 2, square_size * 2);
+		cairo_fill(cr_marker);
+		cairo_pattern_destroy(pat_dots);
+		cairo_destroy(cr_marker);
+	}
+	if (active_visible){
 		LonLatTags * llt = (LonLatTags*) g_tree_lookup(
 			map_area -> poi_manager -> ods_edit -> tree_ids, &(map_area -> poi_active_id));
 		char * name = g_hash_table_lookup(llt -> tags, "name");
@@ -1475,7 +1530,6 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		cairo_t * cr_marker = gdk_cairo_create(widget->window);
 		cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(active_r, active_g, active_b, active_a);
 		cairo_set_source(cr_marker, pat_dots);
-		int p = n_active;
 		int x = active_x;
 		int y = active_y;
 		cairo_move_to(cr_marker, x, y);

@@ -169,14 +169,14 @@ void poi_set_clear_area(PoiSet * poi_set, double min_lon, double min_lat, double
 /****************************************************************************************************
 * remove a single point
 ****************************************************************************************************/
-void poi_set_remove_point(PoiSet * poi_set, double lon, double lat, int node_id)
+void poi_set_remove_point(PoiSet * poi_set, int node_id, double lon, double lat)
 {
 		struct Rect * rect = malloc(sizeof(struct Rect));
 		rect -> boundary[0] = lon;
 		rect -> boundary[1] = lat;
 		rect -> boundary[2] = lon;
 		rect -> boundary[3] = lat;
-		RTreeDeleteRect(rect, node_id, &(poi_set -> root));
+		int del = RTreeDeleteRect(rect, node_id, &(poi_set -> root));
 		free(rect);
 		/* remove from binary tree */
 		g_tree_remove(poi_set -> points, &node_id);

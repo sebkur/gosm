@@ -83,6 +83,7 @@ struct _MapArea
 
 	gboolean need_repaint;
 	gboolean map_moved;
+	gboolean mouse_button_pressed;
 	Point point_drag;
 	Point point_drag_start;
 
@@ -97,8 +98,8 @@ struct _MapArea
 	ColorQuadriple color_atlas_lines;
 
 	PoiManager * poi_manager;
-	int next_marker_id;
 	int poi_active_id;
+	int poi_selected_id;
 	cairo_surface_t * icon_marker;
 };
 
