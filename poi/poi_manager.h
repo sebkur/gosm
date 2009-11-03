@@ -39,6 +39,7 @@ typedef struct _PoiManagerClass   PoiManagerClass;
 #include "../map_area.h"
 #include "../map_types.h"
 #include "tag_tree.h"
+#include "osm_data_set.h"
 
 #define GOSM_TYPE_POI_MANAGER           (poi_manager_get_type ())
 #define GOSM_POI_MANAGER(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_POI_MANAGER, PoiManager))
@@ -58,14 +59,17 @@ struct _PoiManager
 {
 	GObject parent;
 
-	PoiSet * all_pois;
-	PoiSet * remaining_pois;
-	GTree * tree_ids;
-	TagTree * tag_tree;
+//	PoiSet * all_pois;
+//	PoiSet * remaining_pois;
+//	TagTree * tag_tree;
+//	GTree * tree_ids;
+//	GArray * poi_sets;
+	OsmDataSet * ods_base;
+	OsmDataSet * ods_edit;
+
 	TagTree * tag_tree_new;
 	TagTree * tag_tree_insertion;
 	BoundingBox bbox_api_query;
-	GArray * poi_sets;
 	GArray * poi_sources;
 	OsmReader * osm_reader;
 
@@ -105,6 +109,7 @@ void poi_manager_toggle_poi_set(PoiManager * poi_manager, int index);
 
 int poi_manager_get_number_of_poi_sets(PoiManager * poi_manager);
 StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index);
+StyledPoiSet * poi_manager_get_poi_set_edit(PoiManager * poi_manager, int index);
 
 void poi_manager_set_poi_set_colour(PoiManager * poi_manager, int index, double r, double g, double b, double a);
 
@@ -131,5 +136,7 @@ void poi_manager_clear_pois(PoiManager * poi_manager);
 void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, double lat);
 
 void poi_manager_add_node(PoiManager * poi_manager, double lon, double lat);
+
+GTree * poi_manager_tree_intersection(GTree * tree1, GTree * tree2);
 
 #endif /* _GOSM_POI_MANAGER_H */

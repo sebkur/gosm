@@ -81,4 +81,7 @@ GSequence * tag_tree_get_nodes(
 void tag_tree_destroy(
 	TagTree * tag_tree);
 
+TagTree * tag_tree_duplicate_tree(
+	TagTree * tag_tree_copy);
+
 #endif /* _TAG_TREE_H_ */

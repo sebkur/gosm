@@ -1029,8 +1029,8 @@ void mouse_motion_poi(MapArea * map_area, int x, int y)
 	int old_active_id = map_area -> poi_active_id;
 	for (poi = 0; poi <= num_poi_sets; poi++){
 		PoiSet * poi_set = poi < num_poi_sets
-			? GOSM_POI_SET(poi_manager_get_poi_set(map_area -> poi_manager, poi))
-			: map_area -> poi_manager -> remaining_pois;
+			? GOSM_POI_SET(poi_manager_get_poi_set_edit(map_area -> poi_manager, poi))
+			: map_area -> poi_manager -> ods_edit -> remaining_pois;
 		if (poi_set_get_visible(poi_set)){
 			GArray * points = poi_set_get(poi_set, lon1, lat1, lon2, lat2);
 			if (points -> len > 0){
@@ -1421,8 +1421,8 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	/* iterate poi sets */
 	for (poi = 0; poi <= num_poi_sets; poi++){
 		StyledPoiSet * poi_set = poi < num_poi_sets
-			? poi_manager_get_poi_set(map_area -> poi_manager, poi)
-			: GOSM_STYLED_POI_SET(map_area -> poi_manager -> remaining_pois);
+			? poi_manager_get_poi_set_edit(map_area -> poi_manager, poi)
+			: GOSM_STYLED_POI_SET(map_area -> poi_manager -> ods_edit -> remaining_pois);
 		if (poi_set_get_visible(GOSM_POI_SET(poi_set))){
 			GArray * points = poi_set_get(
 				GOSM_POI_SET(poi_set), min_lon, min_lat, max_lon, max_lat);
@@ -1466,7 +1466,8 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		}
 	}
 	if (n_active >= 0){
-		LonLatTags * llt = (LonLatTags*) g_tree_lookup(map_area -> poi_manager -> tree_ids, &(map_area -> poi_active_id));
+		LonLatTags * llt = (LonLatTags*) g_tree_lookup(
+			map_area -> poi_manager -> ods_edit -> tree_ids, &(map_area -> poi_active_id));
 		char * name = g_hash_table_lookup(llt -> tags, "name");
 		if (name == NULL){
 			name = "";

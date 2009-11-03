@@ -61,6 +61,7 @@ poi/tag_tree.c \
 poi/node_tool.c \
 poi/poi_statistics.c \
 poi/api_control.c \
+poi/osm_data_set.c \
 poi/edit/edit_action.c \
 poi/edit/edit_action_add_node.c \
 poi/edit/edit_action_add_tag.c \
@@ -134,6 +135,7 @@ poi/tag_tree.o \
 poi/node_tool.o \
 poi/poi_statistics.o \
 poi/api_control.o \
+poi/osm_data_set.o \
 poi/edit/edit_action.o \
 poi/edit/edit_action_add_node.o \
 poi/edit/edit_action_add_tag.o \

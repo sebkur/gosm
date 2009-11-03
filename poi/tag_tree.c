@@ -251,12 +251,27 @@ gboolean tag_tree_subtract_tag_tree__iter_vals(gpointer val_p, gpointer elements
 	GSequenceIter * iter = g_sequence_get_begin_iter(elements_to_subtract);
 	while(!g_sequence_iter_is_end(iter)){
 		int * node_id = (int*)g_sequence_get(iter);
-		GSequenceIter * iter_find = g_sequence_search(elements, &node_id, tag_tree_compare_ints, NULL);
-		iter_find = g_sequence_iter_prev(iter_find);
-		if (*node_id == *(int*)g_sequence_get(iter_find)){
-			/* node_id found in elements */
-			g_sequence_remove(iter_find);
+		GSequenceIter * iter2 = g_sequence_get_begin_iter(elements);
+		while(!g_sequence_iter_is_end(iter2)){
+			if (*node_id == *(int*)g_sequence_get(iter2)){
+				/* node_id found in elements */
+				g_sequence_remove(iter2);
+				break;
+			}
+			iter2 = g_sequence_iter_next(iter2);
 		}
+		//TODO: fast searching does not work -> BAD
+//		GSequenceIter * iter_find = g_sequence_search(elements, &node_id, tag_tree_compare_ints, NULL);
+//		if (*node_id == *(int*)g_sequence_get(iter_find)){
+//			/* node_id found in elements */
+//			printf("FOOO\n");
+//		}
+//		iter_find = g_sequence_iter_prev(iter_find);
+//		if (*node_id == *(int*)g_sequence_get(iter_find)){
+//			/* node_id found in elements */
+//			printf("OK\n");
+//			g_sequence_remove(iter_find);
+//		}
 		/* continue with next one */
 		iter = g_sequence_iter_next(iter);
 	}
@@ -308,4 +323,52 @@ GSequence * tag_tree_get_nodes_create(
 		g_tree_insert(tree1, val_insert, elements);
 	}
 	return elements;
+}
+
+gboolean tag_tree_duplicate_tree__iter_keys(gpointer k, gpointer v, gpointer data);
+gboolean tag_tree_duplicate_tree__iter_vals(gpointer k, gpointer v, gpointer data);
+
+TagTree * tag_tree_duplicate_tree(
+	TagTree * tag_tree_copy)
+{
+	TagTree * tag_tree = tag_tree_new();
+	g_tree_foreach(tag_tree_copy -> tree, tag_tree_duplicate_tree__iter_keys, tag_tree -> tree);
+	return tag_tree;
+}
+
+gboolean tag_tree_duplicate_tree__iter_keys(gpointer key_p, gpointer tree_vals_p, gpointer data)
+{
+	GTree * tree = (GTree*) data;
+	char * key = (char*) key_p;
+	int len_key = strlen(key) + 1;
+	char * key_new = malloc(sizeof(char) * len_key);
+	strncpy(key_new, key, len_key);
+	GTree * tree_vals = (GTree*) tree_vals_p;
+	GTree * tree_vals_new = g_tree_new_full(
+			tag_tree_compare_strings, NULL, 
+			tag_tree_destroy_just_free, tag_tree_destroy_element_sequences);
+	g_tree_foreach(tree_vals, tag_tree_duplicate_tree__iter_vals, (gpointer) tree_vals_new);
+	g_tree_insert(tree, key_new, tree_vals_new);
+	return FALSE;
+}
+
+gboolean tag_tree_duplicate_tree__iter_vals(gpointer val_p, gpointer elements_p, gpointer data_p)
+{
+	GTree * tree = (GTree*) data_p;
+	char * val = (char*) val_p;
+	int len_val = strlen(val) + 1;
+	char * val_new = malloc(sizeof(char) * len_val);
+	strncpy(val_new, val, len_val);
+	GSequence * elements = (GSequence*) elements_p;
+	GSequence * elements_new = g_sequence_new(tag_tree_destroy_just_free);
+	/* iterate elements */
+	GSequenceIter * iter = g_sequence_get_begin_iter(elements);
+	while(!g_sequence_iter_is_end(iter)){
+		int * id_new = malloc(sizeof(int));
+		*id_new = *(int*)g_sequence_get(iter);
+		g_sequence_append(elements_new, id_new);
+		iter = g_sequence_iter_next(iter);
+	}
+	g_tree_insert(tree, val_new, elements_new);
+	return FALSE;
 }
