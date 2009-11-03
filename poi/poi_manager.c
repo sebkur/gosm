@@ -452,8 +452,10 @@ void poi_manager_fill_poi_set(PoiManager * poi_manager, PoiSet * poi_set)
 void poi_manager_toggle_poi_set(PoiManager * poi_manager, int index)
 {
 	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, index);
+	StyledPoiSet * poi_set_edit = poi_manager_get_poi_set_edit(poi_manager, index);
 	gboolean visible = poi_set_get_visible(GOSM_POI_SET(poi_set));
 	poi_set_set_visible(GOSM_POI_SET(poi_set), !visible);
+	poi_set_set_visible(GOSM_POI_SET(poi_set_edit), !visible);
 	g_signal_emit (poi_manager, poi_manager_signals[LAYER_TOGGLED], 0, index);
 }
 

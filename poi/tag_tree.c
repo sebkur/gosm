@@ -52,7 +52,7 @@ gint tag_tree_compare_strings(gconstpointer a, gconstpointer b, gpointer user_da
 }
 gint tag_tree_compare_ints(gconstpointer a, gconstpointer b, gpointer user_data)
 {
-        return *(int*)a - *(int*)b;
+        return (*(int*)a) - (*(int*)b);
 }
 void tag_tree_destroy_just_free(gpointer data)
 {
@@ -90,6 +90,26 @@ static void tag_tree_class_init(TagTreeClass *class)
 
 static void tag_tree_init(TagTree *tag_tree)
 {
+}
+
+void print_sequence(GSequence * elements)
+{
+	char * buf = malloc(sizeof(char));
+	buf[0] = '\0';
+	GSequenceIter * iter = g_sequence_get_begin_iter(elements);
+	while(!g_sequence_iter_is_end(iter)){
+		int * node_id = (int*)g_sequence_get(iter);
+		char b[20];
+		sprintf(b, "%d ", *node_id);
+		char * buf2 = malloc(sizeof(char) * (strlen(buf) + strlen(b) + 1));
+		buf2[0] = '\0';
+		strcat(buf2, buf);
+		strcat(buf2, b);
+		free(buf);
+		buf = buf2;
+		iter = g_sequence_iter_next(iter);
+	}
+	printf("%s\n", buf);
 }
 
 void tag_tree_destroy(
@@ -251,27 +271,24 @@ gboolean tag_tree_subtract_tag_tree__iter_vals(gpointer val_p, gpointer elements
 	GSequenceIter * iter = g_sequence_get_begin_iter(elements_to_subtract);
 	while(!g_sequence_iter_is_end(iter)){
 		int * node_id = (int*)g_sequence_get(iter);
-		GSequenceIter * iter2 = g_sequence_get_begin_iter(elements);
-		while(!g_sequence_iter_is_end(iter2)){
-			if (*node_id == *(int*)g_sequence_get(iter2)){
-				/* node_id found in elements */
-				g_sequence_remove(iter2);
-				break;
+		gboolean found = FALSE;
+		GSequenceIter * iter_find = g_sequence_search(elements, node_id, tag_tree_compare_ints, NULL);
+		if (!g_sequence_iter_is_end(iter_find)){
+			if (*node_id == *(int*)g_sequence_get(iter_find)){
+				found = TRUE;
+				g_sequence_remove(iter_find);
 			}
-			iter2 = g_sequence_iter_next(iter2);
 		}
-		//TODO: fast searching does not work -> BAD
-//		GSequenceIter * iter_find = g_sequence_search(elements, &node_id, tag_tree_compare_ints, NULL);
-//		if (*node_id == *(int*)g_sequence_get(iter_find)){
-//			/* node_id found in elements */
-//			printf("FOOO\n");
-//		}
-//		iter_find = g_sequence_iter_prev(iter_find);
-//		if (*node_id == *(int*)g_sequence_get(iter_find)){
-//			/* node_id found in elements */
-//			printf("OK\n");
-//			g_sequence_remove(iter_find);
-//		}
+		if (!found){
+			GSequenceIter * iter_prev = g_sequence_iter_prev(iter_find);
+			if (!g_sequence_iter_is_end(iter_prev)){
+				if (*node_id == *(int*)g_sequence_get(iter_prev)){
+					found = TRUE;
+					g_sequence_remove(iter_prev);
+				}
+			}
+		}
+		if (!found) printf("ALERT: NOT FOUND\n");
 		/* continue with next one */
 		iter = g_sequence_iter_next(iter);
 	}
