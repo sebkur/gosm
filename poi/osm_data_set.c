@@ -106,7 +106,6 @@ gboolean duplicate_id_tree__iter(gpointer key, gpointer val, gpointer data)
 	GTree * id_tree = (GTree*) data;
 	int * node_id = malloc(sizeof(int));
 	*node_id = *(int*)key;
-	if (*node_id == 340250799) printf("OK\n");
 	LonLatTags * llt = (LonLatTags*) val;
 	LonLatTags * llt_copy = malloc(sizeof(LonLatTags));
 	llt_copy -> lon = llt -> lon;

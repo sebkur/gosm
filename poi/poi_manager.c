@@ -78,7 +78,7 @@ static guint poi_manager_signals[LAST_SIGNAL] = { 0 };
 gboolean poi_manager_create_default_poi_layers();
 gboolean poi_manager_read_poi_sources(PoiManager * poi_manager);
 gboolean poi_manager_read_poi_layers(PoiManager * poi_manager);
-void poi_manager_fill_poi_set(PoiManager * poi_manager, PoiSet * poi_set);
+void poi_manager_fill_poi_set(OsmDataSet * ods, PoiSet * poi_set);
 static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int status, gpointer data);
 static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, int status, gpointer data);
 
@@ -390,13 +390,19 @@ gboolean poi_manager_read_poi_layers(PoiManager * poi_manager)
 /****************************************************************************************************
 * add a new PoiSet to the set fo PoiSets
 ****************************************************************************************************/
-void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active,
+void poi_manager_add_poi_set_ods(OsmDataSet * ods, char * key, char * value, gboolean active,
 	double r, double g, double b, double a)
 {
 	StyledPoiSet * poi_set = styled_poi_set_new(key, value, r, g, b, a);
-	poi_manager_fill_poi_set(poi_manager, GOSM_POI_SET(poi_set));
+	poi_manager_fill_poi_set(ods, GOSM_POI_SET(poi_set));
 	poi_set_set_visible(GOSM_POI_SET(poi_set), active);
-	g_array_append_val(poi_manager -> ods_base -> poi_sets, poi_set);
+	g_array_append_val(ods -> poi_sets, poi_set);
+}
+void poi_manager_add_poi_set(PoiManager * poi_manager, char * key, char * value, gboolean active,
+	double r, double g, double b, double a)
+{
+	poi_manager_add_poi_set_ods(poi_manager -> ods_base, key, value, active, r, g, b, a);
+	poi_manager_add_poi_set_ods(poi_manager -> ods_edit, key, value, active, r, g, b, a);
 	g_signal_emit (poi_manager, poi_manager_signals[LAYER_ADDED], 0, poi_manager -> ods_base -> poi_sets -> len - 1);
 }
 
@@ -428,20 +434,20 @@ gboolean poi_manager_tree_delete__iter(gpointer node_id_p, gpointer llt_p, gpoin
 /****************************************************************************************************
 * insert all pois, that are currently available into the given PoiSet
 ****************************************************************************************************/
-void poi_manager_fill_poi_set(PoiManager * poi_manager, PoiSet * poi_set)
+void poi_manager_fill_poi_set(OsmDataSet * ods, PoiSet * poi_set)
 {
 	char * key = named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set));
 	char * value = named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set));
-	GSequence * ids = tag_tree_get_nodes(poi_manager -> ods_base -> tag_tree, key, value);
+	GSequence * ids = tag_tree_get_nodes(ods -> tag_tree, key, value);
 	if (ids == NULL) return;
 	GSequenceIter * iter = g_sequence_get_begin_iter(ids);
 	while(!g_sequence_iter_is_end(iter)){
 		int id = *(int*)g_sequence_get(iter);
 		//int id = g_array_index(ids, int, i);
-		LonLatTags * llt = g_tree_lookup(poi_manager -> ods_base -> tree_ids, &id);
+		LonLatTags * llt = g_tree_lookup(ods -> tree_ids, &id);
 		llt -> refs += 1;
 		poi_set_add(GOSM_POI_SET(poi_set), llt, id);
-		poi_set_remove_point(poi_manager -> ods_base -> remaining_pois, llt -> lon, llt -> lat, id);
+		poi_set_remove_point(ods -> remaining_pois, llt -> lon, llt -> lat, id);
 		iter = g_sequence_iter_next(iter);
 	}
 }
