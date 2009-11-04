@@ -110,6 +110,7 @@ GtkWidget * toolbar_new(
 	GtkWidget * icon_hide1		= gtk_image_new_from_file(GOSM_ICON_DIR "stock_show-hidden-controls.png");
 	GtkWidget * icon_hide2		= gtk_image_new_from_file(GOSM_ICON_DIR "stock_show-hidden-controls2.png");
 	GtkWidget * icon_cross		= gtk_image_new_from_file(GOSM_ICON_DIR "cross.png");
+	GtkWidget * icon_bookmark	= gtk_image_new_from_file(GOSM_ICON_DIR "stock_bookmark.png");
 
 	GtkWidget * button_zoom_in = gtk_button_new();
 	GtkWidget * button_zoom_out = gtk_button_new();
@@ -119,6 +120,7 @@ GtkWidget * toolbar_new(
 	toolbar -> button_side_bar_right = gtk_toggle_button_new();
 	toolbar -> button_side_bar_left = gtk_toggle_button_new();
 	GtkWidget * button_savemaptype = gtk_button_new();
+	GtkWidget * button_bookmark = gtk_button_new();
 
 	gtk_button_set_image(GTK_BUTTON(toolbar -> button_grid), icon_grid);
 	gtk_button_set_image(GTK_BUTTON(button_zoom_in), icon_zoom_in);
@@ -128,6 +130,7 @@ GtkWidget * toolbar_new(
 	gtk_button_set_image(GTK_BUTTON(toolbar -> button_side_bar_right), icon_hide1);
 	gtk_button_set_image(GTK_BUTTON(toolbar -> button_side_bar_left), icon_hide2);
 	gtk_button_set_image(GTK_BUTTON(button_savemaptype), icon_cross);
+	gtk_button_set_image(GTK_BUTTON(button_bookmark), icon_bookmark);
 
 	/********************************************************************************************
 	* the combo box
@@ -162,6 +165,7 @@ GtkWidget * toolbar_new(
 	gtk_toolbar_insert_space( GTK_TOOLBAR(toolbar), tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), toolbar -> combo_tiles, NULL, NULL, tc++);
 	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_savemaptype, NULL, NULL, tc++);
+	gtk_toolbar_insert_widget(GTK_TOOLBAR(toolbar), button_bookmark, NULL, NULL, tc++);
 
 	/********************************************************************************************
 	* tooltips

@@ -48,6 +48,8 @@
 #include "distance/distance_tool.h"
 #include "atlas/atlas.h"
 #include "atlas/atlas_tool.h"
+#include "bookmark/bookmark_manager.h"
+#include "bookmark/bookmark_widget.h"
 #include "namefinder/namefinder_cities.h"
 #include "namefinder/namefinder_countries.h"
 #include "wizzard/wizzard_download.h"
@@ -115,6 +117,9 @@ NodeTool * 	node_tool;
 GtkWidget * 	web_legend;
 GtkWidget *	namefinder_cities;
 GtkWidget *	namefinder_countries;
+
+BookmarkManager * bookmark_manager;
+GtkWidget * 	bookmark_widget;
 
 PoiManager *	poi_manager;
 PoiSourceLoadProgress * pslp;
@@ -323,7 +328,10 @@ int main(int argc, char *argv[])
 	/* pois */
 	PoiTool * poi_tool = GOSM_POI_TOOL(poi_tool_new(poi_manager));
 	/* bookmarks */
-	GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
+	//GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
+	bookmark_manager = bookmark_manager_new();
+	bookmark_manager_read_bookmarks(bookmark_manager);
+	bookmark_widget = bookmark_widget_new(bookmark_manager, map_area);
 	/* namefinder */
 	GtkWidget * notebook_namefinder = gtk_notebook_new();
 	namefinder_cities = namefinder_cities_new();
@@ -342,7 +350,7 @@ int main(int argc, char *argv[])
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), scrolled, image_legend);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), notebook_namefinder, image_namefinder);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), GTK_WIDGET(poi_tool), image_pois);
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks, image_bookmarks);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook_side_left), bookmark_widget, image_bookmarks);
 	gtk_widget_set_tooltip_text(gtk_notebook_get_tab_label(
 		GTK_NOTEBOOK(notebook_side_left), scrolled), "map-key");
 	gtk_widget_set_tooltip_text(gtk_notebook_get_tab_label(
@@ -350,7 +358,7 @@ int main(int argc, char *argv[])
 	gtk_widget_set_tooltip_text(gtk_notebook_get_tab_label(
 		GTK_NOTEBOOK(notebook_side_left), GTK_WIDGET(poi_tool)), "points of interest");
 	gtk_widget_set_tooltip_text(gtk_notebook_get_tab_label(
-		GTK_NOTEBOOK(notebook_side_left), placeholder_bookmarks), "bookmarks (not implemented)");
+		GTK_NOTEBOOK(notebook_side_left), bookmark_widget), "bookmarks");
 
 	/***************************************************************************
 	 * Toolbar

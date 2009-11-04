@@ -195,6 +195,10 @@ char * config_get_poi_layers_file()
 {
 	return config_get_config_dir_sub_file("poi_layers");
 }
+char * config_get_bookmarks_file()
+{
+	return config_get_config_dir_sub_file("bookmarks");
+}
 
 /****************************************************************************************************
 * read and parse the config-file; fill read values into array of config-values

@@ -72,6 +72,10 @@ poi/edit/edit_action_remove_tag.c \
 gtk_safety.c \
 widget/gtk_custom_frame.c \
 widget/gtk_rollup_button.c \
+bookmark/bookmark.c \
+bookmark/bookmark_location.c \
+bookmark/bookmark_manager.c \
+bookmark/bookmark_widget.c \
 gosm.c
 
 OBJ = \
@@ -146,6 +150,10 @@ poi/edit/edit_action_remove_tag.o \
 gtk_safety.o \
 widget/gtk_custom_frame.o \
 widget/gtk_rollup_button.o \
+bookmark/bookmark.o \
+bookmark/bookmark_location.o \
+bookmark/bookmark_manager.o \
+bookmark/bookmark_widget.o \
 gosm.o
 
 CC  = /usr/bin/gcc

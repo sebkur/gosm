@@ -264,11 +264,22 @@ gtk_safety.o: gtk_safety.c namefinder/namefinder_countries.h \
   imageglue/../map_types.h imageglue/image_glue.h select/select_tool.h \
   about/about.h about/../map_area.h config/color_button.h \
   config/color_button_auto.h config/color_box.h config/config_widget.h \
-  config/config.h
+  config/config.h bookmark/bookmark_location.h bookmark/bookmark.h \
+  bookmark/bookmark.h bookmark/bookmark_manager.h \
+  bookmark/bookmark_widget.h bookmark/bookmark_manager.h
 gtk_custom_frame.o: widget/gtk_custom_frame.c widget/gtk_custom_frame.h \
   widget/gtk_rollup_button.h
 gtk_rollup_button.o: widget/gtk_rollup_button.c \
   widget/gtk_rollup_button.h
+bookmark.o: bookmark/bookmark.c bookmark/bookmark.h
+bookmark_location.o: bookmark/bookmark_location.c \
+  bookmark/bookmark_location.h bookmark/bookmark.h
+bookmark_manager.o: bookmark/bookmark_manager.c \
+  bookmark/bookmark_manager.h bookmark/bookmark.h \
+  bookmark/bookmark_location.h bookmark/../customio.h \
+  bookmark/../config/config.h
+bookmark_widget.o: bookmark/bookmark_widget.c bookmark/bookmark_widget.h \
+  bookmark/bookmark_manager.h bookmark/bookmark.h
 gosm.o: gosm.c gosm.h tiles/tilesets.h poi/poi_set.h poi/RTree/index.h \
   poi/../map_types.h poi/poi_manager.h poi/poi_set.h poi/named_poi_set.h \
   poi/styled_poi_set.h poi/osm_reader.h poi/../map_area.h \
@@ -280,7 +291,9 @@ gosm.o: gosm.c gosm.h tiles/tilesets.h poi/poi_set.h poi/RTree/index.h \
   config/config_widget.h config/config.h menu.h map_area.h \
   config/config.h toolbar.h map_navigator.h customio.h tool.h paths.h \
   select/select_tool.h distance/distance_tool.h atlas/atlas.h \
-  atlas/atlas_tool.h atlas/atlas.h namefinder/namefinder_cities.h \
+  atlas/atlas_tool.h atlas/atlas.h bookmark/bookmark_manager.h \
+  bookmark/bookmark.h bookmark/bookmark_widget.h \
+  bookmark/bookmark_manager.h namefinder/namefinder_cities.h \
   namefinder/namefinder_countries.h wizzard/wizzard_download.h \
   wizzard/select_use_window.h wizzard/../map_types.h \
   wizzard/tile_download_window.h wizzard/../tiles/tile_loader.h \
