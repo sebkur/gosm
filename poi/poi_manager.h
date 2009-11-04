@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <pthread.h>
+
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
@@ -59,6 +61,7 @@ struct _PoiManager
 {
 	GObject parent;
 
+	pthread_mutex_t mutex_pois;
 //	PoiSet * all_pois;
 //	PoiSet * remaining_pois;
 //	TagTree * tag_tree;

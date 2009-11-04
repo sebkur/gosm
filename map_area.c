@@ -29,6 +29,8 @@
 #include <string.h>
 #include <math.h>
 
+#include <pthread.h>
+
 #include "map_area.h"
 #include "map_types.h"
 #include "tool.h"
@@ -872,6 +874,7 @@ static gboolean tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
 static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
+	pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
 	map_area -> mouse_button_pressed = TRUE;
 	gtk_widget_grab_focus(widget);
 	int x = (int) event -> x;
@@ -918,6 +921,7 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 			}
 		}
 	}
+	pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
 }
 
 /****************************************************************************************************
@@ -926,6 +930,7 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
+	pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
 	map_area -> mouse_button_pressed = FALSE;
 	int x = (int) event -> x;
 	int y = (int) event -> y;
@@ -952,6 +957,7 @@ static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event
 			}
 		}
 	}
+	pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
 }
 
 /****************************************************************************************************
@@ -960,6 +966,7 @@ static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event
 static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
+	pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
 	MapPosition *map_position = &(map_area -> map_position);
 	int x = (int) event -> x;
 	int y = (int) event -> y;
@@ -1001,6 +1008,7 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 		break;
 	}
 	}
+	pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
 }
 
 void mouse_motion_drag_map(MapArea * map_area, int x, int y)
@@ -1201,6 +1209,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 {
 	//printf("function map_area.expose_cb\n");
 	MapArea *map_area = GOSM_MAP_AREA(widget);
+	pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
 	MapPosition *map_position = &(map_area -> map_position);
 	/* recreate == true <=> first exposure OR widget-size changed */
 	gboolean recreate = map_area -> pixmap == NULL
@@ -1585,6 +1594,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	pango_layout_set_markup(pl_marker, "<b>FOO Bar</b>", -1);
 	pango_cairo_show_layout(cr_font, pl_marker);
 	cairo_fill(cr_font); */
+	pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
 	return TRUE;
 }
 
