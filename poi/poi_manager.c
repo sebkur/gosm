@@ -44,6 +44,13 @@
 #include "../tool.h"
 #include "poi_statistics.h"
 #include "tag_tree.h"
+#include "edit/edit_action_remove_node.h"
+#include "edit/edit_action_add_node.h"
+#include "edit/edit_action_change_position.h"
+#include "edit/edit_action.h"
+#include "edit/edit_action_add_tag.h"
+#include "edit/edit_action_remove_tag.h"
+#include "edit/edit_action_change_tag.h"
 
 /****************************************************************************************************
 * PoiManager is the central management unit for Points of interests
@@ -83,6 +90,8 @@ gboolean poi_manager_read_poi_layers(PoiManager * poi_manager);
 void poi_manager_fill_poi_set(OsmDataSet * ods, PoiSet * poi_set);
 static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int status, gpointer data);
 static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, int status, gpointer data);
+void poi_manager_add_node_id(PoiManager * poi_manager, gboolean history, int node_id, double lon, double lat);
+void poi_manager_apply_change_history(PoiManager * poi_manager);
 
 gint poi_manager_compare_strings(gconstpointer a, gconstpointer b, gpointer user_data)
 {
@@ -122,6 +131,7 @@ PoiManager * poi_manager_new()
 //	poi_manager -> poi_sets = g_array_new(FALSE, FALSE, sizeof(StyledPoiSet*));
 	poi_manager -> ods_base = osm_data_set_new();
 	poi_manager -> ods_edit = osm_data_set_new();
+	poi_manager -> changes = g_array_new(FALSE, FALSE, sizeof(EditAction*));
 
 	poi_manager -> poi_sources = g_array_new(FALSE, FALSE, sizeof(PoiSource*));
 	poi_manager -> active_poi_source = -1;
@@ -750,6 +760,7 @@ static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int s
 	poi_manager_add_nodes(poi_manager, osm_reader -> tree_ids);
 	/* copy to edit layer */
 	osm_data_set_duplicate(poi_manager -> ods_base, poi_manager -> ods_edit);
+	poi_manager_apply_change_history(poi_manager);
 	/* emit signals */
 	g_signal_emit (poi_manager, poi_manager_signals[FILE_PARSING_ENDED], 0);
 	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, poi_manager -> active_poi_source);
@@ -821,6 +832,7 @@ static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, i
 	poi_manager_add_nodes(poi_manager, osm_reader -> tree_ids);
 	/* copy to edit layer */
 	osm_data_set_duplicate(poi_manager -> ods_base, poi_manager -> ods_edit);
+	poi_manager_apply_change_history(poi_manager);
 	printf("finished processing\n");
 	pthread_mutex_unlock(&(poi_manager -> mutex_pois));
 	/* emit signals */
@@ -837,7 +849,11 @@ void poi_manager_clear_pois(PoiManager * poi_manager)
 	// TODO: this could abviously be done more efficient, since we don't have to build the tag_tree
 	// for just removing all nodes. but this currently is kind of a test of consistency of data-
 	// structures
+	pthread_mutex_lock(&(poi_manager -> mutex_pois));
 	poi_manager_remove_nodes(poi_manager, poi_manager -> ods_base -> tree_ids);
+	osm_data_set_duplicate(poi_manager -> ods_base, poi_manager -> ods_edit);
+	poi_manager_apply_change_history(poi_manager);
+	pthread_mutex_unlock(&(poi_manager -> mutex_pois));
 	poi_manager_activate_poi_source(poi_manager, -1);
 	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, poi_manager -> active_poi_source);
 }
@@ -1021,22 +1037,82 @@ void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, d
 	llt -> lat = lat;
 }
 
+void poi_manager_apply_change_history(PoiManager * poi_manager)
+{
+	int s;
+	for (s = 0; s < poi_manager -> changes -> len; s++){
+		EditAction * action = g_array_index(poi_manager -> changes, EditAction*, s);
+		int id = G_OBJECT_TYPE(action);
+		if(id == GOSM_TYPE_EDIT_ACTION_ADD_NODE){
+			EditActionAddNode * eaan = GOSM_EDIT_ACTION_ADD_NODE(action);
+			poi_manager_add_node_id(poi_manager, FALSE, eaan -> node_id, eaan -> lon, eaan -> lat);
+			//printf("ADD: %d %f %f\n", eaan -> node_id, eaan -> lon, eaan -> lat);
+		}
+		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
+			EditActionRemoveNode * earn = GOSM_EDIT_ACTION_REMOVE_NODE(action);
+			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, earn -> node_id)){
+				poi_manager_remove_node(poi_manager, FALSE, earn -> node_id);
+			}
+			//printf("REMOVE: %d\n", earn -> node_id);
+		}
+		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION){
+			EditActionChangePosition * eacp = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
+			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eacp -> node_id)){
+				poi_manager_reposition(poi_manager, eacp -> node_id, eacp -> lon, eacp -> lat);
+			}
+			//printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
+		}
+	}
+}
+
+void poi_manager_add_action(PoiManager * poi_manager, EditAction * action)
+{
+	g_array_append_val(poi_manager -> changes, action);
+	printf("CHANGE STACK\n");
+	int s;
+	for (s = 0; s < poi_manager -> changes -> len; s++){
+		EditAction * action = g_array_index(poi_manager -> changes, EditAction*, s);
+		int id = G_OBJECT_TYPE(action);
+		if(id == GOSM_TYPE_EDIT_ACTION_ADD_NODE){
+			EditActionAddNode * eaan = GOSM_EDIT_ACTION_ADD_NODE(action);
+			printf("ADD: %d %f %f\n", eaan -> node_id, eaan -> lon, eaan -> lat);
+		}
+		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
+			EditActionRemoveNode * earn = GOSM_EDIT_ACTION_REMOVE_NODE(action);
+			printf("REMOVE: %d\n", earn -> node_id);
+		}
+		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION){
+			EditActionChangePosition * eacp = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
+			printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
+		}
+	}
+}
+
 void poi_manager_add_node(PoiManager * poi_manager, double lon, double lat)
+{
+	int node_id = poi_manager -> next_node_id --;
+	poi_manager_add_node_id(poi_manager, TRUE, node_id, lon, lat);
+}
+
+void poi_manager_add_node_id(PoiManager * poi_manager, gboolean history, int node_id, double lon, double lat)
 {
 	LonLatTags * llt = malloc(sizeof(LonLatTags));
 	llt -> lon = lon;
 	llt -> lat = lat;
 	llt -> refs = 0;
 	llt -> tags = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
-	int node_id = poi_manager -> next_node_id --;
 	int * id_insert = malloc(sizeof(int));
 	*id_insert = node_id;
 	g_tree_insert(poi_manager -> ods_edit -> tree_ids, id_insert, llt);
 	poi_set_add(poi_manager -> ods_edit -> all_pois, llt, node_id);
 	poi_set_add(poi_manager -> ods_edit -> remaining_pois, llt, node_id);
+	if (history){
+		EditAction * action = edit_action_add_node_new(node_id, lon, lat);
+		poi_manager_add_action(poi_manager, action);
+	}
 }
 
-void poi_manager_remove_node(PoiManager * poi_manager, int node_id)
+void poi_manager_remove_node(PoiManager * poi_manager, gboolean history, int node_id)
 {
 	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
 	int num_poi_sets = poi_manager_get_number_of_poi_sets(poi_manager);
@@ -1051,4 +1127,14 @@ void poi_manager_remove_node(PoiManager * poi_manager, int node_id)
 		g_tree_remove(poi_manager -> ods_edit -> tree_ids, &node_id);
 		// TODO: remove from tag_tree (it does actually not matter up to now)
 	}
+	if (history){
+		EditAction * action = edit_action_remove_node_new(node_id);
+		poi_manager_add_action(poi_manager, action);
+	}
+}
+
+void poi_manager_reposition_finished(PoiManager * poi_manager, int node_id, double lon, double lat)
+{
+	EditAction * action = edit_action_change_position_new(node_id, lon, lat);
+	poi_manager_add_action(poi_manager, action);
 }

@@ -69,6 +69,7 @@ struct _PoiManager
 //	GArray * poi_sets;
 	OsmDataSet * ods_base;
 	OsmDataSet * ods_edit;
+	GArray * changes;
 
 	TagTree * tag_tree_new;
 	TagTree * tag_tree_insertion;
@@ -136,10 +137,10 @@ LonLatTags * poi_manager_get_node(PoiManager * poi_manager, int node_id);
 
 void poi_manager_clear_pois(PoiManager * poi_manager);
 
-void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, double lat);
-
 void poi_manager_add_node(PoiManager * poi_manager, double lon, double lat);
-void poi_manager_remove_node(PoiManager * poi_manager, int node_id);
+void poi_manager_remove_node(PoiManager * poi_manager, gboolean history, int node_id);
+void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, double lat);
+void poi_manager_reposition_finished(PoiManager * poi_manager, int node_id, double lon, double lat);
 
 GTree * poi_manager_tree_intersection(GTree * tree1, GTree * tree2);
 

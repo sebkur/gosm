@@ -40,9 +40,10 @@ G_DEFINE_TYPE (EditActionRemoveNode, edit_action_remove_node, GOSM_TYPE_EDIT_ACT
 //static guint edit_action_remove_node_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, edit_action_remove_node_signals[SIGNAL_NAME_n], 0);
 
-EditAction * edit_action_remove_node_new()
+EditAction * edit_action_remove_node_new(int node_id)
 {
 	EditActionRemoveNode * edit_action_remove_node = g_object_new(GOSM_TYPE_EDIT_ACTION_REMOVE_NODE, NULL);
+	edit_action_remove_node -> node_id = node_id;
 	return GOSM_EDIT_ACTION(edit_action_remove_node);
 }
 

@@ -40,9 +40,12 @@ G_DEFINE_TYPE (EditActionChangePosition, edit_action_change_position, GOSM_TYPE_
 //static guint edit_action_change_position_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, edit_action_change_position_signals[SIGNAL_NAME_n], 0);
 
-EditAction * edit_action_change_position_new()
+EditAction * edit_action_change_position_new(int node_id, double lon, double lat)
 {
 	EditActionChangePosition * edit_action_change_position = g_object_new(GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION, NULL);
+	edit_action_change_position -> node_id = node_id;
+	edit_action_change_position -> lon = lon;
+	edit_action_change_position -> lat = lat;
 	return GOSM_EDIT_ACTION(edit_action_change_position);
 }
 

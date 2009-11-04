@@ -102,7 +102,9 @@ void map_has_moved(MapArea *map_area);
 void map_area_adjust_map_position_values(MapArea *map_area);
 void map_area_adjust_tile_count_information(MapArea *map_area);
 double map_area_get_poi_square_size(MapArea *map_area);
+void map_area_add_poi(MapArea *map_area, double lon, double lat);
 void map_area_remove_selected_poi(MapArea *map_area);
+void map_area_reposition_selected_poi(MapArea *map_area, double lon, double lat);
 
 GtkWidget * map_area_new()
 {
@@ -797,18 +799,17 @@ void map_area_path_clear(MapArea *map_area)
 /****************************************************************************************************
 * add a marker to the area
 ****************************************************************************************************/
-void map_area_add_marker(MapArea *map_area, double lon, double lat)
+void map_area_add_poi(MapArea *map_area, double lon, double lat)
 {
+	printf("ACTION: add poi\n");
 	poi_manager_add_node(map_area -> poi_manager, lon, lat);
 	map_area_repaint(map_area);
-	//ApiControl * api_control = api_control_new();
-	//api_control_test(api_control, lon, lat);
 }
 
 void map_area_remove_selected_poi(MapArea *map_area)
 {
 	printf("ACTION: remove poi\n");
-	poi_manager_remove_node(map_area -> poi_manager, map_area -> poi_selected_id);
+	poi_manager_remove_node(map_area -> poi_manager, TRUE, map_area -> poi_selected_id);
 	if (map_area -> poi_active_id == map_area -> poi_selected_id){
 		map_area -> poi_active_id = 0;
 	}
@@ -816,6 +817,11 @@ void map_area_remove_selected_poi(MapArea *map_area)
 	map_area_repaint(map_area);
 }
 
+void map_area_reposition_selected_poi(MapArea *map_area, double lon, double lat)
+{
+	printf("ACTION: reposition poi\n");
+	poi_manager_reposition_finished(map_area -> poi_manager, map_area -> poi_selected_id, lon, lat);
+}
 /****************************************************************************************************
 *****************************************************************************************************
 * CALLBACKS
@@ -874,7 +880,9 @@ static gboolean tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
 static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
-	pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
+	if (event -> type == GDK_BUTTON_PRESS){
+		pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
+	}
 	map_area -> mouse_button_pressed = TRUE;
 	gtk_widget_grab_focus(widget);
 	int x = (int) event -> x;
@@ -921,7 +929,6 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 			}
 		}
 	}
-	pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
 }
 
 /****************************************************************************************************
@@ -930,7 +937,6 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
-	pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
 	map_area -> mouse_button_pressed = FALSE;
 	int x = (int) event -> x;
 	int y = (int) event -> y;
@@ -940,13 +946,12 @@ static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event
 		if(map_area -> mouse_mode == MAP_MODE_POI){
 			if (map_area -> point_drag_start.x == x && map_area -> point_drag_start.y == y){
 				if (map_area -> poi_active_id == 0){
-					printf("ACTION: add poi\n");
-					map_area_add_marker(map_area, lon, lat);
+					map_area_add_poi(map_area, lon, lat);
 					mouse_motion_poi(map_area, x, y);
 				}
 			}else{
 				if (map_area -> poi_active_id != 0){
-					printf("ACTION: dragged poi\n");
+					map_area_reposition_selected_poi(map_area, lon, lat);
 				}
 			}
 		}
@@ -966,7 +971,9 @@ static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event
 static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
-	pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
+	if (!map_area -> mouse_button_pressed){
+		pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
+	}
 	MapPosition *map_position = &(map_area -> map_position);
 	int x = (int) event -> x;
 	int y = (int) event -> y;
@@ -1008,7 +1015,9 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 		break;
 	}
 	}
-	pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
+	if (!map_area -> mouse_button_pressed){
+		pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
+	}
 }
 
 void mouse_motion_drag_map(MapArea * map_area, int x, int y)
@@ -1209,7 +1218,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 {
 	//printf("function map_area.expose_cb\n");
 	MapArea *map_area = GOSM_MAP_AREA(widget);
-	pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
+	//pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
 	MapPosition *map_position = &(map_area -> map_position);
 	/* recreate == true <=> first exposure OR widget-size changed */
 	gboolean recreate = map_area -> pixmap == NULL
@@ -1594,7 +1603,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	pango_layout_set_markup(pl_marker, "<b>FOO Bar</b>", -1);
 	pango_cairo_show_layout(cr_font, pl_marker);
 	cairo_fill(cr_font); */
-	pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
+	//pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
 	return TRUE;
 }
 

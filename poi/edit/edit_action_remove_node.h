@@ -44,6 +44,8 @@ typedef struct _EditActionRemoveNodeClass   EditActionRemoveNodeClass;
 struct _EditActionRemoveNode
 {
 	EditAction parent;
+
+	int node_id;
 };
 
 struct _EditActionRemoveNodeClass
@@ -53,6 +55,6 @@ struct _EditActionRemoveNodeClass
 	//void (* function_name) (EditActionRemoveNode *edit_action_remove_node);
 };
 
-EditAction * edit_action_remove_node_new();
+EditAction * edit_action_remove_node_new(int node_id);
 
 #endif /* _EDIT_ACTION_REMOVE_NODE_H_ */

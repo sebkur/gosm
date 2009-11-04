@@ -44,6 +44,10 @@ typedef struct _EditActionChangePositionClass   EditActionChangePositionClass;
 struct _EditActionChangePosition
 {
 	EditAction parent;
+
+	int node_id;
+	double lon;
+	double lat;
 };
 
 struct _EditActionChangePositionClass
@@ -53,6 +57,6 @@ struct _EditActionChangePositionClass
 	//void (* function_name) (EditActionChangePosition *edit_action_change_position);
 };
 
-EditAction * edit_action_change_position_new();
+EditAction * edit_action_change_position_new(int node_id, double lon, double lat);
 
 #endif /* _EDIT_ACTION_CHANGE_POSITION_H_ */

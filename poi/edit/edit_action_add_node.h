@@ -44,6 +44,10 @@ typedef struct _EditActionAddNodeClass   EditActionAddNodeClass;
 struct _EditActionAddNode
 {
 	EditAction parent;
+
+	int node_id;
+	double lon;
+	double lat;
 };
 
 struct _EditActionAddNodeClass
@@ -53,6 +57,6 @@ struct _EditActionAddNodeClass
 	//void (* function_name) (EditActionAddNode *edit_action_add_node);
 };
 
-EditAction * edit_action_add_node_new();
+EditAction * edit_action_add_node_new(int node_id, double lon, double lat);
 
 #endif /* _EDIT_ACTION_ADD_NODE_H_ */

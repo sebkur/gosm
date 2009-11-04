@@ -40,9 +40,12 @@ G_DEFINE_TYPE (EditActionAddNode, edit_action_add_node, GOSM_TYPE_EDIT_ACTION);
 //static guint edit_action_add_node_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, edit_action_add_node_signals[SIGNAL_NAME_n], 0);
 
-EditAction * edit_action_add_node_new()
+EditAction * edit_action_add_node_new(int node_id, double lon, double lat)
 {
 	EditActionAddNode * edit_action_add_node = g_object_new(GOSM_TYPE_EDIT_ACTION_ADD_NODE, NULL);
+	edit_action_add_node -> node_id = node_id;
+	edit_action_add_node -> lon = lon;
+	edit_action_add_node -> lat = lat;
 	return GOSM_EDIT_ACTION(edit_action_add_node);
 }
 
