@@ -1065,27 +1065,32 @@ void poi_manager_apply_change_history(PoiManager * poi_manager)
 	}
 }
 
+void poi_manager_print_change_stack(PoiManager * poi_manager)
+{
+	printf("CHANGE STACK\n");
+	int s;
+	for (s = 0; s < poi_manager -> changes -> len; s++){
+		EditAction * action = g_array_index(poi_manager -> changes, EditAction*, s);
+		int id = G_OBJECT_TYPE(action);
+		if(id == GOSM_TYPE_EDIT_ACTION_ADD_NODE){
+			EditActionAddNode * eaan = GOSM_EDIT_ACTION_ADD_NODE(action);
+			printf("ADD: %d %f %f\n", eaan -> node_id, eaan -> lon, eaan -> lat);
+		}
+		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
+			EditActionRemoveNode * earn = GOSM_EDIT_ACTION_REMOVE_NODE(action);
+			printf("REMOVE: %d\n", earn -> node_id);
+		}
+		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION){
+			EditActionChangePosition * eacp = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
+			printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
+		}
+	}
+}
+
 void poi_manager_add_action(PoiManager * poi_manager, EditAction * action)
 {
 	g_array_append_val(poi_manager -> changes, action);
-	printf("CHANGE STACK\n");
-	int s;
-//	for (s = 0; s < poi_manager -> changes -> len; s++){
-//		EditAction * action = g_array_index(poi_manager -> changes, EditAction*, s);
-//		int id = G_OBJECT_TYPE(action);
-//		if(id == GOSM_TYPE_EDIT_ACTION_ADD_NODE){
-//			EditActionAddNode * eaan = GOSM_EDIT_ACTION_ADD_NODE(action);
-//			printf("ADD: %d %f %f\n", eaan -> node_id, eaan -> lon, eaan -> lat);
-//		}
-//		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
-//			EditActionRemoveNode * earn = GOSM_EDIT_ACTION_REMOVE_NODE(action);
-//			printf("REMOVE: %d\n", earn -> node_id);
-//		}
-//		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION){
-//			EditActionChangePosition * eacp = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
-//			printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
-//		}
-//	}
+	poi_manager_print_change_stack(poi_manager);
 }
 
 void poi_manager_add_node(PoiManager * poi_manager, double lon, double lat)
@@ -1124,9 +1129,6 @@ void poi_manager_remove_node(PoiManager * poi_manager, gboolean history, int nod
 			: GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois);
 		if (poi_set_contains_point(poi_set, node_id)){
 			poi_set_remove_point(poi_set, node_id, llt -> lon, llt -> lat);
-			printf("removed %d from %s %s\n", node_id,
-				named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set)),
-				named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set)));
 		}
 	}
 	g_tree_remove(poi_manager -> ods_edit -> tree_ids, &node_id);

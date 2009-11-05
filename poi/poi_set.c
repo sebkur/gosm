@@ -178,7 +178,6 @@ void poi_set_remove_point(PoiSet * poi_set, int node_id, double lon, double lat)
 		rect -> boundary[2] = lon;
 		rect -> boundary[3] = lat;
 		int del = r_r_tree_delete_rect(poi_set -> rtree, rect, node_id);
-		if(node_id < 0) printf("removal %d %d %f %f\n", node_id, del, lon, lat);
 		free(rect);
 		/* remove from binary tree */
 		g_tree_remove(poi_set -> points, &node_id);

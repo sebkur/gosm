@@ -932,9 +932,16 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 			}
 		}
 		if (event -> button == 3){
-			if (map_area -> poi_selected_id != 0){
-				map_area -> poi_selected_id = 0;
-				map_area_repaint(map_area);
+			if (map_area -> mouse_mode == MAP_MODE_MOVE || map_area -> mouse_mode == MAP_MODE_POI){
+				if (map_area -> poi_selected_id != map_area -> poi_active_id){
+					map_area -> poi_selected_id = map_area -> poi_active_id;
+					map_area_repaint(map_area);
+				}else{
+					if (map_area -> poi_active_id == 0){
+						map_area -> poi_selected_id = 0;
+						map_area_repaint(map_area);
+					}
+				}
 			}
 		}
 	}
@@ -1248,7 +1255,7 @@ void mouse_motion_selection_create(MapArea * map_area, int x, int y)
 ****************************************************************************************************/
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 {
-	printf("function map_area.expose_cb\n");
+	//printf("function map_area.expose_cb\n");
 	MapArea *map_area = GOSM_MAP_AREA(widget);
 	if (!map_area -> mouse_button_pressed){
 		pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
