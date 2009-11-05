@@ -29,6 +29,7 @@
 #include "poi_set.h"
 
 #include "RTree/index.h"
+#include "r_r_tree.h"
 #include "../customio.h"
 #include "../map_types.h"
 
@@ -77,7 +78,7 @@ PoiSet * poi_set_new()
 ****************************************************************************************************/
 void poi_set_constructor(PoiSet * poi_set)
 {
-	poi_set -> root = RTreeNewIndex();
+	poi_set -> rtree = r_r_tree_new();
 	poi_set -> points = g_tree_new_full(poi_set_compare_ints, NULL, destroy_just_free, NULL);
 }
 
@@ -87,7 +88,7 @@ void poi_set_constructor(PoiSet * poi_set)
 ****************************************************************************************************/
 void poi_set_clear(PoiSet * poi_set)
 {
-	RTreeClear(poi_set -> root);
+	r_r_tree_clear(poi_set -> rtree);
 	// TODO: free of tree
 	poi_set_constructor(poi_set);
 }
@@ -126,7 +127,7 @@ void poi_set_add(PoiSet * poi_set, LonLatTags * llt, int id)
 		rect -> boundary[1] = llt -> lat;
 		rect -> boundary[2] = llt -> lon;
 		rect -> boundary[3] = llt -> lat;
-		RTreeInsertRect(rect, id, &(poi_set -> root), 0);
+		r_r_tree_insert_rect(poi_set -> rtree, rect, id);
 		free(rect);
 	}
 }
@@ -158,7 +159,7 @@ void poi_set_clear_area(PoiSet * poi_set, double min_lon, double min_lat, double
 		rect -> boundary[1] = llpi.lat;
 		rect -> boundary[2] = llpi.lon;
 		rect -> boundary[3] = llpi.lat;
-		RTreeDeleteRect(rect, llpi.node_id, &(poi_set -> root));
+		r_r_tree_delete_rect(poi_set -> rtree, rect, llpi.node_id);
 		free(rect);
 		/* remove from binary tree */
 		g_tree_remove(poi_set -> points, &llpi.node_id);
@@ -176,7 +177,8 @@ void poi_set_remove_point(PoiSet * poi_set, int node_id, double lon, double lat)
 		rect -> boundary[1] = lat;
 		rect -> boundary[2] = lon;
 		rect -> boundary[3] = lat;
-		int del = RTreeDeleteRect(rect, node_id, &(poi_set -> root));
+		int del = r_r_tree_delete_rect(poi_set -> rtree, rect, node_id);
+		if(node_id < 0) printf("removal %d %d %f %f\n", node_id, del, lon, lat);
 		free(rect);
 		/* remove from binary tree */
 		g_tree_remove(poi_set -> points, &node_id);
@@ -209,7 +211,7 @@ GArray * poi_set_get(PoiSet * poi_set, double min_lon, double min_lat, double ma
 	rect.boundary[2] = max_lon;
 	rect.boundary[3] = max_lat;
 	poi_set -> results = g_array_sized_new(FALSE, FALSE, sizeof(LonLatPairId), 1);
-	int n = RTreeSearch(poi_set -> root, &rect, poi_set_search_cb, (void*)poi_set);
+	int n = r_r_tree_search(poi_set -> rtree, &rect, poi_set_search_cb, (void*)poi_set);
 	return poi_set -> results;
 }
 
@@ -240,12 +242,12 @@ void poi_set_reposition(PoiSet * poi_set, int node_id, double new_lon, double ne
 	rect -> boundary[1] = old_lat;
 	rect -> boundary[2] = old_lon;
 	rect -> boundary[3] = old_lat;
-	RTreeDeleteRect(rect, node_id, &(poi_set -> root));
+	r_r_tree_delete_rect(poi_set -> rtree, rect, node_id);
 	rect -> boundary[0] = new_lon;
 	rect -> boundary[1] = new_lat;
 	rect -> boundary[2] = new_lon;
 	rect -> boundary[3] = new_lat;
-	RTreeInsertRect(rect, node_id, &(poi_set -> root), 0);
+	r_r_tree_insert_rect(poi_set -> rtree, rect, node_id);
 	free(rect);
 }
 

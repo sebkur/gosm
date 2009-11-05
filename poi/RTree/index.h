@@ -63,6 +63,7 @@ typedef int (*SearchHitCallback)(int id, void* arg);
 
 void RTreeClear(struct Node*);
 extern int RTreeSearch(struct Node*, struct Rect*, SearchHitCallback, void*);
+extern int RTreeSearch2(struct Node*, struct Rect*, SearchHitCallback, void*);
 extern int RTreeInsertRect(struct Rect*, int, struct Node**, int depth);
 extern int RTreeDeleteRect(struct Rect*, int, struct Node**);
 extern struct Node * RTreeNewIndex();

@@ -43,7 +43,8 @@
 #include "poi/api_control.h"
 
 #define MATCHES(a,b)	((a & b) == b)
-#define MOUSE_PRESSED(a) (MATCHES(a, GDK_BUTTON1_MASK))
+#define MOUSE1_PRESSED(a) (MATCHES(a, GDK_BUTTON1_MASK))
+#define MOUSE3_PRESSED(a) (MATCHES(a, GDK_BUTTON3_MASK))
 #define TILESIZE	256
 #define CACHE_SIZE	164
 
@@ -843,7 +844,11 @@ static gboolean key_press_cb(MapArea *map_area, GdkEventKey *event)
 		case 65366: map_area_zoom_out(map_area); break;
 		case 65535: {
 			if (!map_area -> mouse_button_pressed && map_area -> mouse_mode == MAP_MODE_POI){
-				map_area_remove_selected_poi(map_area);
+				if (map_area -> poi_selected_id != 0){
+					pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
+					map_area_remove_selected_poi(map_area);
+					pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
+				}
 			}
 			break;
 		}
@@ -880,10 +885,12 @@ static gboolean tile_loaded_cb(TileManager * tile_manager, MapArea *map_area)
 static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
-	if (event -> type == GDK_BUTTON_PRESS){
+	if (event -> type == GDK_BUTTON_PRESS && event -> button == 1){
 		pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
 	}
-	map_area -> mouse_button_pressed = TRUE;
+	if (event -> button == 1){
+		map_area -> mouse_button_pressed = TRUE;
+	}
 	gtk_widget_grab_focus(widget);
 	int x = (int) event -> x;
 	int y = (int) event -> y;
@@ -901,11 +908,13 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 		}
 	}
 	if (event -> type == GDK_BUTTON_PRESS){
-		if (event -> button == 1){
+		if (event -> button == 1 || event -> button == 3){
 			map_area -> point_drag.x = x;
 			map_area -> point_drag.y = y;
 			map_area -> point_drag_start.x = x;
 			map_area -> point_drag_start.y = y;
+		}
+		if (event -> button == 1){
 			if (map_area -> mouse_mode == MAP_MODE_MOVE || map_area -> mouse_mode == MAP_MODE_POI){
 				if (map_area -> poi_active_id != 0){
 					poi_manager_print_node_information(
@@ -937,7 +946,9 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event)
 {
 	MapArea *map_area = GOSM_MAP_AREA(widget);
-	map_area -> mouse_button_pressed = FALSE;
+	if (event -> button == 1){
+		map_area -> mouse_button_pressed = FALSE;
+	}
 	int x = (int) event -> x;
 	int y = (int) event -> y;
 	double lon = map_area_x_to_lon(map_area, x);
@@ -945,24 +956,32 @@ static gboolean mouse_button_release_cb(GtkWidget *widget, GdkEventButton *event
 	if (event -> type == GDK_BUTTON_RELEASE){
 		if(map_area -> mouse_mode == MAP_MODE_POI){
 			if (map_area -> point_drag_start.x == x && map_area -> point_drag_start.y == y){
-				if (map_area -> poi_active_id == 0){
-					map_area_add_poi(map_area, lon, lat);
-					mouse_motion_poi(map_area, x, y);
+				if (event -> button == 1){
+					if (map_area -> poi_active_id == 0){
+						map_area_add_poi(map_area, lon, lat);
+						mouse_motion_poi(map_area, x, y);
+					}
 				}
 			}else{
-				if (map_area -> poi_active_id != 0){
-					map_area_reposition_selected_poi(map_area, lon, lat);
+				if (event -> button == 1){
+					if (map_area -> poi_active_id != 0){
+						map_area_reposition_selected_poi(map_area, lon, lat);
+					}
 				}
 			}
 		}
 		if (map_area -> point_drag_start.x == x && map_area -> point_drag_start.y == y){
-			if (map_area -> poi_selected_id != map_area -> poi_active_id){
-				map_area -> poi_selected_id = map_area -> poi_active_id;
-				map_area_repaint(map_area);
+			if (event -> button == 1){
+				if (map_area -> poi_selected_id != map_area -> poi_active_id){
+					map_area -> poi_selected_id = map_area -> poi_active_id;
+					map_area_repaint(map_area);
+				}
 			}
 		}
 	}
-	pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
+	if (event -> button == 1){
+		pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
+	}
 }
 
 /****************************************************************************************************
@@ -979,19 +998,25 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 	int y = (int) event -> y;
 	switch(map_area -> mouse_mode){
 	case(MAP_MODE_MOVE):{
-		if (MOUSE_PRESSED(event->state)){
+		if (MOUSE1_PRESSED(event->state) || MOUSE3_PRESSED(event->state)){
 			mouse_motion_drag_map(map_area, x, y);
 		}else{
 			mouse_motion_poi(map_area, x, y);
 		}
 		break;
 	}
+	case(MAP_MODE_PATH):{
+		if (MOUSE3_PRESSED(event -> state)){
+			mouse_motion_drag_map(map_area, x, y);
+		}
+		break;
+	}
 	case(MAP_MODE_SELECT):{
-		if (!MOUSE_PRESSED(event->state)){
+		if (!MOUSE1_PRESSED(event->state)){
 			// check if pointer is over one of the pads
 			mouse_motion_selection(map_area, x, y);
 		}
-		if (MOUSE_PRESSED(event->state)){
+		if (MOUSE1_PRESSED(event->state)){
 			if (map_area -> selection_mouseover == DIRECTION_NONE){
 				// set selection to: {last press pos, current pointer pos}
 				mouse_motion_selection_create(map_area, x, y);
@@ -1000,16 +1025,23 @@ static gboolean mouse_motion_cb(GtkWidget *widget, GdkEventMotion *event)
 				mouse_motion_selection_drag(map_area, x, y);
 			}
 		}
+		if (MOUSE3_PRESSED(event -> state)){
+			mouse_motion_drag_map(map_area, x, y);
+		}
 		break;
 	}
 	case(MAP_MODE_POI):{
-		if (MOUSE_PRESSED(event -> state)){
-			if (map_area -> poi_active_id == 0){
-				mouse_motion_drag_map(map_area, x, y);
-			}else{
+		if (MOUSE1_PRESSED(event -> state)){
+			if (map_area -> poi_active_id != 0){
 				mouse_motion_drag_poi(map_area, x, y);
 			}
-		}else{
+		}
+		if (MOUSE1_PRESSED(event -> state) || MOUSE3_PRESSED(event -> state)){
+			if (map_area -> poi_active_id == 0){
+				mouse_motion_drag_map(map_area, x, y);
+			}
+		}
+		if (!MOUSE1_PRESSED(event -> state) && !MOUSE3_PRESSED(event -> state)){
 			mouse_motion_poi(map_area, x, y);
 		}
 		break;
@@ -1216,9 +1248,11 @@ void mouse_motion_selection_create(MapArea * map_area, int x, int y)
 ****************************************************************************************************/
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 {
-	//printf("function map_area.expose_cb\n");
+	printf("function map_area.expose_cb\n");
 	MapArea *map_area = GOSM_MAP_AREA(widget);
-	//pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
+	if (!map_area -> mouse_button_pressed){
+		pthread_mutex_lock(&(map_area -> poi_manager -> mutex_pois));
+	}
 	MapPosition *map_position = &(map_area -> map_position);
 	/* recreate == true <=> first exposure OR widget-size changed */
 	gboolean recreate = map_area -> pixmap == NULL
@@ -1603,7 +1637,9 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	pango_layout_set_markup(pl_marker, "<b>FOO Bar</b>", -1);
 	pango_cairo_show_layout(cr_font, pl_marker);
 	cairo_fill(cr_font); */
-	//pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
+	if (!map_area -> mouse_button_pressed){
+		pthread_mutex_unlock(&(map_area -> poi_manager -> mutex_pois));
+	}
 	return TRUE;
 }
 

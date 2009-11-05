@@ -30,6 +30,7 @@
 #include <gdk/gdk.h>
 
 #include "RTree/index.h"
+#include "r_r_tree.h"
 #include "../map_types.h"
 
 #define GOSM_TYPE_POI_SET           (poi_set_get_type ())
@@ -46,7 +47,7 @@ struct _PoiSet
 {
 	GObject parent;
 
-	struct Node * root;
+	RRTree * rtree;
 	GTree * points;
 	gboolean visible;
 

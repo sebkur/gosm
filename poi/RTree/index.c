@@ -68,7 +68,40 @@ int RTreeSearch(struct Node *N, struct Rect *R, SearchHitCallback shcb, void* cb
 	return hitCount;
 }
 
+int RTreeSearch2(struct Node *N, struct Rect *R, SearchHitCallback shcb, void* cbarg)
+{
+	register struct Node *n = N;
+	register struct Rect *r = R; // NOTE: Suspected bug was R sent in as Node* and cast to Rect* here. Fix not yet tested.
+	register int hitCount = 0;
+	register int i;
 
+	assert(n);
+	assert(n->level >= 0);
+	assert(r);
+
+	if (n->level > 0) /* this is an internal node in the tree */
+	{
+		for (i=0; i<NODECARD; i++)
+			if (n->branch[i].child &&
+			    RTreeOverlap(r,&n->branch[i].rect))
+			{
+				hitCount += RTreeSearch2(n->branch[i].child, R, shcb, cbarg);
+			}
+	}
+	else /* this is a leaf node */
+	{
+		for (i=0; i<LEAFCARD; i++)
+			if (n->branch[i].child &&
+			    RTreeOverlap(r,&n->branch[i].rect))
+			{
+				hitCount++;
+				if(shcb) // call the user-provided callback
+					if( ! shcb(-((int)n->branch[i].child), cbarg))
+						return hitCount; // callback wants to terminate search early
+			}
+	}
+	return hitCount;
+}
 
 // Inserts a new data rectangle into the index structure.
 // Recursively descends tree, propagates splits back up.
@@ -229,7 +262,7 @@ RTreeDeleteRect2(struct Rect *R, int Tid, struct Node *N, struct ListNode **Ee)
 	register int i;
 
 	assert(r && n && ee);
-	//assert(tid >= 0);
+	assert(tid >= 0);
 	assert(n->level >= 0);
 
 	if (n->level > 0)  // not a leaf node
@@ -291,7 +324,7 @@ int RTreeDeleteRect(struct Rect *R, int Tid, struct Node**Nn)
 
 	assert(r && nn);
 	assert(*nn);
-	//assert(tid >= 0);
+	assert(tid >= 0);
 
 	if (!RTreeDeleteRect2(r, tid, *nn, &reInsertList))
 	{

@@ -36,6 +36,7 @@
 #include "poi/edit/edit_action_add_tag.h"
 #include "poi/edit/edit_action_remove_tag.h"
 #include "poi/edit/edit_action_change_tag.h"
+#include "poi/r_r_tree.h"
 #include "poi/poi_set.h"
 #include "poi/poi_manager.h"
 #include "poi/poi_tool.h"
@@ -103,6 +104,7 @@ void make_gtk_types_safe()
 	dummy = GOSM_TYPE_EDIT_ACTION_ADD_TAG;
 	dummy = GOSM_TYPE_EDIT_ACTION_REMOVE_TAG;
 	dummy = GOSM_TYPE_EDIT_ACTION_CHANGE_TAG;
+	dummy = GOSM_TYPE_R_R_TREE;
 	dummy = GOSM_TYPE_POI_SET;
 	dummy = GOSM_TYPE_POI_MANAGER;
 	dummy = GOSM_TYPE_POI_TOOL;

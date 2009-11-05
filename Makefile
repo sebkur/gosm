@@ -48,6 +48,7 @@ poi/RTree/node.c \
 poi/RTree/rect.c \
 poi/RTree/sphvol.c \
 poi/RTree/split_l.c \
+poi/r_r_tree.c \
 poi/osm_reader.c \
 poi/poi_selector.c \
 poi/poi_manager.c \
@@ -126,6 +127,7 @@ poi/RTree/node.o \
 poi/RTree/rect.o \
 poi/RTree/sphvol.o \
 poi/RTree/split_l.o \
+poi/r_r_tree.o \
 poi/osm_reader.o \
 poi/poi_selector.o \
 poi/poi_manager.o \
