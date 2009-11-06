@@ -29,6 +29,9 @@
 #include "toolbar.h"
 #include "paths.h"
 
+#include "bookmark/bookmark.h"
+#include "bookmark/bookmark_location.h"
+
 G_DEFINE_TYPE (Toolbar, toolbar, GTK_TYPE_TOOLBAR);
 
 /*enum
@@ -52,6 +55,7 @@ static gboolean button_map_controls_cb(GtkWidget *widget, gpointer toolbar_p);
 static gboolean button_side_bar_right_cb(GtkWidget *widget, gpointer toolbar_p);
 static gboolean combo_tiles_cb(GtkWidget *widget, gpointer toolbar_p);
 static gboolean button_savemaptype_cb(GtkWidget * widget, gpointer toolbar_p);
+static gboolean button_bookmark_cb(GtkWidget * widget, gpointer toolbar_p);
 
 static gboolean toolbar_network_state_cb(MapArea * map_area, gpointer toolbar_p);
 static gboolean toolbar_mouse_mode_cb(MapArea * map_area, gpointer toolbar_p);
@@ -68,7 +72,8 @@ GtkWidget * toolbar_new(
 	Config * config, 
 	MapNavigator * map_navigator, 
 	GtkWidget * side_left, 
-	GtkWidget * side_right)
+	GtkWidget * side_right,
+	BookmarkManager * bookmark_manager)
 {
 	Toolbar * toolbar = g_object_new(GOSM_TYPE_TOOLBAR, NULL);
 	toolbar -> map_area = map_area;
@@ -76,6 +81,7 @@ GtkWidget * toolbar_new(
 	toolbar -> map_navigator = map_navigator;
 	toolbar -> side_right = side_right;
 	toolbar -> side_left = side_left;
+	toolbar -> bookmark_manager = bookmark_manager;
 	
 	gtk_toolbar_set_style(GTK_TOOLBAR(toolbar), GTK_TOOLBAR_ICONS);
 
@@ -255,6 +261,9 @@ GtkWidget * toolbar_new(
 	g_signal_connect(
 		G_OBJECT(toolbar -> combo_tiles), "changed", 
 		G_CALLBACK(combo_tiles_cb), (gpointer)toolbar);
+	g_signal_connect(
+		G_OBJECT(button_bookmark), "clicked", 
+		G_CALLBACK(button_bookmark_cb), (gpointer)toolbar);
 
 	/********************************************************************************************
 	* focus redirection
@@ -533,4 +542,17 @@ static gboolean button_zoom_out_cb(GtkWidget *widget, gpointer toolbar_p)
 {
 	Toolbar * toolbar = GOSM_TOOLBAR(toolbar_p);
 	map_area_zoom_out(toolbar -> map_area);
+}
+
+/****************************************************************************************************
+* add a bookmark for the current position & zoomlevel
+****************************************************************************************************/
+static gboolean button_bookmark_cb(GtkWidget * widget, gpointer toolbar_p)
+{
+	Toolbar * toolbar = GOSM_TOOLBAR(toolbar_p);
+	double lon = map_area_position_get_center_lon(toolbar -> map_area);
+	double lat = map_area_position_get_center_lat(toolbar -> map_area);
+	int zoom = map_area_get_zoom(toolbar -> map_area);
+	Bookmark * bookmark = bookmark_location_new("Test", lon, lat, zoom);
+	bookmark_manager_add_bookmark(toolbar -> bookmark_manager, bookmark);
 }

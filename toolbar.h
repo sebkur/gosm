@@ -32,6 +32,7 @@
 #include "map_area.h"
 #include "map_navigator.h"
 #include "config/config.h"
+#include "bookmark/bookmark_manager.h"
 
 #define GOSM_TYPE_TOOLBAR           (toolbar_get_type ())
 #define GOSM_TOOLBAR(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_TOOLBAR, Toolbar))
@@ -61,6 +62,8 @@ struct _Toolbar
 	GtkWidget * 	combo_tiles;
 	GtkWidget *	button_grid;
 	GtkWidget * 	button_font;
+
+	BookmarkManager * bookmark_manager;
 };
 
 struct _ToolbarClass
@@ -75,6 +78,7 @@ GtkWidget * toolbar_new(
 	Config * config, 
 	MapNavigator * map_navigator, 
 	GtkWidget * side_left, 
-	GtkWidget * side_right);
+	GtkWidget * side_right,
+	BookmarkManager * bookmark_manager);
 
 #endif /* _TOOLBAR_H_ */

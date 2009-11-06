@@ -43,22 +43,60 @@ enum
 
 static GtkTreeModel * bookmarks_widget_create_model (BookmarkManager * bookmark_manager);
 static GtkWidget * bookmarks_widget_create_view ();
-void bookmark_widget_view_cb (GtkTreeView * treeview,
+static gboolean bookmark_widget_view_cb (GtkTreeView * treeview,
 				GtkTreePath * path,
 				GtkTreeViewColumn * col,
 				gpointer bookmark_widget_p);
+static gboolean bookmark_widget_bookmark_added_cb(BookmarkManager * bookmark_manager,
+				gpointer bookmark_p,
+				gpointer bookmark_widget_p);
+static gboolean bookmark_widget_save_cb(GtkWidget * button,
+				BookmarkManager * bookmark_manager);
 
 GtkWidget * bookmark_widget_new(BookmarkManager * bookmark_manager, MapArea * map_area)
 {
 	BookmarkWidget * bookmark_widget = g_object_new(GOSM_TYPE_BOOKMARK_WIDGET, NULL);
 	bookmark_widget -> map_area = map_area;
+
+	GtkWidget * toolbar = gtk_hbox_new(FALSE, 0);
+	GtkWidget * button_add = gtk_button_new();
+	GtkWidget * button_delete = gtk_button_new();
+	GtkWidget * button_save = gtk_button_new();
+	GtkWidget * button_revert = gtk_button_new();
+	GtkWidget * icon_add = gtk_image_new_from_stock("gtk-add", GTK_ICON_SIZE_MENU);
+	GtkWidget * icon_delete = gtk_image_new_from_stock("gtk-remove", GTK_ICON_SIZE_MENU);
+	GtkWidget * icon_save = gtk_image_new_from_stock("gtk-save", GTK_ICON_SIZE_MENU);
+	GtkWidget * icon_revert = gtk_image_new_from_stock("gtk-revert-to-saved", GTK_ICON_SIZE_MENU);
+	gtk_button_set_image(GTK_BUTTON(button_add), icon_add);
+	gtk_button_set_image(GTK_BUTTON(button_delete), icon_delete);
+	gtk_button_set_image(GTK_BUTTON(button_save), icon_save);
+	gtk_button_set_image(GTK_BUTTON(button_revert), icon_revert);
+	gtk_box_pack_start(GTK_BOX(toolbar), button_add, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(toolbar), button_delete, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(toolbar), button_save, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(toolbar), button_revert, FALSE, FALSE, 0);
+	gtk_widget_set_tooltip_text(button_add, "add bookmark");
+	gtk_widget_set_tooltip_text(button_delete, "remove bookmark");
+	gtk_widget_set_tooltip_text(button_save, "save bookmarks to file");
+	gtk_widget_set_tooltip_text(button_revert, "revert to saved state");
+
 	bookmark_widget -> view = bookmarks_widget_create_view();
 	GtkTreeModel * model = bookmarks_widget_create_model(bookmark_manager);
 	gtk_tree_view_set_model (GTK_TREE_VIEW (bookmark_widget -> view), model);
 	g_object_unref (model);
+
+	gtk_box_pack_start(GTK_BOX(bookmark_widget), toolbar, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(bookmark_widget), bookmark_widget -> view, TRUE, TRUE, 0);
-	g_signal_connect(bookmark_widget -> view, "row-activated", 
-		(GCallback) bookmark_widget_view_cb, (gpointer) bookmark_widget);
+
+	g_signal_connect(
+		G_OBJECT(bookmark_widget -> view), "row-activated", 
+		G_CALLBACK(bookmark_widget_view_cb), (gpointer) bookmark_widget);
+	g_signal_connect(
+		G_OBJECT(bookmark_manager), "bookmark-added", 
+		G_CALLBACK(bookmark_widget_bookmark_added_cb), (gpointer) bookmark_widget);
+	g_signal_connect(
+		G_OBJECT(button_save), "clicked", 
+		G_CALLBACK(bookmark_widget_save_cb), (gpointer) bookmark_manager);
 	return GTK_WIDGET(bookmark_widget);
 }
 
@@ -108,7 +146,7 @@ static GtkTreeModel * bookmarks_widget_create_model (BookmarkManager * bookmark_
 	return GTK_TREE_MODEL (store);
 }
 
-void bookmark_widget_view_cb (GtkTreeView * treeview,
+static gboolean bookmark_widget_view_cb (GtkTreeView * treeview,
 				GtkTreePath * path,
 				GtkTreeViewColumn * col,
 				gpointer bookmark_widget_p)
@@ -127,4 +165,28 @@ void bookmark_widget_view_cb (GtkTreeView * treeview,
 			bookmark -> zoom);
 		map_area_repaint(bookmark_widget -> map_area);
 	}
+	return FALSE;
+}
+
+static gboolean bookmark_widget_bookmark_added_cb(BookmarkManager * bookmark_manager,
+				gpointer bookmark_p,
+				gpointer bookmark_widget_p)
+{
+	Bookmark * bookmark = GOSM_BOOKMARK(bookmark_p);
+	BookmarkWidget * bookmark_widget = GOSM_BOOKMARK_WIDGET(bookmark_widget_p);
+
+	GtkTreeView * view = GTK_TREE_VIEW(bookmark_widget -> view);
+	GtkTreeModel * model = gtk_tree_view_get_model(view);
+	GtkTreeIter iter;
+	gtk_list_store_append (GTK_LIST_STORE(model), &iter);
+	gtk_list_store_set (GTK_LIST_STORE(model), &iter,
+				COL_NAME, GOSM_BOOKMARK_LOCATION(bookmark) -> name,
+				COL_BOOKMARK, bookmark,
+				-1);
+	return FALSE;
+}
+static gboolean bookmark_widget_save_cb(GtkWidget * button,
+				BookmarkManager * bookmark_manager)
+{
+	bookmark_manager_save(bookmark_manager);
 }

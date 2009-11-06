@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
 	/***************************************************************************
 	 * Toolbar
 	 ***************************************************************************/
-	toolbar = toolbar_new(map_area, config, navigator, sidebar_left, sidebar_right);
+	toolbar = toolbar_new(map_area, config, navigator, sidebar_left, sidebar_right, bookmark_manager);
 
 	/***************************************************************************
 	 * Layout of main window

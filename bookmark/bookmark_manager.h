@@ -52,7 +52,7 @@ struct _BookmarkManagerClass
 {
 	GObjectClass parent_class;
 
-	//void (* function_name) (BookmarkManager *bookmark_manager);
+	void (* bookmark_added) (BookmarkManager *bookmark_manager, gpointer bookmark_p);
 };
 
 BookmarkManager * bookmark_manager_new();
@@ -61,5 +61,6 @@ gboolean bookmark_manager_read_bookmarks(BookmarkManager * bookmark_manager);
 
 GArray * bookmark_manager_get_bookmarks(BookmarkManager * bookmark_manager);
 void bookmark_manager_add_bookmark(BookmarkManager * bookmark_manager, Bookmark * bookmark);
+gboolean bookmark_manager_save(BookmarkManager * bookmark_manager);
 
 #endif /* _BOOKMARK_MANAGER_H_ */

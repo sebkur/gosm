@@ -37,15 +37,13 @@
 
 G_DEFINE_TYPE (BookmarkManager, bookmark_manager, G_TYPE_OBJECT);
 
-/*enum
+enum
 {
-        SIGNAL_NAME_1,
-        SIGNAL_NAME_n,
+        BOOKMARK_ADDED,
         LAST_SIGNAL
-};*/
+};
 
-//static guint bookmark_manager_signals[LAST_SIGNAL] = { 0 };
-//g_signal_emit (widget, bookmark_manager_signals[SIGNAL_NAME_n], 0);
+static guint bookmark_manager_signals[LAST_SIGNAL] = { 0 };
 
 BookmarkManager * bookmark_manager_new()
 {
@@ -56,14 +54,14 @@ BookmarkManager * bookmark_manager_new()
 
 static void bookmark_manager_class_init(BookmarkManagerClass *class)
 {
-        /*bookmark_manager_signals[SIGNAL_NAME_n] = g_signal_new(
-                "signal-name-n",
+        bookmark_manager_signals[BOOKMARK_ADDED] = g_signal_new(
+                "bookmark-added",
                 G_OBJECT_CLASS_TYPE (class),
                 G_SIGNAL_RUN_FIRST,
-                G_STRUCT_OFFSET (BookmarkManagerClass, function_name),
+                G_STRUCT_OFFSET (BookmarkManagerClass, bookmark_added),
                 NULL, NULL,
-                g_cclosure_marshal_VOID__VOID,
-                G_TYPE_NONE, 0);*/
+                g_cclosure_marshal_VOID__POINTER,
+                G_TYPE_NONE, 1, G_TYPE_POINTER);
 }
 
 static void bookmark_manager_init(BookmarkManager *bookmark_manager)
@@ -78,6 +76,7 @@ GArray * bookmark_manager_get_bookmarks(BookmarkManager * bookmark_manager)
 void bookmark_manager_add_bookmark(BookmarkManager * bookmark_manager, Bookmark * bookmark)
 {
 	g_array_append_val(bookmark_manager -> bookmarks, bookmark);
+	g_signal_emit (G_OBJECT(bookmark_manager), bookmark_manager_signals[BOOKMARK_ADDED], 0, (gpointer) bookmark);
 }
 
 /****************************************************************************************************
@@ -125,5 +124,45 @@ gboolean bookmark_manager_read_bookmarks(BookmarkManager * bookmark_manager)
         }
 	g_strfreev(splitted);
 	//g_signal_emit (bookmark_manager, bookmark_manager_signals[BOOKMARKS_LOADED], 0);
+	return TRUE;
+}
+
+/****************************************************************************************************
+* save bookmarks
+****************************************************************************************************/
+gboolean bookmark_manager_save(BookmarkManager * bookmark_manager)
+{
+	printf("saving bookmarks\n");
+	char * filepath = config_get_bookmarks_file();
+        int fd = open(filepath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (fd == -1){
+                printf("bookmarks file could not be opened for writing\n");
+                return FALSE;
+        }
+	int i;
+	for (i = 0; i < bookmark_manager -> bookmarks -> len; i++){
+		Bookmark * bookmark = g_array_index(bookmark_manager -> bookmarks, Bookmark*, i);
+		int type = G_OBJECT_TYPE(bookmark);
+		char * type_name;
+		if (type == GOSM_TYPE_BOOKMARK_LOCATION){
+			BookmarkLocation * bl = GOSM_BOOKMARK_LOCATION(bookmark);
+			type_name = "Location";
+			char lon[20], lat[20], zoom[4];
+			sprintdouble(lon, bl -> lon, 7);
+			sprintdouble(lat, bl -> lat, 7);
+			sprintf(zoom, "%d", bl -> zoom);
+			write(fd, bl -> name, strlen(bl -> name));
+			write(fd, "\t", 1);
+			write(fd, type_name, strlen(type_name));
+			write(fd, "\t", 1);
+			write(fd, lon, strlen(lon));
+			write(fd, "\t", 1);
+			write(fd, lat, strlen(lat));
+			write(fd, "\t", 1);
+			write(fd, zoom, strlen(zoom));
+			write(fd, "\n", 1);
+		}
+	}
+	close(fd);
 	return TRUE;
 }
