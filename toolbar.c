@@ -31,6 +31,7 @@
 
 #include "bookmark/bookmark.h"
 #include "bookmark/bookmark_location.h"
+#include "bookmark/bookmark_enter_name_dialog.h"
 
 G_DEFINE_TYPE (Toolbar, toolbar, GTK_TYPE_TOOLBAR);
 
@@ -553,6 +554,12 @@ static gboolean button_bookmark_cb(GtkWidget * widget, gpointer toolbar_p)
 	double lon = map_area_position_get_center_lon(toolbar -> map_area);
 	double lat = map_area_position_get_center_lat(toolbar -> map_area);
 	int zoom = map_area_get_zoom(toolbar -> map_area);
-	Bookmark * bookmark = bookmark_location_new("Test", lon, lat, zoom);
-	bookmark_manager_add_bookmark(toolbar -> bookmark_manager, bookmark);
+	BookmarkEnterNameDialog * bend = bookmark_enter_name_dialog_new();
+	int response = bookmark_enter_name_dialog_run(bend);
+	if (response == GTK_RESPONSE_ACCEPT){
+		Bookmark * bookmark = bookmark_location_new(
+			bookmark_enter_name_dialog_get_name(bend),
+			lon, lat, zoom);
+		bookmark_manager_add_bookmark(toolbar -> bookmark_manager, bookmark);
+	}
 }

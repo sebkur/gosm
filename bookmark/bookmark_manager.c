@@ -39,7 +39,9 @@ G_DEFINE_TYPE (BookmarkManager, bookmark_manager, G_TYPE_OBJECT);
 
 enum
 {
-        BOOKMARK_ADDED,
+        BOOKMARK_LOCATION_ADDED,
+        BOOKMARK_LOCATION_REMOVED,
+	BOOKMARK_LOCATION_MOVED,
         LAST_SIGNAL
 };
 
@@ -48,17 +50,33 @@ static guint bookmark_manager_signals[LAST_SIGNAL] = { 0 };
 BookmarkManager * bookmark_manager_new()
 {
 	BookmarkManager * bookmark_manager = g_object_new(GOSM_TYPE_BOOKMARK_MANAGER, NULL);
-	bookmark_manager -> bookmarks = g_array_new(FALSE, FALSE, sizeof(Bookmark*));
+	bookmark_manager -> bookmarks_location = g_array_new(FALSE, FALSE, sizeof(Bookmark*));
 	return bookmark_manager;
 }
 
 static void bookmark_manager_class_init(BookmarkManagerClass *class)
 {
-        bookmark_manager_signals[BOOKMARK_ADDED] = g_signal_new(
-                "bookmark-added",
+        bookmark_manager_signals[BOOKMARK_LOCATION_ADDED] = g_signal_new(
+                "bookmark-location-added",
                 G_OBJECT_CLASS_TYPE (class),
                 G_SIGNAL_RUN_FIRST,
-                G_STRUCT_OFFSET (BookmarkManagerClass, bookmark_added),
+                G_STRUCT_OFFSET (BookmarkManagerClass, bookmark_location_added),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__POINTER,
+                G_TYPE_NONE, 1, G_TYPE_POINTER);
+        bookmark_manager_signals[BOOKMARK_LOCATION_REMOVED] = g_signal_new(
+                "bookmark-location-removed",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (BookmarkManagerClass, bookmark_location_removed),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        bookmark_manager_signals[BOOKMARK_LOCATION_MOVED] = g_signal_new(
+                "bookmark-location-moved",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (BookmarkManagerClass, bookmark_location_moved),
                 NULL, NULL,
                 g_cclosure_marshal_VOID__POINTER,
                 G_TYPE_NONE, 1, G_TYPE_POINTER);
@@ -68,15 +86,52 @@ static void bookmark_manager_init(BookmarkManager *bookmark_manager)
 {
 }
 
-GArray * bookmark_manager_get_bookmarks(BookmarkManager * bookmark_manager)
+GArray * bookmark_manager_get_bookmarks_location(BookmarkManager * bookmark_manager)
 {
-	return bookmark_manager -> bookmarks;
+	return bookmark_manager -> bookmarks_location;
 }
 
 void bookmark_manager_add_bookmark(BookmarkManager * bookmark_manager, Bookmark * bookmark)
 {
-	g_array_append_val(bookmark_manager -> bookmarks, bookmark);
-	g_signal_emit (G_OBJECT(bookmark_manager), bookmark_manager_signals[BOOKMARK_ADDED], 0, (gpointer) bookmark);
+	int type = G_OBJECT_TYPE(bookmark);
+	if (type == GOSM_TYPE_BOOKMARK_LOCATION){
+		g_array_append_val(bookmark_manager -> bookmarks_location, bookmark);
+		g_signal_emit (
+			G_OBJECT(bookmark_manager), 
+			bookmark_manager_signals[BOOKMARK_LOCATION_ADDED], 0, (gpointer) bookmark);
+	}
+}
+
+void bookmark_manager_remove_bookmark_location(BookmarkManager * bookmark_manager, int index)
+{
+	g_array_remove_index(bookmark_manager -> bookmarks_location, index);
+	g_signal_emit (
+		G_OBJECT(bookmark_manager), 
+		bookmark_manager_signals[BOOKMARK_LOCATION_REMOVED], 0, index);
+}
+
+void bookmark_manager_move_bookmark_location(BookmarkManager * bookmark_manager, int pos_old, int pos_new)
+{
+	Bookmark * bookmark = g_array_index(bookmark_manager -> bookmarks_location, Bookmark*, pos_old);
+	int i;
+	if (pos_new < pos_old){
+		for (i = pos_old - 1; i >= pos_new; i--){
+			Bookmark * b = g_array_index(bookmark_manager -> bookmarks_location, Bookmark*, i);
+			((Bookmark**)(void*)(bookmark_manager -> bookmarks_location -> data))[i+1] = b;
+		}
+		((Bookmark**)(void*)(bookmark_manager -> bookmarks_location -> data))[pos_new] = bookmark;
+	}
+	if (pos_new > pos_old){
+		for (i = pos_old + 1; i < pos_new; i++){
+			Bookmark * b = g_array_index(bookmark_manager -> bookmarks_location, Bookmark*, i);
+			((Bookmark**)(void*)(bookmark_manager -> bookmarks_location -> data))[i-1] = b;
+		}
+		((Bookmark**)(void*)(bookmark_manager -> bookmarks_location -> data))[pos_new-1] = bookmark;
+	}
+	int indices[2] = {pos_old, pos_new};
+	g_signal_emit (
+		G_OBJECT(bookmark_manager), 
+		bookmark_manager_signals[BOOKMARK_LOCATION_MOVED], 0, (gpointer) indices);
 }
 
 /****************************************************************************************************
@@ -140,8 +195,8 @@ gboolean bookmark_manager_save(BookmarkManager * bookmark_manager)
                 return FALSE;
         }
 	int i;
-	for (i = 0; i < bookmark_manager -> bookmarks -> len; i++){
-		Bookmark * bookmark = g_array_index(bookmark_manager -> bookmarks, Bookmark*, i);
+	for (i = 0; i < bookmark_manager -> bookmarks_location -> len; i++){
+		Bookmark * bookmark = g_array_index(bookmark_manager -> bookmarks_location, Bookmark*, i);
 		int type = G_OBJECT_TYPE(bookmark);
 		char * type_name;
 		if (type == GOSM_TYPE_BOOKMARK_LOCATION){

@@ -50,12 +50,36 @@ static gboolean bookmark_widget_view_cb (GtkTreeView * treeview,
 static gboolean bookmark_widget_bookmark_added_cb(BookmarkManager * bookmark_manager,
 				gpointer bookmark_p,
 				gpointer bookmark_widget_p);
+static gboolean bookmark_widget_bookmark_removed_cb(BookmarkManager * bookmark_manager,
+				int index,
+				gpointer bookmark_widget_p);
+static gboolean bookmark_widget_bookmark_moved_cb(BookmarkManager * bookmark_manager,
+				gpointer indices,
+				gpointer bookmark_widget_p);
+static gboolean bookmark_widget_remove_cb(GtkWidget * button,
+				BookmarkWidget * bookmark_widget);
 static gboolean bookmark_widget_save_cb(GtkWidget * button,
 				BookmarkManager * bookmark_manager);
+static void bookmark_widget_drag_data_received(
+	GtkWidget * widget,
+	GdkDragContext * context,
+	gint x,
+	gint y,
+	GtkSelectionData * selection_data,
+	guint info,
+	guint time,
+	BookmarkWidget * bookmark_widget);
+static void bookmark_widget_drag_data_get(
+	GtkWidget * widget,
+	GdkDragContext * context,
+	GtkSelectionData * selection_data,
+	guint info,
+	guint time);
 
 GtkWidget * bookmark_widget_new(BookmarkManager * bookmark_manager, MapArea * map_area)
 {
 	BookmarkWidget * bookmark_widget = g_object_new(GOSM_TYPE_BOOKMARK_WIDGET, NULL);
+	bookmark_widget -> bookmark_manager = bookmark_manager;
 	bookmark_widget -> map_area = map_area;
 
 	GtkWidget * toolbar = gtk_hbox_new(FALSE, 0);
@@ -85,15 +109,47 @@ GtkWidget * bookmark_widget_new(BookmarkManager * bookmark_manager, MapArea * ma
 	gtk_tree_view_set_model (GTK_TREE_VIEW (bookmark_widget -> view), model);
 	g_object_unref (model);
 
+	GtkTargetEntry * target = malloc(sizeof(GtkTargetEntry));
+	target -> target = "foo-test";
+	target -> flags = GTK_TARGET_SAME_WIDGET;
+	target -> info = 23;
+	gtk_tree_view_enable_model_drag_source(
+		GTK_TREE_VIEW(bookmark_widget -> view), 
+		GDK_BUTTON1_MASK, target, 1, GDK_ACTION_MOVE);
+	gtk_tree_view_enable_model_drag_dest(
+		GTK_TREE_VIEW(bookmark_widget -> view), 
+		target, 1, GDK_ACTION_MOVE);
+
+        GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
+        gtk_container_add(GTK_CONTAINER(scrolled), bookmark_widget -> view);
+        gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+                                        GTK_POLICY_AUTOMATIC,
+                                        GTK_POLICY_AUTOMATIC);
+
 	gtk_box_pack_start(GTK_BOX(bookmark_widget), toolbar, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(bookmark_widget), bookmark_widget -> view, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(bookmark_widget), scrolled, TRUE, TRUE, 0);
 
 	g_signal_connect(
 		G_OBJECT(bookmark_widget -> view), "row-activated", 
 		G_CALLBACK(bookmark_widget_view_cb), (gpointer) bookmark_widget);
 	g_signal_connect(
-		G_OBJECT(bookmark_manager), "bookmark-added", 
+		G_OBJECT(bookmark_widget -> view), "drag-data-get", 
+		G_CALLBACK(bookmark_widget_drag_data_get), (gpointer) bookmark_widget);
+	g_signal_connect(
+		G_OBJECT(bookmark_widget -> view), "drag-data-received", 
+		G_CALLBACK(bookmark_widget_drag_data_received), (gpointer) bookmark_widget);
+	g_signal_connect(
+		G_OBJECT(bookmark_manager), "bookmark-location-added", 
 		G_CALLBACK(bookmark_widget_bookmark_added_cb), (gpointer) bookmark_widget);
+	g_signal_connect(
+		G_OBJECT(bookmark_manager), "bookmark-location-removed", 
+		G_CALLBACK(bookmark_widget_bookmark_removed_cb), (gpointer) bookmark_widget);
+	g_signal_connect(
+		G_OBJECT(bookmark_manager), "bookmark-location-moved", 
+		G_CALLBACK(bookmark_widget_bookmark_moved_cb), (gpointer) bookmark_widget);
+	g_signal_connect(
+		G_OBJECT(button_delete), "clicked", 
+		G_CALLBACK(bookmark_widget_remove_cb), (gpointer) bookmark_widget);
 	g_signal_connect(
 		G_OBJECT(button_save), "clicked", 
 		G_CALLBACK(bookmark_widget_save_cb), (gpointer) bookmark_manager);
@@ -134,9 +190,9 @@ static GtkTreeModel * bookmarks_widget_create_model (BookmarkManager * bookmark_
 	GtkListStore * store = gtk_list_store_new (NUM_COLS, GOSM_TYPE_BOOKMARK, G_TYPE_STRING);
 	GtkTreeIter iter;
 	int i;
-	for (i = 0; i < bookmark_manager -> bookmarks -> len; i++){
+	for (i = 0; i < bookmark_manager -> bookmarks_location -> len; i++){
 		BookmarkLocation * bookmark = 
-			GOSM_BOOKMARK_LOCATION(g_array_index(bookmark_manager -> bookmarks, Bookmark*, i));
+			GOSM_BOOKMARK_LOCATION(g_array_index(bookmark_manager -> bookmarks_location, Bookmark*, i));
 		gtk_list_store_append (store, &iter);
 		gtk_list_store_set (store, &iter,
 					  COL_BOOKMARK, bookmark,
@@ -185,8 +241,118 @@ static gboolean bookmark_widget_bookmark_added_cb(BookmarkManager * bookmark_man
 				-1);
 	return FALSE;
 }
+
+static gboolean bookmark_widget_bookmark_removed_cb(BookmarkManager * bookmark_manager,
+				int index,
+				gpointer bookmark_widget_p)
+{
+	BookmarkWidget * bookmark_widget = GOSM_BOOKMARK_WIDGET(bookmark_widget_p);
+	GtkTreeView * view = GTK_TREE_VIEW(bookmark_widget -> view);
+	GtkTreeModel * model = gtk_tree_view_get_model(view);
+	GtkTreeIter iter;
+
+	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+	gtk_tree_path_free(path);
+	return FALSE;
+}
+
+static gboolean bookmark_widget_bookmark_moved_cb(BookmarkManager * bookmark_manager,
+				gpointer indices,
+				gpointer bookmark_widget_p)
+{
+	int * ind = (int*) indices;
+	int pos_old = ind[0];
+	int pos_new = ind[1];
+	if (pos_new > pos_old) pos_new--;
+
+	BookmarkWidget * bookmark_widget = GOSM_BOOKMARK_WIDGET(bookmark_widget_p);
+	GtkTreeView * view = GTK_TREE_VIEW(bookmark_widget -> view);
+	GtkTreeModel * model = gtk_tree_view_get_model(view);
+	GtkTreeIter iter1, iter2;
+
+	GtkTreePath * path1 = gtk_tree_path_new_from_indices(pos_old, -1);
+	gtk_tree_model_get_iter(model, &iter1, path1);
+	gtk_tree_path_free(path1);
+	GtkTreePath * path2 = gtk_tree_path_new_from_indices(pos_new, -1);
+	gtk_tree_model_get_iter(model, &iter2, path2);
+	gtk_tree_path_free(path2);
+	if (pos_new > pos_old){
+		gtk_list_store_move_after(GTK_LIST_STORE(model), &iter1, &iter2);
+	}else{
+		gtk_list_store_move_before(GTK_LIST_STORE(model), &iter1, &iter2);
+	}
+}
+
 static gboolean bookmark_widget_save_cb(GtkWidget * button,
 				BookmarkManager * bookmark_manager)
 {
 	bookmark_manager_save(bookmark_manager);
+	return FALSE;
 }
+
+static gboolean bookmark_widget_remove_cb(GtkWidget * button,
+				BookmarkWidget * bookmark_widget)
+{
+	GtkTreeView * view = GTK_TREE_VIEW(bookmark_widget -> view);
+	GtkTreePath * path;
+	GtkTreeViewColumn * cols;
+	gtk_tree_view_get_cursor(view, &path, &cols);
+	if (path != NULL){
+		int * indices = gtk_tree_path_get_indices(path);
+		int index = indices[0];
+		gtk_tree_path_free(path);
+		bookmark_manager_remove_bookmark_location(bookmark_widget -> bookmark_manager, index);
+	}
+	return FALSE;
+}
+
+static void bookmark_widget_drag_data_get(
+	GtkWidget * widget,
+	GdkDragContext * context,
+	GtkSelectionData * selection_data,
+	guint info,
+	guint time)
+{
+	GtkTreeView * view = GTK_TREE_VIEW(widget);
+	GtkTreePath * path;
+	gtk_tree_view_get_cursor(view, &path, NULL);
+	int * indices = gtk_tree_path_get_indices(path);
+	int index = indices[0];
+	int * int_data = malloc(sizeof(int));
+	*int_data = index;
+	gtk_selection_data_set(selection_data, GDK_SELECTION_TYPE_INTEGER, 32, (guchar*)int_data, 32);
+}
+
+static void bookmark_widget_drag_data_received(
+	GtkWidget * widget,
+	GdkDragContext * context,
+	gint x,
+	gint y,
+	GtkSelectionData * selection_data,
+	guint info,
+	guint time,
+	BookmarkWidget * bookmark_widget)
+{
+	guchar * data = gtk_selection_data_get_data(selection_data);
+	int old_pos = *(int*)data;
+	GtkTreePath * path;
+	GtkTreeViewDropPosition pos;
+	gtk_tree_view_get_dest_row_at_pos(GTK_TREE_VIEW(widget), x, y, &path, &pos);
+	int index = -1;
+	if (path == NULL){
+		GtkTreeModel * model = gtk_tree_view_get_model(GTK_TREE_VIEW(widget));
+		index = gtk_tree_model_iter_n_children(model, NULL);
+	}else{
+		int * indices = gtk_tree_path_get_indices(path);
+		index = indices[0];
+		if (pos == GTK_TREE_VIEW_DROP_AFTER || pos == GTK_TREE_VIEW_DROP_INTO_OR_AFTER){
+			index ++;
+		}
+	}
+	if (old_pos != index && old_pos + 1 != index){
+		bookmark_manager_move_bookmark_location(bookmark_widget -> bookmark_manager, old_pos, index);
+	}
+}
+

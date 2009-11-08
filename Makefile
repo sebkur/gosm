@@ -77,6 +77,7 @@ bookmark/bookmark.c \
 bookmark/bookmark_location.c \
 bookmark/bookmark_manager.c \
 bookmark/bookmark_widget.c \
+bookmark/bookmark_enter_name_dialog.c \
 gosm.c
 
 OBJ = \
@@ -156,6 +157,7 @@ bookmark/bookmark.o \
 bookmark/bookmark_location.o \
 bookmark/bookmark_manager.o \
 bookmark/bookmark_widget.o \
+bookmark/bookmark_enter_name_dialog.o \
 gosm.o
 
 CC  = /usr/bin/gcc

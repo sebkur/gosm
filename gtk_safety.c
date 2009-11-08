@@ -71,6 +71,7 @@
 #include "config/config.h"
 #include "config/color_box.h"
 #include "config/config_widget.h"
+#include "bookmark/bookmark_enter_name_dialog.h"
 #include "bookmark/bookmark_location.h"
 #include "bookmark/bookmark.h"
 #include "bookmark/bookmark_manager.h"
@@ -139,6 +140,7 @@ void make_gtk_types_safe()
 	dummy = GOSM_TYPE_CONFIG;
 	dummy = GOSM_TYPE_COLOR_BOX;
 	dummy = GOSM_TYPE_CONFIG_WIDGET;
+	dummy = GOSM_TYPE_BOOKMARK_ENTER_NAME_DIALOG;
 	dummy = GOSM_TYPE_BOOKMARK_LOCATION;
 	dummy = GOSM_TYPE_BOOKMARK;
 	dummy = GOSM_TYPE_BOOKMARK_MANAGER;

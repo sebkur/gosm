@@ -46,6 +46,7 @@ struct _BookmarkWidget
 {
 	GtkVBox parent;
 
+	BookmarkManager * bookmark_manager;
 	MapArea * map_area;
 	GtkWidget * view;
 };
