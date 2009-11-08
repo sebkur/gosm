@@ -52,6 +52,13 @@ BookmarkEnterNameDialog * bookmark_enter_name_dialog_new()
 	return bookmark_enter_name_dialog;
 }
 
+BookmarkEnterNameDialog * bookmark_enter_name_dialog_new_with_preset(char * preset)
+{
+	BookmarkEnterNameDialog * bookmark_enter_name_dialog = g_object_new(GOSM_TYPE_BOOKMARK_ENTER_NAME_DIALOG, NULL);
+	bookmark_enter_name_dialog -> name = preset;
+	return bookmark_enter_name_dialog;
+}
+
 static void bookmark_enter_name_dialog_class_init(BookmarkEnterNameDialogClass *class)
 {
         /*bookmark_enter_name_dialog_signals[SIGNAL_NAME_n] = g_signal_new(
@@ -98,6 +105,9 @@ int bookmark_enter_name_dialog_run(BookmarkEnterNameDialog * bookmark_enter_name
 		GTK_RESPONSE_REJECT,
 		NULL));
 	GtkWidget * entry_name = gtk_entry_new();
+	if (bookmark_enter_name_dialog -> name != NULL){
+		gtk_entry_set_text(entry_name, bookmark_enter_name_dialog -> name);
+	}
 	g_signal_connect(
 		G_OBJECT(entry_name), "key_press_event", 
 		G_CALLBACK(bookmark_enter_name_dialog_key_press_cb), dialog);

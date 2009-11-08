@@ -55,6 +55,8 @@ struct _BookmarkEnterNameDialogClass
 
 BookmarkEnterNameDialog * bookmark_enter_name_dialog_new();
 
+BookmarkEnterNameDialog * bookmark_enter_name_dialog_new_with_preset(char * preset);
+
 char * bookmark_enter_name_dialog_get_name(BookmarkEnterNameDialog * bookmark_enter_name_dialog);
 
 int bookmark_enter_name_dialog_run(BookmarkEnterNameDialog * bookmark_enter_name_dialog);

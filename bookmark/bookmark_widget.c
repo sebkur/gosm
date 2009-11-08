@@ -78,6 +78,10 @@ static void bookmark_widget_drag_data_get(
 	GtkSelectionData * selection_data,
 	guint info,
 	guint time);
+static gboolean bookmark_widget_mouse_button_press_cb(
+	GtkWidget *widget,
+	GdkEventButton *event, 
+	BookmarkManager * bookmark_manager);
 
 GtkWidget * bookmark_widget_new(BookmarkManager * bookmark_manager, MapArea * map_area)
 {
@@ -159,6 +163,9 @@ GtkWidget * bookmark_widget_new(BookmarkManager * bookmark_manager, MapArea * ma
 	g_signal_connect(
 		G_OBJECT(button_save), "clicked", 
 		G_CALLBACK(bookmark_widget_save_cb), (gpointer) bookmark_manager);
+	g_signal_connect(
+		G_OBJECT(bookmark_widget -> view), "button_press_event",
+		G_CALLBACK(bookmark_widget_mouse_button_press_cb), bookmark_manager);
 	return GTK_WIDGET(bookmark_widget);
 }
 
@@ -386,3 +393,61 @@ static void bookmark_widget_drag_data_received(
 	}
 }
 
+static gboolean bookmark_widget_popup_rename_cb(GtkWidget *widget, gpointer data)
+{
+	gpointer * array = (gpointer*)data;
+	BookmarkManager * bookmark_manager = (BookmarkManager*)array[0];
+	GtkTreePath * path = (GtkTreePath*)array[1];
+	int * indices = gtk_tree_path_get_indices(path);
+	int index = indices[0];
+	GArray * bookmarks = bookmark_manager_get_bookmarks_location(bookmark_manager);
+	BookmarkLocation * bookmark = g_array_index(bookmarks, BookmarkLocation*, index);
+	BookmarkEnterNameDialog * bend = bookmark_enter_name_dialog_new_with_preset(bookmark -> name);
+	int response = bookmark_enter_name_dialog_run(bend);
+	if (response == GTK_RESPONSE_ACCEPT){
+		char * new_name = bookmark_enter_name_dialog_get_name(bend);
+	}
+	free(data);
+	return FALSE;
+}
+
+static gboolean bookmark_widget_popup_remove_cb(GtkWidget *widget, gpointer data)
+{
+	gpointer * array = (gpointer*)data;
+	BookmarkManager * bookmark_manager = (BookmarkManager*)array[0];
+	GtkTreePath * path = (GtkTreePath*)array[1];
+	int * indices = gtk_tree_path_get_indices(path);
+	int index = indices[0];
+	bookmark_manager_remove_bookmark_location(bookmark_manager, index);
+	free(data);
+	return FALSE;
+}
+
+static gboolean bookmark_widget_mouse_button_press_cb(
+	GtkWidget *widget,
+	GdkEventButton *event, 
+	BookmarkManager * bookmark_manager)
+{
+	if (event -> button == 3){
+		GtkTreeView * view = GTK_TREE_VIEW(widget);
+		GtkTreePath * path;
+		if(gtk_tree_view_get_path_at_pos(view, event -> x, event -> y, &path, NULL, NULL, NULL)){
+			GtkWidget * menu = gtk_menu_new();
+			GtkWidget * item_rename = gtk_menu_item_new_with_label("rename");
+			GtkWidget * item_remove = gtk_menu_item_new_with_label("remove");
+			gtk_menu_shell_append(GTK_MENU_SHELL(menu), item_rename);
+			gtk_menu_shell_append(GTK_MENU_SHELL(menu), item_remove);
+			gtk_widget_show_all(menu);
+			gpointer * data = malloc(sizeof(gpointer)*2);
+			data[0] = bookmark_manager; data[1] = path;
+			g_signal_connect(
+				G_OBJECT(item_rename), "activate",
+				G_CALLBACK(bookmark_widget_popup_rename_cb), data);
+			g_signal_connect(
+				G_OBJECT(item_remove), "activate",
+				G_CALLBACK(bookmark_widget_popup_remove_cb), data);
+			gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, event -> button, event -> time);
+		}
+	}
+	return FALSE;
+}
