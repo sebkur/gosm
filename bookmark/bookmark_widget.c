@@ -28,6 +28,7 @@
 
 #include "bookmark_widget.h"
 #include "bookmark_location.h"
+#include "bookmark_enter_name_dialog.h"
 
 G_DEFINE_TYPE (BookmarkWidget, bookmark_widget, GTK_TYPE_VBOX);
 
@@ -56,6 +57,8 @@ static gboolean bookmark_widget_bookmark_removed_cb(BookmarkManager * bookmark_m
 static gboolean bookmark_widget_bookmark_moved_cb(BookmarkManager * bookmark_manager,
 				gpointer indices,
 				gpointer bookmark_widget_p);
+static gboolean bookmark_widget_add_cb(GtkWidget * widget,
+				BookmarkWidget * bookmark_widget);
 static gboolean bookmark_widget_remove_cb(GtkWidget * button,
 				BookmarkWidget * bookmark_widget);
 static gboolean bookmark_widget_save_cb(GtkWidget * button,
@@ -147,6 +150,9 @@ GtkWidget * bookmark_widget_new(BookmarkManager * bookmark_manager, MapArea * ma
 	g_signal_connect(
 		G_OBJECT(bookmark_manager), "bookmark-location-moved", 
 		G_CALLBACK(bookmark_widget_bookmark_moved_cb), (gpointer) bookmark_widget);
+	g_signal_connect(
+		G_OBJECT(button_add), "clicked", 
+		G_CALLBACK(bookmark_widget_add_cb), (gpointer) bookmark_widget);
 	g_signal_connect(
 		G_OBJECT(button_delete), "clicked", 
 		G_CALLBACK(bookmark_widget_remove_cb), (gpointer) bookmark_widget);
@@ -285,6 +291,9 @@ static gboolean bookmark_widget_bookmark_moved_cb(BookmarkManager * bookmark_man
 	}
 }
 
+/****************************************************************************************************
+* save the current list of bookmarks
+****************************************************************************************************/
 static gboolean bookmark_widget_save_cb(GtkWidget * button,
 				BookmarkManager * bookmark_manager)
 {
@@ -292,6 +301,27 @@ static gboolean bookmark_widget_save_cb(GtkWidget * button,
 	return FALSE;
 }
 
+/****************************************************************************************************
+* add a bookmark for the current position & zoomlevel
+****************************************************************************************************/
+static gboolean bookmark_widget_add_cb(GtkWidget * widget, BookmarkWidget * bookmark_widget)
+{
+	double lon = map_area_position_get_center_lon(bookmark_widget -> map_area);
+	double lat = map_area_position_get_center_lat(bookmark_widget -> map_area);
+	int zoom = map_area_get_zoom(bookmark_widget -> map_area);
+	BookmarkEnterNameDialog * bend = bookmark_enter_name_dialog_new();
+	int response = bookmark_enter_name_dialog_run(bend);
+	if (response == GTK_RESPONSE_ACCEPT){
+		Bookmark * bookmark = bookmark_location_new(
+			bookmark_enter_name_dialog_get_name(bend),
+			lon, lat, zoom);
+		bookmark_manager_add_bookmark(bookmark_widget -> bookmark_manager, bookmark);
+	}
+}
+
+/****************************************************************************************************
+* remove the currently selected bookmark
+****************************************************************************************************/
 static gboolean bookmark_widget_remove_cb(GtkWidget * button,
 				BookmarkWidget * bookmark_widget)
 {
