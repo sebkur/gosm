@@ -935,6 +935,12 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 			if (map_area -> mouse_mode == MAP_MODE_MOVE || map_area -> mouse_mode == MAP_MODE_POI){
 				if (map_area -> poi_selected_id != map_area -> poi_active_id){
 					map_area -> poi_selected_id = map_area -> poi_active_id;
+					if (map_area -> poi_selected_id != 0){
+						LonLatTags * llt = poi_manager_get_node(
+							map_area -> poi_manager, map_area -> poi_active_id);
+						g_signal_emit (map_area, 
+							map_area_signals[MAP_NODE_SELECTED], 0, (gpointer)llt);
+					}
 					map_area_repaint(map_area);
 				}else{
 					if (map_area -> poi_active_id == 0){

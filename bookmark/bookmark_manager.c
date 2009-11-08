@@ -34,6 +34,7 @@
 #include "bookmark_location.h"
 #include "../customio.h"
 #include "../config/config.h"
+#include "../paths.h"
 
 G_DEFINE_TYPE (BookmarkManager, bookmark_manager, G_TYPE_OBJECT);
 
@@ -132,6 +133,18 @@ void bookmark_manager_move_bookmark_location(BookmarkManager * bookmark_manager,
 	g_signal_emit (
 		G_OBJECT(bookmark_manager), 
 		bookmark_manager_signals[BOOKMARK_LOCATION_MOVED], 0, (gpointer) indices);
+}
+
+/****************************************************************************************************
+* copy the default bookmarks into config-directory
+****************************************************************************************************/
+gboolean bookmark_manager_create_default_bookmarks()
+{
+	char * from = GOSM_BOOKMARK_DIR "res/bookmarks";
+	char * to = config_get_bookmarks_file();
+	int ret = copy_file(from, to);
+	free(to);
+	return ret == 0;
 }
 
 /****************************************************************************************************

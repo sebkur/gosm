@@ -60,12 +60,13 @@ struct _BookmarkManagerClass
 BookmarkManager * bookmark_manager_new();
 
 gboolean bookmark_manager_read_bookmarks(BookmarkManager * bookmark_manager);
+gboolean bookmark_manager_save(BookmarkManager * bookmark_manager);
+gboolean bookmark_manager_create_default_bookmarks();
 
 GArray * bookmark_manager_get_bookmarks_location(BookmarkManager * bookmark_manager);
 void bookmark_manager_add_bookmark(BookmarkManager * bookmark_manager, Bookmark * bookmark);
 void bookmark_manager_remove_bookmark_location(BookmarkManager * bookmark_manager, int index);
 void bookmark_manager_move_bookmark_location(BookmarkManager * bookmark_manager, int pos_old, int pos_new);
-gboolean bookmark_manager_save(BookmarkManager * bookmark_manager);
 
 
 #endif /* _BOOKMARK_MANAGER_H_ */

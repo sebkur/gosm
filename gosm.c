@@ -328,9 +328,17 @@ int main(int argc, char *argv[])
 	/* pois */
 	PoiTool * poi_tool = GOSM_POI_TOOL(poi_tool_new(poi_manager));
 	/* bookmarks */
-	//GtkWidget * placeholder_bookmarks = gtk_vbox_new(FALSE, 0);
 	bookmark_manager = bookmark_manager_new();
-	bookmark_manager_read_bookmarks(bookmark_manager);
+	gboolean bookmarks = bookmark_manager_read_bookmarks(bookmark_manager);
+	if (!bookmarks) {
+		printf("did not find bookmarks file, attempting to create it\n");
+		bookmarks = bookmark_manager_create_default_bookmarks();
+		if (bookmarks){
+			printf("created bookmarks file\n");
+			bookmarks = bookmark_manager_read_bookmarks(bookmark_manager);
+		}
+		if (!bookmarks) printf("could not read newly created bookmarks file\n");
+	}
 	bookmark_widget = bookmark_widget_new(bookmark_manager, map_area);
 	/* namefinder */
 	GtkWidget * notebook_namefinder = gtk_notebook_new();

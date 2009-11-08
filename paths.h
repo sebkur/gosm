@@ -33,6 +33,7 @@
 #define GOSM_LEGEND_DIR "legend/"
 #define GOSM_IMAGEGLUE_DIR "imageglue/"
 #define GOSM_POI_DIR "poi/"
+#define GOSM_BOOKMARK_DIR "bookmark/"
 
 #else
 
@@ -43,6 +44,7 @@
 #define GOSM_LEGEND_DIR "/usr/share/gosm/legend/"
 #define GOSM_IMAGEGLUE_DIR "/usr/lib/gosm/imageglue/"
 #define GOSM_POI_DIR "/usr/share/gosm/poi/"
+#define GOSM_BOOKMARK_DIR "/usr/share/gosm/bookmark/"
 
 #endif
 
