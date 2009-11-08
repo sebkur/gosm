@@ -68,3 +68,12 @@ static void bookmark_location_class_init(BookmarkLocationClass *class)
 static void bookmark_location_init(BookmarkLocation *bookmark_location)
 {
 }
+
+void bookmark_location_rename(BookmarkLocation * bookmark, char * name)
+{
+	free(bookmark -> name);
+	int len_name = strlen(name) + 1;
+	bookmark -> name = malloc(sizeof(char) * len_name);
+	strncpy(bookmark -> name, name, len_name);
+}
+

@@ -60,4 +60,6 @@ struct _BookmarkLocationClass
 
 Bookmark * bookmark_location_new(char * name, double lon, double lat, int zoom);
 
+void bookmark_location_rename(BookmarkLocation * bookmark, char * name);
+
 #endif /* _BOOKMARK_LOCATION_H_ */

@@ -55,6 +55,7 @@ struct _BookmarkManagerClass
 	void (* bookmark_location_added) (BookmarkManager *bookmark_manager, gpointer bookmark_p);
 	void (* bookmark_location_removed) (BookmarkManager *bookmark_manager, int index);
 	void (* bookmark_location_moved) (BookmarkManager *bookmark_manager, gpointer positions);
+	void (* bookmark_location_renamed) (BookmarkManager *bookmark_manager, int index);
 };
 
 BookmarkManager * bookmark_manager_new();
@@ -67,6 +68,7 @@ GArray * bookmark_manager_get_bookmarks_location(BookmarkManager * bookmark_mana
 void bookmark_manager_add_bookmark(BookmarkManager * bookmark_manager, Bookmark * bookmark);
 void bookmark_manager_remove_bookmark_location(BookmarkManager * bookmark_manager, int index);
 void bookmark_manager_move_bookmark_location(BookmarkManager * bookmark_manager, int pos_old, int pos_new);
+void bookmark_manager_rename_bookmark_location(BookmarkManager * bookmark_manager, int index, char * name);
 
 
 #endif /* _BOOKMARK_MANAGER_H_ */

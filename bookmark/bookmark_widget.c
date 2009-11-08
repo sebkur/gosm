@@ -57,6 +57,9 @@ static gboolean bookmark_widget_bookmark_removed_cb(BookmarkManager * bookmark_m
 static gboolean bookmark_widget_bookmark_moved_cb(BookmarkManager * bookmark_manager,
 				gpointer indices,
 				gpointer bookmark_widget_p);
+static gboolean bookmark_widget_bookmark_renamed_cb(BookmarkManager * bookmark_manager,
+				int index,
+				gpointer bookmark_widget_p);
 static gboolean bookmark_widget_add_cb(GtkWidget * widget,
 				BookmarkWidget * bookmark_widget);
 static gboolean bookmark_widget_remove_cb(GtkWidget * button,
@@ -154,6 +157,9 @@ GtkWidget * bookmark_widget_new(BookmarkManager * bookmark_manager, MapArea * ma
 	g_signal_connect(
 		G_OBJECT(bookmark_manager), "bookmark-location-moved", 
 		G_CALLBACK(bookmark_widget_bookmark_moved_cb), (gpointer) bookmark_widget);
+	g_signal_connect(
+		G_OBJECT(bookmark_manager), "bookmark-location-renamed", 
+		G_CALLBACK(bookmark_widget_bookmark_renamed_cb), (gpointer) bookmark_widget);
 	g_signal_connect(
 		G_OBJECT(button_add), "clicked", 
 		G_CALLBACK(bookmark_widget_add_cb), (gpointer) bookmark_widget);
@@ -296,6 +302,26 @@ static gboolean bookmark_widget_bookmark_moved_cb(BookmarkManager * bookmark_man
 	}else{
 		gtk_list_store_move_before(GTK_LIST_STORE(model), &iter1, &iter2);
 	}
+	return FALSE;
+}
+
+static gboolean bookmark_widget_bookmark_renamed_cb(BookmarkManager * bookmark_manager,
+				int index,
+				gpointer bookmark_widget_p)
+{
+	BookmarkWidget * bookmark_widget = GOSM_BOOKMARK_WIDGET(bookmark_widget_p);
+	BookmarkLocation * bookmark = g_array_index(bookmark_manager -> bookmarks_location, BookmarkLocation*, index);
+	GtkTreeView * view = GTK_TREE_VIEW(bookmark_widget -> view);
+	GtkTreeModel * model = gtk_tree_view_get_model(view);
+	GtkTreeIter iter;
+
+	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_list_store_set (GTK_LIST_STORE(model), &iter,
+				COL_NAME, GOSM_BOOKMARK_LOCATION(bookmark) -> name,
+				-1);
+	gtk_tree_path_free(path);
+	return FALSE;
 }
 
 /****************************************************************************************************
@@ -406,6 +432,7 @@ static gboolean bookmark_widget_popup_rename_cb(GtkWidget *widget, gpointer data
 	int response = bookmark_enter_name_dialog_run(bend);
 	if (response == GTK_RESPONSE_ACCEPT){
 		char * new_name = bookmark_enter_name_dialog_get_name(bend);
+		bookmark_manager_rename_bookmark_location(bookmark_manager, index, new_name);
 	}
 	free(data);
 	return FALSE;

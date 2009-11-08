@@ -43,6 +43,7 @@ enum
         BOOKMARK_LOCATION_ADDED,
         BOOKMARK_LOCATION_REMOVED,
 	BOOKMARK_LOCATION_MOVED,
+	BOOKMARK_LOCATION_RENAMED,
         LAST_SIGNAL
 };
 
@@ -81,6 +82,14 @@ static void bookmark_manager_class_init(BookmarkManagerClass *class)
                 NULL, NULL,
                 g_cclosure_marshal_VOID__POINTER,
                 G_TYPE_NONE, 1, G_TYPE_POINTER);
+        bookmark_manager_signals[BOOKMARK_LOCATION_RENAMED] = g_signal_new(
+                "bookmark-location-renamed",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (BookmarkManagerClass, bookmark_location_renamed),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
 }
 
 static void bookmark_manager_init(BookmarkManager *bookmark_manager)
@@ -133,6 +142,16 @@ void bookmark_manager_move_bookmark_location(BookmarkManager * bookmark_manager,
 	g_signal_emit (
 		G_OBJECT(bookmark_manager), 
 		bookmark_manager_signals[BOOKMARK_LOCATION_MOVED], 0, (gpointer) indices);
+}
+
+void bookmark_manager_rename_bookmark_location(BookmarkManager * bookmark_manager, int index, char * name)
+{
+	BookmarkLocation * bookmark = g_array_index(bookmark_manager -> bookmarks_location,
+		BookmarkLocation*, index);
+	bookmark_location_rename(bookmark, name);
+	g_signal_emit (
+		G_OBJECT(bookmark_manager), 
+		bookmark_manager_signals[BOOKMARK_LOCATION_RENAMED], 0, index);
 }
 
 /****************************************************************************************************
