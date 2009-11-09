@@ -51,6 +51,8 @@
 #include "edit/edit_action_add_tag.h"
 #include "edit/edit_action_remove_tag.h"
 #include "edit/edit_action_change_tag.h"
+#include "edit/edit_action_change_tag_key.h"
+#include "edit/edit_action_change_tag_value.h"
 
 /****************************************************************************************************
 * PoiManager is the central management unit for Points of interests
@@ -1116,6 +1118,12 @@ void poi_manager_apply_change_history(PoiManager * poi_manager)
 			}
 			//printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
 		}
+		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE){
+			EditActionChangeTagValue * eactv = GOSM_EDIT_ACTION_CHANGE_TAG_VALUE(action);
+			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eactv -> node_id)){
+				poi_manager_change_tag_value(poi_manager, FALSE, eactv -> node_id, eactv -> key, eactv -> value);
+			}
+		}
 	}
 }
 
@@ -1141,6 +1149,10 @@ void poi_manager_print_change_stack(PoiManager * poi_manager)
 		if(id == GOSM_TYPE_EDIT_ACTION_ADD_TAG){
 			EditActionAddTag * eaat = GOSM_EDIT_ACTION_ADD_TAG(action);
 			printf("ADD TAG: %d %s %s\n", eaat -> node_id, eaat -> key, eaat -> value);
+		}
+		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE){
+			EditActionChangeTagValue * eactv = GOSM_EDIT_ACTION_CHANGE_TAG_VALUE(action);
+			printf("CHANGE TAG: %d %s %s\n", eactv -> node_id, eactv -> key, eactv -> value);
 		}
 	}
 }
@@ -1264,10 +1276,9 @@ void poi_manager_change_tag_value(PoiManager * poi_manager, gboolean history, in
 		}
 	}
 	if (history){
-		//TODO: different action
-		EditAction * action = edit_action_add_tag_new(node_id, key, value);
+		EditAction * action = edit_action_change_tag_value_new(node_id, key, value);
 		poi_manager_add_action(poi_manager, action);
-		g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_ADDED], 0, node_id);
+		g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_CHANGED], 0, node_id);
 	}
 }
 

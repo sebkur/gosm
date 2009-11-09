@@ -69,6 +69,8 @@ poi/edit/edit_action_add_node.c \
 poi/edit/edit_action_add_tag.c \
 poi/edit/edit_action_change_position.c \
 poi/edit/edit_action_change_tag.c \
+poi/edit/edit_action_change_tag_key.c \
+poi/edit/edit_action_change_tag_value.c \
 poi/edit/edit_action_remove_node.c \
 poi/edit/edit_action_remove_tag.c \
 gtk_safety.c \
@@ -150,6 +152,8 @@ poi/edit/edit_action_add_node.o \
 poi/edit/edit_action_add_tag.o \
 poi/edit/edit_action_change_position.o \
 poi/edit/edit_action_change_tag.o \
+poi/edit/edit_action_change_tag_key.o \
+poi/edit/edit_action_change_tag_value.o \
 poi/edit/edit_action_remove_node.o \
 poi/edit/edit_action_remove_tag.o \
 gtk_safety.o \
