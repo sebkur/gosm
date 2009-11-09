@@ -118,6 +118,70 @@ void tag_tree_destroy(
 	g_tree_destroy(tag_tree -> tree);
 }
 
+void tag_tree_add_node_tag(
+	TagTree * tag_tree,
+	int node_id,
+	char * key,
+	char * val)
+{
+	GTree * tree1 = (GTree*)g_tree_lookup(tag_tree -> tree, key);
+	if (tree1 == NULL){
+		/* key not found on first level */
+		tree1 = g_tree_new_full(
+			tag_tree_compare_strings, NULL, 
+			tag_tree_destroy_just_free, tag_tree_destroy_element_sequences);
+		int len_k = strlen(key) + 1;
+		char * key_insert = malloc(sizeof(char) * len_k);
+		strcpy(key_insert, key);
+		g_tree_insert(tag_tree -> tree, key_insert, tree1);
+	}
+	/* now tree1 exists */
+	GSequence * elements = (GSequence*)g_tree_lookup(tree1, val);
+	if (elements == NULL){
+		/* val not found on second level */
+		elements = g_sequence_new(tag_tree_destroy_just_free);
+		int len_v = strlen(val) + 1;
+		char * val_insert = malloc(sizeof(char) * len_v);
+		strcpy(val_insert, val);
+		g_tree_insert(tree1, val_insert, elements);
+	}
+	/* now elements exists */
+	int * id_p = malloc(sizeof(int));
+	*id_p = node_id;
+	g_sequence_insert_sorted(elements, id_p, tag_tree_compare_ints, NULL);
+}
+
+void tag_tree_subtract_node_tag(
+	TagTree * tag_tree,
+	int node_id,
+	char * key,
+	char * val)
+{
+	GTree * tree1 = (GTree*)g_tree_lookup(tag_tree -> tree, key);
+	if (tree1 == NULL){
+		/* key not found on first level */
+		return;
+	}
+	GSequence * elements = (GSequence*)g_tree_lookup(tree1, val);
+	if (elements == NULL){
+		/* val not found on second level */
+		return;
+	}
+	GSequenceIter * seq_iter = g_sequence_search(elements, &node_id, tag_tree_compare_ints, NULL);
+	seq_iter = g_sequence_iter_prev(seq_iter);
+	if (node_id == *(int*)g_sequence_get(seq_iter)){
+		/* node_id found in elements */
+		g_sequence_remove(seq_iter);
+	}
+	if (g_sequence_get_length(elements) == 0){
+		g_tree_remove(tree1, val);
+		if (g_tree_height(tree1) == 0){
+			g_tree_destroy(tree1);
+			g_tree_remove(tag_tree -> tree, tree1);
+		}
+	}
+}
+
 void tag_tree_add_node(
 	TagTree * tag_tree, 
 	int node_id, 
@@ -181,7 +245,6 @@ void tag_tree_subtract_node(
 			g_sequence_remove(seq_iter);
 		}
 		if (g_sequence_get_length(elements) == 0){
-			g_sequence_free(elements);
 			g_tree_remove(tree1, val);
 			if (g_tree_height(tree1) == 0){
 				g_tree_destroy(tree1);

@@ -227,15 +227,16 @@ int main(int argc, char *argv[])
 	poi_manager = poi_manager_new();
 	map_area_set_poi_manager(map_area, poi_manager);
 	poi_manager_set_map_area(poi_manager, map_area);
-	g_signal_connect(G_OBJECT(poi_manager),"layer-added", G_CALLBACK(poi_manager_layer_cb), NULL);
-	g_signal_connect(G_OBJECT(poi_manager),"layer-deleted", G_CALLBACK(poi_manager_layer_cb), NULL);
-	g_signal_connect(G_OBJECT(poi_manager),"layer-toggled", G_CALLBACK(poi_manager_layer_cb), NULL);
-	g_signal_connect(G_OBJECT(poi_manager),"colour-changed", G_CALLBACK(poi_manager_colour_cb), NULL);
-	g_signal_connect(G_OBJECT(poi_manager),"source-activated", G_CALLBACK(poi_manager_source_cb), NULL);
-	g_signal_connect(G_OBJECT(poi_manager),"file-parsing-started", G_CALLBACK(poi_manager_parse_start_cb), NULL);
-	g_signal_connect(G_OBJECT(poi_manager),"file-parsing-ended", G_CALLBACK(poi_manager_parse_end_cb), NULL);
-	g_signal_connect(G_OBJECT(poi_manager),"api-request-started", G_CALLBACK(poi_manager_api_start_cb), NULL);
-	g_signal_connect(G_OBJECT(poi_manager),"api-request-ended", G_CALLBACK(poi_manager_api_end_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "layer-added", G_CALLBACK(poi_manager_layer_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "layer-deleted", G_CALLBACK(poi_manager_layer_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "layer-toggled", G_CALLBACK(poi_manager_layer_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "colour-changed", G_CALLBACK(poi_manager_colour_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "source-activated", G_CALLBACK(poi_manager_source_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "file-parsing-started", G_CALLBACK(poi_manager_parse_start_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "file-parsing-ended", G_CALLBACK(poi_manager_parse_end_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "api-request-started", G_CALLBACK(poi_manager_api_start_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "api-request-ended", G_CALLBACK(poi_manager_api_end_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "node-tag-added", G_CALLBACK(poi_manager_node_tag_added_cb), NULL);
 
 	/* Selection-Widget in sidebar */
 	select_tool = select_tool_new();
@@ -278,7 +279,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(distance_tool -> button_clear), "clicked", G_CALLBACK(distance_clear_cb), NULL);
 
 	/* Node-Properties-Widget in sidebar */
-	node_tool = GOSM_NODE_TOOL(node_tool_new());
+	node_tool = GOSM_NODE_TOOL(node_tool_new(poi_manager));
 	GtkWidget * frame_node_tool = gtk_custom_frame_new("Nodes");
 	gtk_custom_frame_add(GOSM_GTK_CUSTOM_FRAME(frame_node_tool), GTK_WIDGET(node_tool));
 
@@ -1049,13 +1050,17 @@ static gboolean poi_manager_api_end_cb(PoiManager * poi_manager, int index)
 	return FALSE;
 }
 
+static gboolean poi_manager_node_tag_added_cb(PoiManager * poi_manager, gpointer data)
+{
+	map_area_repaint(map_area);
+}
+
 /****************************************************************************************************
 * when a poi-node has been clicked
 ****************************************************************************************************/
-static gboolean map_node_cb(GtkWidget *widget, gpointer llt_p)
+static gboolean map_node_cb(GtkWidget *widget, int node_id)
 {
-	LonLatTags * llt = (LonLatTags*) llt_p;
-	node_tool_set_tags(node_tool, llt);
+	node_tool_set_tags(node_tool, node_id);
 	return FALSE;
 }
 

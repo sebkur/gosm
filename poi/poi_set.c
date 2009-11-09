@@ -186,7 +186,7 @@ void poi_set_remove_point(PoiSet * poi_set, int node_id, double lon, double lat)
 void poi_set_remove_node(PoiSet * poi_set, int node_id)
 {
 	LonLatTags * llt = (LonLatTags*) g_tree_lookup(poi_set -> points, &node_id);
-	poi_set_remove_point(poi_set, llt -> lon, llt -> lat, node_id);
+	poi_set_remove_point(poi_set, node_id, llt -> lon, llt -> lat);
 }
 
 /****************************************************************************************************

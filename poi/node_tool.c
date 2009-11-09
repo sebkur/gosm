@@ -27,6 +27,7 @@
 #include <gdk/gdk.h>
 
 #include "node_tool.h"
+#include "node_add_tag_dialog.h"
 #include "../map_types.h"
 
 /****************************************************************************************************
@@ -58,13 +59,27 @@ enum
 * method declarations
 ****************************************************************************************************/
 static GtkWidget * node_tool_create_view (NodeTool * node_tool);
+static gboolean node_tool_button_add_cb(GtkWidget * button, PoiManager * poi_manager);
+static gboolean node_tool_tag_added_cb(PoiManager * poi_manager, int node_id, NodeTool * node_tool);
 
 /****************************************************************************************************
 * constructor
 ****************************************************************************************************/
-GtkWidget * node_tool_new()
+GtkWidget * node_tool_new(PoiManager * poi_manager)
 {
 	NodeTool * node_tool = g_object_new(GOSM_TYPE_NODE_TOOL, NULL);
+	node_tool -> poi_manager = poi_manager;
+	/* toolbar */
+	GtkWidget * tool_bar = gtk_hbox_new(FALSE, 0);
+	GtkWidget * button_add = gtk_button_new();
+	GtkWidget * button_delete = gtk_button_new();
+	GtkWidget * icon_add = gtk_image_new_from_stock("gtk-add", GTK_ICON_SIZE_MENU);
+	GtkWidget * icon_delete = gtk_image_new_from_stock("gtk-remove", GTK_ICON_SIZE_MENU);
+	gtk_button_set_image(GTK_BUTTON(button_add), icon_add);
+	gtk_button_set_image(GTK_BUTTON(button_delete), icon_delete);
+	gtk_box_pack_start(GTK_BOX(tool_bar), button_add, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(tool_bar), button_delete, FALSE, FALSE, 0);
+	/* treeview */
 	node_tool -> view = node_tool_create_view(node_tool);
 	GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(scrolled), node_tool -> view);
@@ -72,8 +87,18 @@ GtkWidget * node_tool_new()
 	                                GTK_POLICY_AUTOMATIC,
 	                                GTK_POLICY_AUTOMATIC);
 	gtk_widget_set_size_request(scrolled, 180, -1);
+	/* layout */
+	gtk_box_pack_start(GTK_BOX(node_tool), tool_bar, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(node_tool), scrolled, TRUE, TRUE, 0);
+	/* signals */
+	g_signal_connect(
+		G_OBJECT(button_add), "clicked",
+		G_CALLBACK(node_tool_button_add_cb), poi_manager);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "node-tag-added",
+		G_CALLBACK(node_tool_tag_added_cb), node_tool);
 	return GTK_WIDGET(node_tool);
+
 }
 
 static void node_tool_class_init(NodeToolClass *class)
@@ -145,8 +170,9 @@ static GtkWidget * node_tool_create_view (NodeTool * node_tool)
 /****************************************************************************************************
 * set the tags (key/value-pairs) the NodeTool should display
 ****************************************************************************************************/
-void node_tool_set_tags(NodeTool * node_tool, LonLatTags * llt)
+void node_tool_set_tags(NodeTool * node_tool, int node_id)
 {
+	node_tool -> node_id = node_id;
 	GtkTreeView * view = GTK_TREE_VIEW(node_tool -> view);
 	GtkTreeModel * model = gtk_tree_view_get_model(view);
 	GtkTreeIter iter;
@@ -157,16 +183,44 @@ void node_tool_set_tags(NodeTool * node_tool, LonLatTags * llt)
 		gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
 	}
 	/* insert new entries */
-	path = gtk_tree_path_new_from_indices(0, -1);
-	gtk_tree_model_get_iter(model, &iter, path);
-	GHashTableIter hash_iter;
-	g_hash_table_iter_init(&hash_iter, llt -> tags);
-	gpointer key, val;
-	while(g_hash_table_iter_next(&hash_iter, &key, &val)){
-		gtk_list_store_append (GTK_LIST_STORE(model), &iter);
-		gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-					COL_KEY, (char*) key,
-					COL_VALUE, (char*) val,
-					-1);
+	if (node_id != 0){
+		LonLatTags * llt = poi_manager_get_node(node_tool -> poi_manager, node_id);
+		path = gtk_tree_path_new_from_indices(0, -1);
+		gtk_tree_model_get_iter(model, &iter, path);
+		GHashTableIter hash_iter;
+		g_hash_table_iter_init(&hash_iter, llt -> tags);
+		gpointer key, val;
+		while(g_hash_table_iter_next(&hash_iter, &key, &val)){
+			gtk_list_store_append (GTK_LIST_STORE(model), &iter);
+			gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+						COL_KEY, (char*) key,
+						COL_VALUE, (char*) val,
+						-1);
+		}
 	}
+}
+
+/****************************************************************************************************
+* show a dialog asking for key/value for a new tag
+****************************************************************************************************/
+static gboolean node_tool_button_add_cb(GtkWidget * button, PoiManager * poi_manager)
+{
+	if (poi_manager_can_add_tag(poi_manager)){
+		NodeAddTagDialog * natd = node_add_tag_dialog_new();
+		int response = node_add_tag_dialog_run(natd);
+		if (response == GTK_RESPONSE_ACCEPT){
+			poi_manager_add_tag(poi_manager, TRUE,
+				poi_manager_get_selected_node_id(poi_manager),
+				natd -> key, natd -> value);
+		}
+	}
+	return FALSE;
+}
+
+static gboolean node_tool_tag_added_cb(PoiManager * poi_manager, int node_id, NodeTool * node_tool)
+{
+	if (node_tool -> node_id == node_id){
+		node_tool_set_tags(node_tool, node_id);
+	}
+	return FALSE;
 }

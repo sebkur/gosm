@@ -76,6 +76,9 @@ enum
 	FILE_PARSING_ENDED,
 	API_REQUEST_STARTED,
 	API_REQUEST_ENDED,
+	NODE_TAG_ADDED,
+	NODE_TAG_REMOVED,
+	NODE_TAG_CHANGED,
         LAST_SIGNAL
 };
 
@@ -273,6 +276,30 @@ static void poi_manager_class_init(PoiManagerClass *class)
                 NULL, NULL,
                 g_cclosure_marshal_VOID__INT,
                 G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[NODE_TAG_ADDED] = g_signal_new(
+                "node-tag-added",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, node_tag_added),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[NODE_TAG_REMOVED] = g_signal_new(
+                "node-tag-removed",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, node_tag_removed),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[NODE_TAG_CHANGED] = g_signal_new(
+                "node-tag-changed",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, node_tag_changed),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
 }
 
 static void poi_manager_init(PoiManager *poi_manager)
@@ -427,19 +454,23 @@ gboolean poi_manager_tree_delete__iter(gpointer node_id_p, gpointer llt_p, gpoin
 void poi_manager_delete_poi_set(PoiManager * poi_manager, int index)
 {
 	StyledPoiSet * poi_set = poi_manager_get_poi_set(poi_manager, index);
-	g_tree_foreach(GOSM_POI_SET(poi_set) -> points, poi_manager_tree_delete__iter, (gpointer)poi_manager);
+	StyledPoiSet * poi_set_edit = poi_manager_get_poi_set_edit(poi_manager, index);
+	g_tree_foreach(GOSM_POI_SET(poi_set) -> points, poi_manager_tree_delete__iter, (gpointer)poi_manager -> ods_base);
+	g_tree_foreach(GOSM_POI_SET(poi_set_edit) -> points, poi_manager_tree_delete__iter, (gpointer)poi_manager -> ods_edit);
 	poi_set_clear(GOSM_POI_SET(poi_set));
+	poi_set_clear(GOSM_POI_SET(poi_set_edit));
 	g_array_remove_index(poi_manager -> ods_base -> poi_sets, index);
+	g_array_remove_index(poi_manager -> ods_edit -> poi_sets, index);
 	g_signal_emit (poi_manager, poi_manager_signals[LAYER_DELETED], 0, index);
 }
 
 gboolean poi_manager_tree_delete__iter(gpointer node_id_p, gpointer llt_p, gpointer data_p)
 {
-	PoiManager * poi_manager = GOSM_POI_MANAGER(data_p);
+	OsmDataSet * ods = GOSM_OSM_DATA_SET(data_p);
 	LonLatTags * llt = (LonLatTags*) llt_p;
 	llt -> refs -= 1;
 	if (llt -> refs == 0){
-		poi_set_add(poi_manager -> ods_base -> remaining_pois, llt, *(int*)node_id_p);
+		poi_set_add(ods -> remaining_pois, llt, *(int*)node_id_p);
 	}
 	return FALSE;
 }
@@ -500,6 +531,22 @@ StyledPoiSet * poi_manager_get_poi_set(PoiManager * poi_manager, int index)
 StyledPoiSet * poi_manager_get_poi_set_edit(PoiManager * poi_manager, int index)
 {
 	return g_array_index(poi_manager -> ods_edit -> poi_sets, StyledPoiSet*, index);
+}
+
+/****************************************************************************************************
+* return the PoiSet by key/value. NULL if there is none
+****************************************************************************************************/
+StyledPoiSet * poi_manager_get_poi_set_by_tag(PoiManager * poi_manager, OsmDataSet * ods, char * key, char * value)
+{
+	int nop = poi_manager_get_number_of_poi_sets(poi_manager);
+	int n;
+	for (n = 0; n < nop; n++){
+		NamedPoiSet * poi_set = g_array_index(ods -> poi_sets, NamedPoiSet*, n);
+		if (strcmp(poi_set -> key, key) == 0 && strcmp(poi_set -> value, value) == 0){
+			return GOSM_STYLED_POI_SET(poi_set);
+		}
+	}
+	return NULL;
 }
 
 /****************************************************************************************************
@@ -1062,6 +1109,13 @@ void poi_manager_apply_change_history(PoiManager * poi_manager)
 			}
 			//printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
 		}
+		if(id == GOSM_TYPE_EDIT_ACTION_ADD_TAG){
+			EditActionAddTag * eaat = GOSM_EDIT_ACTION_ADD_TAG(action);
+			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eaat -> node_id)){
+				poi_manager_add_tag(poi_manager, FALSE, eaat -> node_id, eaat -> key, eaat -> value);
+			}
+			//printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
+		}
 	}
 }
 
@@ -1084,6 +1138,10 @@ void poi_manager_print_change_stack(PoiManager * poi_manager)
 			EditActionChangePosition * eacp = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
 			printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
 		}
+		if(id == GOSM_TYPE_EDIT_ACTION_ADD_TAG){
+			EditActionAddTag * eaat = GOSM_EDIT_ACTION_ADD_TAG(action);
+			printf("ADD TAG: %d %s %s\n", eaat -> node_id, eaat -> key, eaat -> value);
+		}
 	}
 }
 
@@ -1093,10 +1151,11 @@ void poi_manager_add_action(PoiManager * poi_manager, EditAction * action)
 	poi_manager_print_change_stack(poi_manager);
 }
 
-void poi_manager_add_node(PoiManager * poi_manager, double lon, double lat)
+int poi_manager_add_node(PoiManager * poi_manager, double lon, double lat)
 {
 	int node_id = poi_manager -> next_node_id --;
 	poi_manager_add_node_id(poi_manager, TRUE, node_id, lon, lat);
+	return node_id;
 }
 
 void poi_manager_add_node_id(PoiManager * poi_manager, gboolean history, int node_id, double lon, double lat)
@@ -1139,8 +1198,91 @@ void poi_manager_remove_node(PoiManager * poi_manager, gboolean history, int nod
 	}
 }
 
+void poi_manager_add_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
+{
+	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
+	gpointer lookup = g_hash_table_lookup(llt -> tags, key);
+	if (lookup == NULL){
+		/* if the key was not used in this node before */
+		char * new_key = malloc(sizeof(char) * strlen(key));
+		char * new_val = malloc(sizeof(char) * strlen(value));
+		strcpy(new_key, key);
+		strcpy(new_val, value);
+		g_hash_table_insert(llt -> tags, new_key, new_val);
+		tag_tree_add_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, key, value);
+		StyledPoiSet * poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, value);
+		//TODO: might be added to more than one poi_set??
+		if (poi_set != NULL){
+			poi_set_add(GOSM_POI_SET(poi_set), llt, node_id);
+			llt -> refs += 1;
+			poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), node_id);
+		}
+		if (history){
+			EditAction * action = edit_action_add_tag_new(node_id, key, value);
+			poi_manager_add_action(poi_manager, action);
+			g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_ADDED], 0, node_id);
+		}
+	}else{
+		/* if the key was already used in this node */
+		poi_manager_change_tag_value(poi_manager, history, node_id, key, value);
+	}
+}
+
+void poi_manager_change_tag_key(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
+{
+	//
+}
+
+void poi_manager_change_tag_value(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
+{
+	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
+	char * old_value = (char*)g_hash_table_lookup(llt -> tags, key);
+	char * new_key = malloc(sizeof(char) * strlen(key));
+	char * new_val = malloc(sizeof(char) * strlen(value));
+	strcpy(new_key, key);
+	strcpy(new_val, value);
+	tag_tree_subtract_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, key, old_value);
+	StyledPoiSet * poi_set;
+	poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, old_value);
+		printf("rem %s %s\n", key, old_value);
+	if (poi_set != NULL){
+		poi_set_remove_node(GOSM_POI_SET(poi_set), node_id);
+		llt -> refs -= 1;
+		if (llt -> refs == 0){
+			poi_set_add(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), llt, node_id);
+		}
+	}
+	g_hash_table_insert(llt -> tags, new_key, new_val); /* value is replaced */
+	tag_tree_add_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, new_key, new_val);
+	poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, value);
+	//TODO: might be added to more than one poi_set??
+	if (poi_set != NULL){
+		poi_set_add(GOSM_POI_SET(poi_set), llt, node_id);
+		llt -> refs += 1;
+		if (poi_set_contains_point(poi_manager -> ods_edit -> remaining_pois, node_id)){
+			poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), node_id);
+		}
+	}
+	if (history){
+		//TODO: different action
+		EditAction * action = edit_action_add_tag_new(node_id, key, value);
+		poi_manager_add_action(poi_manager, action);
+		g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_ADDED], 0, node_id);
+	}
+}
+
 void poi_manager_reposition_finished(PoiManager * poi_manager, int node_id, double lon, double lat)
 {
 	EditAction * action = edit_action_change_position_new(node_id, lon, lat);
 	poi_manager_add_action(poi_manager, action);
+}
+
+gboolean poi_manager_can_add_tag(PoiManager * poi_manager)
+{
+	return poi_manager -> map_area -> poi_selected_id != 0;
+}
+
+int poi_manager_get_selected_node_id(PoiManager * poi_manager)
+{
+	return poi_manager -> map_area -> poi_selected_id;
 }

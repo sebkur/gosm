@@ -29,6 +29,9 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
+#include "../map_types.h"
+#include "poi_manager.h"
+
 #define GOSM_TYPE_NODE_TOOL           (node_tool_get_type ())
 #define GOSM_NODE_TOOL(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_NODE_TOOL, NodeTool))
 #define GOSM_NODE_TOOL_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_NODE_TOOL, NodeToolClass))
@@ -43,7 +46,9 @@ struct _NodeTool
 {
 	GtkVBox parent;
 
+	PoiManager * poi_manager;
 	GtkWidget * view;
+	int node_id;
 };
 
 struct _NodeToolClass
@@ -53,6 +58,8 @@ struct _NodeToolClass
 	//void (* function_name) (NodeTool *node_tool);
 };
 
-GtkWidget * node_tool_new();
+GtkWidget * node_tool_new(PoiManager * poi_manager);
+
+void node_tool_set_tags(NodeTool * node_tool, int node_id);
 
 #endif /* _NODE_TOOL_H_ */

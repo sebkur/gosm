@@ -44,6 +44,10 @@ typedef struct _EditActionAddTagClass   EditActionAddTagClass;
 struct _EditActionAddTag
 {
 	EditAction parent;
+
+	int node_id;
+	char * key;
+	char * value;
 };
 
 struct _EditActionAddTagClass
@@ -53,6 +57,6 @@ struct _EditActionAddTagClass
 	//void (* function_name) (EditActionAddTag *edit_action_add_tag);
 };
 
-EditAction * edit_action_add_tag_new();
+EditAction * edit_action_add_tag_new(int node_id, char * key, char * value);
 
 #endif /* _EDIT_ACTION_ADD_TAG_H_ */

@@ -170,8 +170,8 @@ static void map_area_class_init(MapAreaClass *class)
 		G_SIGNAL_RUN_FIRST,
 		G_STRUCT_OFFSET (MapAreaClass, map_node_selected),
 		NULL, NULL,
-		g_cclosure_marshal_VOID__POINTER,
-		G_TYPE_NONE, 1, G_TYPE_POINTER);
+		g_cclosure_marshal_VOID__INT,
+		G_TYPE_NONE, 1, G_TYPE_INT);
 
 	map_area_signals[MAP_MOUSE_MODE_CHANGED] = g_signal_new(
 		"map-mouse-mode-changed",
@@ -803,7 +803,9 @@ void map_area_path_clear(MapArea *map_area)
 void map_area_add_poi(MapArea *map_area, double lon, double lat)
 {
 	printf("ACTION: add poi\n");
-	poi_manager_add_node(map_area -> poi_manager, lon, lat);
+	int id = poi_manager_add_node(map_area -> poi_manager, lon, lat);
+	map_area -> poi_selected_id = id;
+	g_signal_emit (map_area, map_area_signals[MAP_NODE_SELECTED], 0, map_area -> poi_selected_id);
 	map_area_repaint(map_area);
 }
 
@@ -916,16 +918,14 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 		}
 		if (event -> button == 1){
 			if (map_area -> mouse_mode == MAP_MODE_MOVE || map_area -> mouse_mode == MAP_MODE_POI){
-				if (map_area -> poi_active_id != 0){
-					poi_manager_print_node_information(
-						map_area -> poi_manager, map_area -> poi_active_id);
-					LonLatTags * llt = poi_manager_get_node(
-						map_area -> poi_manager, map_area -> poi_active_id);
-					g_signal_emit (map_area, map_area_signals[MAP_NODE_SELECTED], 0, (gpointer)llt);
-					if (map_area -> poi_selected_id != map_area -> poi_active_id){
-						map_area -> poi_selected_id = map_area -> poi_active_id;
-						map_area_repaint(map_area);
+				if (map_area -> poi_selected_id != map_area -> poi_active_id){
+					map_area -> poi_selected_id = map_area -> poi_active_id;
+					g_signal_emit (map_area, map_area_signals[MAP_NODE_SELECTED], 0, map_area -> poi_active_id);
+					if (map_area -> poi_active_id != 0){
+							poi_manager_print_node_information(
+								map_area -> poi_manager, map_area -> poi_active_id);
 					}
+					map_area_repaint(map_area);
 				}
 			}else if (map_area -> mouse_mode == MAP_MODE_PATH){
 				path_add_point(map_area, lon, lat);
@@ -935,18 +935,8 @@ static gboolean mouse_button_press_cb(GtkWidget *widget, GdkEventButton *event)
 			if (map_area -> mouse_mode == MAP_MODE_MOVE || map_area -> mouse_mode == MAP_MODE_POI){
 				if (map_area -> poi_selected_id != map_area -> poi_active_id){
 					map_area -> poi_selected_id = map_area -> poi_active_id;
-					if (map_area -> poi_selected_id != 0){
-						LonLatTags * llt = poi_manager_get_node(
-							map_area -> poi_manager, map_area -> poi_active_id);
-						g_signal_emit (map_area, 
-							map_area_signals[MAP_NODE_SELECTED], 0, (gpointer)llt);
-					}
+					g_signal_emit (map_area, map_area_signals[MAP_NODE_SELECTED], 0, map_area -> poi_selected_id);
 					map_area_repaint(map_area);
-				}else{
-					if (map_area -> poi_active_id == 0){
-						map_area -> poi_selected_id = 0;
-						map_area_repaint(map_area);
-					}
 				}
 			}
 		}

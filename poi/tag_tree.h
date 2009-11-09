@@ -55,6 +55,18 @@ struct _TagTreeClass
 
 TagTree * tag_tree_new();
 
+void tag_tree_add_node_tag(
+	TagTree * tag_tree,
+	int node_id,
+	char * key,
+	char * value);
+
+void tag_tree_subtract_node_tag(
+	TagTree * tag_tree,
+	int node_id,
+	char * key,
+	char * value);
+
 void tag_tree_add_node(
 	TagTree * tag_tree, 
 	int node_id, 

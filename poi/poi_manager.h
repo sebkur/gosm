@@ -101,6 +101,9 @@ struct _PoiManagerClass
 	void (* file_parsing_ended) (PoiManager *poi_manager, int index);
 	void (* api_request_started) (PoiManager *poi_manager);
 	void (* api_request_ended) (PoiManager *poi_manager, int index);
+	void (* node_tag_added) (PoiManager *poi_manager, int node_id);
+	void (* node_tag_removed) (PoiManager *poi_manager, int node_id);
+	void (* node_tag_changed) (PoiManager *poi_manager, int node_id);
 };
 
 PoiManager * poi_manager_new();
@@ -137,11 +140,17 @@ LonLatTags * poi_manager_get_node(PoiManager * poi_manager, int node_id);
 
 void poi_manager_clear_pois(PoiManager * poi_manager);
 
-void poi_manager_add_node(PoiManager * poi_manager, double lon, double lat);
+int poi_manager_add_node(PoiManager * poi_manager, double lon, double lat);
 void poi_manager_remove_node(PoiManager * poi_manager, gboolean history, int node_id);
 void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, double lat);
 void poi_manager_reposition_finished(PoiManager * poi_manager, int node_id, double lon, double lat);
+void poi_manager_add_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
+void poi_manager_change_tag_key(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
+void poi_manager_change_tag_value(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
 
 GTree * poi_manager_tree_intersection(GTree * tree1, GTree * tree2);
+
+gboolean poi_manager_can_add_tag(PoiManager * poi_manager);
+int poi_manager_get_selected_node_id(PoiManager * poi_manager);
 
 #endif /* _GOSM_POI_MANAGER_H */

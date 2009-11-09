@@ -117,7 +117,7 @@ struct _MapAreaClass
 	
 	void (* map_path_changed) (MapArea *map_area);
 
-	void (* map_node_selected) (MapArea *map_area, gpointer llt_p);
+	void (* map_node_selected) (MapArea *map_area, int node_id);
 
 	void (* map_mouse_mode_changed) (MapArea *map_area);
 

@@ -60,6 +60,7 @@ poi/cell_renderer_colour.c \
 poi/poi_source_load_progress.c \
 poi/tag_tree.c \
 poi/node_tool.c \
+poi/node_add_tag_dialog.c \
 poi/poi_statistics.c \
 poi/api_control.c \
 poi/osm_data_set.c \
@@ -140,6 +141,7 @@ poi/cell_renderer_colour.o \
 poi/poi_source_load_progress.o \
 poi/tag_tree.o \
 poi/node_tool.o \
+poi/node_add_tag_dialog.o \
 poi/poi_statistics.o \
 poi/api_control.o \
 poi/osm_data_set.o \
