@@ -79,8 +79,8 @@ static pthread_mutex_t mutex_curl = PTHREAD_MUTEX_INITIALIZER;
 /****************************************************************************************************
 * method declaration
 ****************************************************************************************************/
-void function_load_from_disk();
-void function_load_from_netw();
+void function_load_from_disk(TileManager * tile_manager);
+void function_load_from_netw(TileManager * tile_manager);
 
 void tile_manager_tile_load_function(TileManager *tile_manager);
 void get_tile_from_harddisk(TileManager * tile_manager, int x, int y, int zoom);

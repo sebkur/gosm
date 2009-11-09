@@ -3,17 +3,13 @@ General things
 ####################################################################################################
 
 - Provide seperate binary packages
-- Provide Debian-packages
 - Do something with POIs on the map
-- Support Osmarender and OpenAreal
 
 ####################################################################################################
 found bugs
 ####################################################################################################
 
-tile_cache.c, line 88f, 16 -> 18???
-misc/dir.c, comment out main function
-tile_manager.c, prototype definitions lack arguments
+currently none documented
 
 ####################################################################################################
 grep for TODO in source files!
@@ -27,6 +23,15 @@ There is a of work to do in general:
 	- clean up!!!
 	- take care of memory. use free() more often!
 
+- string-searching in loaded .osm-data (streets, amenities, ...)
+- let the user edit map-sources (cloudmade, ...)
+- contributors window
+- bookmarks for selections, paths
+- osmarender map-key
+- wikipedia links for countries/cities in namefinder
+- poi-editing...
+- a button for getting a permalink
+- let the user turn on a 'cross' that highlights the center of the map
 - remove or rename testing files that lie around in the project
 - DONE use makefile for building
 - PARTIALLY (only colors) update changed preferences without restart

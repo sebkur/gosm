@@ -38,9 +38,8 @@ char * get_conf_path()
 	return filename;
 }
 
-
-int main(int argc, char *argv[])
-{
-	char * path = get_conf_path();
-	printf("%s\n", path);
-}
+//int main(int argc, char *argv[])
+//{
+//	char * path = get_conf_path();
+//	printf("%s\n", path);
+//}
