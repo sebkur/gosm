@@ -176,7 +176,6 @@ void tag_tree_subtract_node_tag(
 	if (g_sequence_get_length(elements) == 0){
 		g_tree_remove(tree1, val);
 		if (g_tree_height(tree1) == 0){
-			g_tree_destroy(tree1);
 			g_tree_remove(tag_tree -> tree, tree1);
 		}
 	}
@@ -247,7 +246,6 @@ void tag_tree_subtract_node(
 		if (g_sequence_get_length(elements) == 0){
 			g_tree_remove(tree1, val);
 			if (g_tree_height(tree1) == 0){
-				g_tree_destroy(tree1);
 				g_tree_remove(tag_tree -> tree, tree1);
 			}
 		}
@@ -320,7 +318,7 @@ gboolean tag_tree_subtract_tag_tree__iter_keys(gpointer key_p, gpointer tree_val
 }
 
 gboolean tag_tree_subtract_tag_tree__iter_vals(gpointer val_p, gpointer elements_to_subtract_p, gpointer data_p)
-{
+{ //TODO: removal of empty sequences / trees?
 	gpointer * data = (gpointer*) data_p;
 	char * key = (char*)(data[1]);
 	char * val = (char*) val_p;

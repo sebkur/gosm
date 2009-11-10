@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <glib.h>
 #include <gtk/gtk.h>
@@ -40,9 +41,18 @@ G_DEFINE_TYPE (EditActionRemoveTag, edit_action_remove_tag, GOSM_TYPE_EDIT_ACTIO
 //static guint edit_action_remove_tag_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, edit_action_remove_tag_signals[SIGNAL_NAME_n], 0);
 
-EditAction * edit_action_remove_tag_new()
+EditAction * edit_action_remove_tag_new(int node_id, char * ikey, char * ivalue)
 {
 	EditActionRemoveTag * edit_action_remove_tag = g_object_new(GOSM_TYPE_EDIT_ACTION_REMOVE_TAG, NULL);
+	edit_action_remove_tag -> node_id = node_id;
+	int len_k = strlen(ikey) + 1;
+	int len_v = strlen(ivalue) + 1;
+	char * key = malloc(sizeof(char) * len_k);
+	char * value = malloc(sizeof(char) * len_v);
+	strncpy(key, ikey, len_k);
+	strncpy(value, ivalue, len_v);
+	edit_action_remove_tag -> key = key;
+	edit_action_remove_tag -> value = value;
 	return GOSM_EDIT_ACTION(edit_action_remove_tag);
 }
 

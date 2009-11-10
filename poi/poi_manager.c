@@ -1124,6 +1124,12 @@ void poi_manager_apply_change_history(PoiManager * poi_manager)
 				poi_manager_change_tag_value(poi_manager, FALSE, eactv -> node_id, eactv -> key, eactv -> value);
 			}
 		}
+		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_TAG){
+			EditActionRemoveTag * eart = GOSM_EDIT_ACTION_REMOVE_TAG(action);
+			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eart -> node_id)){
+				poi_manager_remove_tag(poi_manager, FALSE, eart -> node_id, eart -> key, eart -> value);
+			}
+		}
 	}
 }
 
@@ -1153,6 +1159,10 @@ void poi_manager_print_change_stack(PoiManager * poi_manager)
 		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE){
 			EditActionChangeTagValue * eactv = GOSM_EDIT_ACTION_CHANGE_TAG_VALUE(action);
 			printf("CHANGE TAG: %d %s %s\n", eactv -> node_id, eactv -> key, eactv -> value);
+		}
+		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_TAG){
+			EditActionRemoveTag * eart = GOSM_EDIT_ACTION_REMOVE_TAG(action);
+			printf("REMOVE TAG: %d %s %s\n", eart -> node_id, eart -> key, eart -> value);
 		}
 	}
 }
@@ -1280,6 +1290,28 @@ void poi_manager_change_tag_value(PoiManager * poi_manager, gboolean history, in
 		EditAction * action = edit_action_change_tag_value_new(node_id, key, value);
 		poi_manager_add_action(poi_manager, action);
 		g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_CHANGED], 0, node_id);
+	}
+}
+
+void poi_manager_remove_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
+{
+	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
+	g_hash_table_remove(llt -> tags, key);
+	printf("foo %s\n", key);
+	tag_tree_subtract_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, key, value);
+	StyledPoiSet * poi_set;
+	poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, value);
+	if (poi_set != NULL){
+		poi_set_remove_node(GOSM_POI_SET(poi_set), node_id);
+		llt -> refs -= 1;
+		if (llt -> refs == 0){
+			poi_set_add(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), llt, node_id);
+		}
+	}
+	if (history){
+		EditAction * action = edit_action_remove_tag_new(node_id, key, value);
+		poi_manager_add_action(poi_manager, action);
+		g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_REMOVED], 0, node_id);
 	}
 }
 

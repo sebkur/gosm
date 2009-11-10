@@ -147,6 +147,7 @@ void poi_manager_reposition_finished(PoiManager * poi_manager, int node_id, doub
 void poi_manager_add_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
 void poi_manager_change_tag_key(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
 void poi_manager_change_tag_value(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
+void poi_manager_remove_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
 
 GTree * poi_manager_tree_intersection(GTree * tree1, GTree * tree2);
 

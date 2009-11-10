@@ -44,6 +44,10 @@ typedef struct _EditActionRemoveTagClass   EditActionRemoveTagClass;
 struct _EditActionRemoveTag
 {
 	EditAction parent;
+
+	int node_id;
+	char * key;
+	char * value;
 };
 
 struct _EditActionRemoveTagClass
@@ -53,6 +57,6 @@ struct _EditActionRemoveTagClass
 	//void (* function_name) (EditActionRemoveTag *edit_action_remove_tag);
 };
 
-EditAction * edit_action_remove_tag_new();
+EditAction * edit_action_remove_tag_new(int node_id, char * key, char * value);
 
 #endif /* _EDIT_ACTION_REMOVE_TAG_H_ */

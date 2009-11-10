@@ -60,6 +60,7 @@ enum
 ****************************************************************************************************/
 static GtkWidget * node_tool_create_view (NodeTool * node_tool);
 static gboolean node_tool_button_add_cb(GtkWidget * button, PoiManager * poi_manager);
+static gboolean node_tool_button_remove_cb(GtkWidget * button, NodeTool * node_tool);
 static gboolean node_tool_tag_added_cb(PoiManager * poi_manager, int node_id, NodeTool * node_tool);
 
 /****************************************************************************************************
@@ -95,7 +96,16 @@ GtkWidget * node_tool_new(PoiManager * poi_manager)
 		G_OBJECT(button_add), "clicked",
 		G_CALLBACK(node_tool_button_add_cb), poi_manager);
 	g_signal_connect(
+		G_OBJECT(button_delete), "clicked",
+		G_CALLBACK(node_tool_button_remove_cb), node_tool);
+	g_signal_connect(
 		G_OBJECT(poi_manager), "node-tag-added",
+		G_CALLBACK(node_tool_tag_added_cb), node_tool);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "node-tag-changed",
+		G_CALLBACK(node_tool_tag_added_cb), node_tool);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "node-tag-removed",
 		G_CALLBACK(node_tool_tag_added_cb), node_tool);
 	return GTK_WIDGET(node_tool);
 
@@ -213,6 +223,32 @@ static gboolean node_tool_button_add_cb(GtkWidget * button, PoiManager * poi_man
 				poi_manager_get_selected_node_id(poi_manager),
 				natd -> key, natd -> value);
 		}
+	}
+	return FALSE;
+}
+
+static gboolean node_tool_button_remove_cb(GtkWidget * button, NodeTool * node_tool)
+{
+	char * key;
+	char * value;
+	PoiManager * poi_manager = node_tool -> poi_manager;
+	GtkTreeView * view = GTK_TREE_VIEW(node_tool -> view);
+	GtkTreeModel * model = gtk_tree_view_get_model(view);
+	GtkTreePath * path;
+	gtk_tree_view_get_cursor(view, &path, NULL);
+	GtkTreeIter iter;
+	if (path != NULL && gtk_tree_model_get_iter(model, &iter, path)){
+		gtk_tree_model_get(model, &iter,
+			COL_KEY, &key,
+			COL_VALUE, &value,
+			-1);
+		if (poi_manager_can_add_tag(poi_manager)){
+			poi_manager_remove_tag(poi_manager, TRUE,
+				poi_manager_get_selected_node_id(poi_manager),
+				key, value);
+		}
+		g_free(key);
+		g_free(value);
 	}
 	return FALSE;
 }
