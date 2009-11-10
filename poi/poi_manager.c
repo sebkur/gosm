@@ -1227,7 +1227,9 @@ void poi_manager_add_tag(PoiManager * poi_manager, gboolean history, int node_id
 		if (poi_set != NULL){
 			poi_set_add(GOSM_POI_SET(poi_set), llt, node_id);
 			llt -> refs += 1;
-			poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), node_id);
+			if (poi_set_contains_point(poi_manager -> ods_edit -> remaining_pois, node_id)){
+				poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), node_id);
+			}
 		}
 		if (history){
 			EditAction * action = edit_action_add_tag_new(node_id, key, value);
@@ -1256,7 +1258,6 @@ void poi_manager_change_tag_value(PoiManager * poi_manager, gboolean history, in
 	tag_tree_subtract_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, key, old_value);
 	StyledPoiSet * poi_set;
 	poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, old_value);
-		printf("rem %s %s\n", key, old_value);
 	if (poi_set != NULL){
 		poi_set_remove_node(GOSM_POI_SET(poi_set), node_id);
 		llt -> refs -= 1;
@@ -1264,7 +1265,7 @@ void poi_manager_change_tag_value(PoiManager * poi_manager, gboolean history, in
 			poi_set_add(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), llt, node_id);
 		}
 	}
-	g_hash_table_insert(llt -> tags, new_key, new_val); /* value is replaced */
+	g_hash_table_replace(llt -> tags, new_key, new_val); /* value is replaced */
 	tag_tree_add_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, new_key, new_val);
 	poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, value);
 	//TODO: might be added to more than one poi_set??
