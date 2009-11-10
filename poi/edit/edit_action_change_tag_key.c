@@ -40,13 +40,12 @@ G_DEFINE_TYPE (EditActionChangeTagKey, edit_action_change_tag_key, GOSM_TYPE_EDI
 //static guint edit_action_change_tag_key_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, edit_action_change_tag_key_signals[SIGNAL_NAME_n], 0);
 
-EditAction * edit_action_change_tag_key_new(int node_id, char * old_key, char * new_key, char * value)
+EditAction * edit_action_change_tag_key_new(int node_id, char * old_key, char * new_key)
 {
 	EditActionChangeTagKey * edit_action_change_tag_key = g_object_new(GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_KEY, NULL);
 	edit_action_change_tag_key -> node_id = node_id;
 	edit_action_change_tag_key -> old_key = old_key;
 	edit_action_change_tag_key -> new_key = new_key;
-	edit_action_change_tag_key -> value = value;
 	return GOSM_EDIT_ACTION(edit_action_change_tag_key);
 }
 

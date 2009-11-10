@@ -130,20 +130,14 @@ void tag_tree_add_node_tag(
 		tree1 = g_tree_new_full(
 			tag_tree_compare_strings, NULL, 
 			tag_tree_destroy_just_free, tag_tree_destroy_element_sequences);
-		int len_k = strlen(key) + 1;
-		char * key_insert = malloc(sizeof(char) * len_k);
-		strcpy(key_insert, key);
-		g_tree_insert(tag_tree -> tree, key_insert, tree1);
+		g_tree_insert(tag_tree -> tree, g_strdup(key), tree1);
 	}
 	/* now tree1 exists */
 	GSequence * elements = (GSequence*)g_tree_lookup(tree1, val);
 	if (elements == NULL){
 		/* val not found on second level */
 		elements = g_sequence_new(tag_tree_destroy_just_free);
-		int len_v = strlen(val) + 1;
-		char * val_insert = malloc(sizeof(char) * len_v);
-		strcpy(val_insert, val);
-		g_tree_insert(tree1, val_insert, elements);
+		g_tree_insert(tree1, g_strdup(val), elements);
 	}
 	/* now elements exists */
 	int * id_p = malloc(sizeof(int));
@@ -196,20 +190,14 @@ void tag_tree_add_node(
 			tree1 = g_tree_new_full(
 				tag_tree_compare_strings, NULL, 
 				tag_tree_destroy_just_free, tag_tree_destroy_element_sequences);
-			int len_k = strlen(key) + 1;
-			char * key_insert = malloc(sizeof(char) * len_k);
-			strcpy(key_insert, key);
-			g_tree_insert(tag_tree -> tree, key_insert, tree1);
+			g_tree_insert(tag_tree -> tree, g_strdup(key), tree1);
 		}
 		/* now tree1 exists */
 		GSequence * elements = (GSequence*)g_tree_lookup(tree1, val);
 		if (elements == NULL){
 			/* val not found on second level */
 			elements = g_sequence_new(tag_tree_destroy_just_free);
-			int len_v = strlen(val) + 1;
-			char * val_insert = malloc(sizeof(char) * len_v);
-			strcpy(val_insert, val);
-			g_tree_insert(tree1, val_insert, elements);
+			g_tree_insert(tree1, g_strdup(val), elements);
 		}
 		/* now elements exists */
 		int * id_p = malloc(sizeof(int));
@@ -385,20 +373,14 @@ GSequence * tag_tree_get_nodes_create(
 		tree1 = g_tree_new_full(
 				tag_tree_compare_strings, NULL, 
 				tag_tree_destroy_just_free, tag_tree_destroy_element_sequences);
-		int len_k = strlen(key) + 1;
-		char * key_insert = malloc(sizeof(char) * len_k);
-		strcpy(key_insert, key);
-		g_tree_insert(tag_tree -> tree, key_insert, tree1);
+		g_tree_insert(tag_tree -> tree, g_strdup(key), tree1);
 	}
 	/* now tree1 exists */
 	GSequence * elements = (GSequence*)g_tree_lookup(tree1, value);
 	if (elements == NULL){
 		/* val not found on second level */
 		elements = g_sequence_new(tag_tree_destroy_just_free);
-		int len_v = strlen(value) + 1;
-		char * val_insert = malloc(sizeof(char) * len_v);
-		strcpy(val_insert, value);
-		g_tree_insert(tree1, val_insert, elements);
+		g_tree_insert(tree1, g_strdup(value), elements);
 	}
 	return elements;
 }

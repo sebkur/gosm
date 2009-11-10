@@ -48,7 +48,6 @@ struct _EditActionChangeTagKey
 	int node_id;
 	char * old_key;
 	char * new_key;
-	char * value;
 };
 
 struct _EditActionChangeTagKeyClass
@@ -58,6 +57,6 @@ struct _EditActionChangeTagKeyClass
 	//void (* function_name) (EditActionChangeTagKey *edit_action_change_tag_key);
 };
 
-EditAction * edit_action_change_tag_key_new(int node_id, char * old_key, char * new_key, char * value);
+EditAction * edit_action_change_tag_key_new(int node_id, char * old_key, char * new_key);
 
 #endif /* _EDIT_ACTION_CHANGE_TAG_KEY_H_ */

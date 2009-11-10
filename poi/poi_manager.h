@@ -145,7 +145,7 @@ void poi_manager_remove_node(PoiManager * poi_manager, gboolean history, int nod
 void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, double lat);
 void poi_manager_reposition_finished(PoiManager * poi_manager, int node_id, double lon, double lat);
 void poi_manager_add_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
-void poi_manager_change_tag_key(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
+void poi_manager_change_tag_key(PoiManager * poi_manager, gboolean history, int node_id, char * old_key, char * key);
 void poi_manager_change_tag_value(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
 void poi_manager_remove_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value);
 

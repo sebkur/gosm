@@ -300,6 +300,7 @@ static void node_tool_tag_key_changed_cb(GtkCellRendererText * renderer, gchar *
 	char * value;
 	gtk_tree_model_get(node_tool -> model, &iter, COL_KEY, &key, COL_VALUE, &value, -1);
 	printf("%s:%s -> %s:%s\n", key, value, text, value);
+	poi_manager_change_tag_key(node_tool -> poi_manager, TRUE, poi_manager_get_selected_node_id(node_tool -> poi_manager), key, text);
 }
 
 static void node_tool_tag_value_changed_cb(GtkCellRendererText * renderer, gchar * path_s, gchar * text, NodeTool * node_tool)
@@ -317,5 +318,6 @@ static void node_tool_tag_value_changed_cb(GtkCellRendererText * renderer, gchar
 	char * value;
 	gtk_tree_model_get(node_tool -> model, &iter, COL_KEY, &key, COL_VALUE, &value, -1);
 	printf("%s:%s -> %s:%s\n", key, value, key, text);
+	poi_manager_change_tag_value(node_tool -> poi_manager, TRUE, poi_manager_get_selected_node_id(node_tool -> poi_manager), key, text);
 }
 

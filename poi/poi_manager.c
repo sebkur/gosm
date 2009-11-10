@@ -1086,6 +1086,16 @@ void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, d
 	llt -> lat = lat;
 }
 
+/****************************************************************************************************
+*****************************************************************************************************
+* Here are functions that deal with the change-history
+*****************************************************************************************************
+****************************************************************************************************/
+
+/****************************************************************************************************
+* the list of changes will be applied to the base dataset to reflect the changes made by the user
+****************************************************************************************************/
+//TODO: an interface with virtual functions for EditAction?
 void poi_manager_apply_change_history(PoiManager * poi_manager)
 {
 	int s;
@@ -1095,28 +1105,30 @@ void poi_manager_apply_change_history(PoiManager * poi_manager)
 		if(id == GOSM_TYPE_EDIT_ACTION_ADD_NODE){
 			EditActionAddNode * eaan = GOSM_EDIT_ACTION_ADD_NODE(action);
 			poi_manager_add_node_id(poi_manager, FALSE, eaan -> node_id, eaan -> lon, eaan -> lat);
-			//printf("ADD: %d %f %f\n", eaan -> node_id, eaan -> lon, eaan -> lat);
 		}
 		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
 			EditActionRemoveNode * earn = GOSM_EDIT_ACTION_REMOVE_NODE(action);
 			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, earn -> node_id)){
 				poi_manager_remove_node(poi_manager, FALSE, earn -> node_id);
 			}
-			//printf("REMOVE: %d\n", earn -> node_id);
 		}
 		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION){
 			EditActionChangePosition * eacp = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
 			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eacp -> node_id)){
 				poi_manager_reposition(poi_manager, eacp -> node_id, eacp -> lon, eacp -> lat);
 			}
-			//printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
 		}
 		if(id == GOSM_TYPE_EDIT_ACTION_ADD_TAG){
 			EditActionAddTag * eaat = GOSM_EDIT_ACTION_ADD_TAG(action);
 			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eaat -> node_id)){
 				poi_manager_add_tag(poi_manager, FALSE, eaat -> node_id, eaat -> key, eaat -> value);
 			}
-			//printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
+		}
+		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_KEY){
+			EditActionChangeTagKey * eactk = GOSM_EDIT_ACTION_CHANGE_TAG_KEY(action);
+			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eactk -> node_id)){
+				poi_manager_change_tag_key(poi_manager, FALSE, eactk -> node_id, eactk -> old_key, eactk -> new_key);
+			}
 		}
 		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE){
 			EditActionChangeTagValue * eactv = GOSM_EDIT_ACTION_CHANGE_TAG_VALUE(action);
@@ -1133,6 +1145,9 @@ void poi_manager_apply_change_history(PoiManager * poi_manager)
 	}
 }
 
+/****************************************************************************************************
+* just print out the stack
+****************************************************************************************************/
 void poi_manager_print_change_stack(PoiManager * poi_manager)
 {
 	printf("CHANGE STACK\n");
@@ -1156,9 +1171,13 @@ void poi_manager_print_change_stack(PoiManager * poi_manager)
 			EditActionAddTag * eaat = GOSM_EDIT_ACTION_ADD_TAG(action);
 			printf("ADD TAG: %d %s %s\n", eaat -> node_id, eaat -> key, eaat -> value);
 		}
+		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_KEY){
+			EditActionChangeTagKey * eactk = GOSM_EDIT_ACTION_CHANGE_TAG_KEY(action);
+			printf("CHANGE KEY: %d %s -> %s\n", eactk -> node_id, eactk -> old_key, eactk -> new_key);
+		}
 		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE){
 			EditActionChangeTagValue * eactv = GOSM_EDIT_ACTION_CHANGE_TAG_VALUE(action);
-			printf("CHANGE TAG: %d %s %s\n", eactv -> node_id, eactv -> key, eactv -> value);
+			printf("CHANGE VAL: %d %s -> %s\n", eactv -> node_id, eactv -> key, eactv -> value);
 		}
 		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_TAG){
 			EditActionRemoveTag * eart = GOSM_EDIT_ACTION_REMOVE_TAG(action);
@@ -1167,19 +1186,36 @@ void poi_manager_print_change_stack(PoiManager * poi_manager)
 	}
 }
 
+/****************************************************************************************************
+*****************************************************************************************************
+* Here follow the function that are used for making changes to the original data
+*****************************************************************************************************
+****************************************************************************************************/
+
+/****************************************************************************************************
+* add an action to the list of changes
+****************************************************************************************************/
 void poi_manager_add_action(PoiManager * poi_manager, EditAction * action)
 {
 	g_array_append_val(poi_manager -> changes, action);
 	poi_manager_print_change_stack(poi_manager);
 }
 
+/****************************************************************************************************
+* add a node, use the next available id
+****************************************************************************************************/
 int poi_manager_add_node(PoiManager * poi_manager, double lon, double lat)
 {
+	/* get the next available node_id */
 	int node_id = poi_manager -> next_node_id --;
+	/* and insert the new node with this id */
 	poi_manager_add_node_id(poi_manager, TRUE, node_id, lon, lat);
 	return node_id;
 }
 
+/****************************************************************************************************
+* add a node, use the given id
+****************************************************************************************************/
 void poi_manager_add_node_id(PoiManager * poi_manager, gboolean history, int node_id, double lon, double lat)
 {
 	LonLatTags * llt = malloc(sizeof(LonLatTags));
@@ -1198,6 +1234,9 @@ void poi_manager_add_node_id(PoiManager * poi_manager, gboolean history, int nod
 	}
 }
 
+/****************************************************************************************************
+* remove the given node
+****************************************************************************************************/
 void poi_manager_remove_node(PoiManager * poi_manager, gboolean history, int node_id)
 {
 	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
@@ -1220,94 +1259,112 @@ void poi_manager_remove_node(PoiManager * poi_manager, gboolean history, int nod
 	}
 }
 
-void poi_manager_add_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
+/****************************************************************************************************
+* utility function that is used, when an edit has been made:
+* add the node to the poi-set referenced by key/value, if it exists. if the node has been in the
+* special poi-set remaining-pois, remove it from there, since it's in a poi-set now.
+****************************************************************************************************/
+void poi_manager_add_node_to_poi_set_if_exists(PoiManager * poi_manager, int node_id, char * key, char * value)
 {
-	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
-	gpointer lookup = g_hash_table_lookup(llt -> tags, key);
-	if (lookup == NULL){
-		/* if the key was not used in this node before */
-		char * new_key = malloc(sizeof(char) * strlen(key));
-		char * new_val = malloc(sizeof(char) * strlen(value));
-		strcpy(new_key, key);
-		strcpy(new_val, value);
-		g_hash_table_insert(llt -> tags, new_key, new_val);
-		tag_tree_add_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, key, value);
-		StyledPoiSet * poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, value);
-		//TODO: might be added to more than one poi_set??
-		if (poi_set != NULL){
-			poi_set_add(GOSM_POI_SET(poi_set), llt, node_id);
-			llt -> refs += 1;
-			if (poi_set_contains_point(poi_manager -> ods_edit -> remaining_pois, node_id)){
-				poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), node_id);
-			}
-		}
-		if (history){
-			EditAction * action = edit_action_add_tag_new(node_id, key, value);
-			poi_manager_add_action(poi_manager, action);
-			g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_ADDED], 0, node_id);
-		}
-	}else{
-		/* if the key was already used in this node */
-		poi_manager_change_tag_value(poi_manager, history, node_id, key, value);
-	}
-}
-
-void poi_manager_change_tag_key(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
-{
-	//
-}
-
-void poi_manager_change_tag_value(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
-{
-	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
-	char * old_value = (char*)g_hash_table_lookup(llt -> tags, key);
-	char * new_key = malloc(sizeof(char) * strlen(key));
-	char * new_val = malloc(sizeof(char) * strlen(value));
-	strcpy(new_key, key);
-	strcpy(new_val, value);
-	tag_tree_subtract_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, key, old_value);
-	StyledPoiSet * poi_set;
-	poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, old_value);
+	StyledPoiSet * poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, value);
 	if (poi_set != NULL){
-		poi_set_remove_node(GOSM_POI_SET(poi_set), node_id);
-		llt -> refs -= 1;
-		if (llt -> refs == 0){
-			poi_set_add(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), llt, node_id);
-		}
-	}
-	g_hash_table_replace(llt -> tags, new_key, new_val); /* value is replaced */
-	tag_tree_add_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, new_key, new_val);
-	poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, value);
-	//TODO: might be added to more than one poi_set??
-	if (poi_set != NULL){
+		LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
 		poi_set_add(GOSM_POI_SET(poi_set), llt, node_id);
 		llt -> refs += 1;
 		if (poi_set_contains_point(poi_manager -> ods_edit -> remaining_pois, node_id)){
 			poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), node_id);
 		}
 	}
-	if (history){
-		EditAction * action = edit_action_change_tag_value_new(node_id, key, value);
-		poi_manager_add_action(poi_manager, action);
-		g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_CHANGED], 0, node_id);
-	}
 }
 
-void poi_manager_remove_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
+/****************************************************************************************************
+* utility function that is used, when an edit has been made:
+* remove the node from the poi-set referenced by key/value, if it exists. if the node ist not in any
+* other poi-set anymore, put it into the special poi-set remaining-pois.
+****************************************************************************************************/
+void poi_manager_remove_node_from_poi_set(PoiManager * poi_manager, int node_id, char * key, char * value)
 {
-	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
-	g_hash_table_remove(llt -> tags, key);
-	printf("foo %s\n", key);
-	tag_tree_subtract_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, key, value);
-	StyledPoiSet * poi_set;
-	poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, value);
+	StyledPoiSet * poi_set = poi_manager_get_poi_set_by_tag(poi_manager, poi_manager -> ods_edit, key, value);
 	if (poi_set != NULL){
+		LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
 		poi_set_remove_node(GOSM_POI_SET(poi_set), node_id);
 		llt -> refs -= 1;
 		if (llt -> refs == 0){
 			poi_set_add(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), llt, node_id);
 		}
 	}
+}
+
+/****************************************************************************************************
+* add a tag to an existing node. if the key already exists, replace it
+****************************************************************************************************/
+void poi_manager_add_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
+{
+	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
+	gpointer lookup = g_hash_table_lookup(llt -> tags, key);
+	if (lookup != NULL){
+		/* if the key was already used in this node */
+		poi_manager_change_tag_value(poi_manager, history, node_id, key, value);
+	}else{
+		/* if the key was not used in this node before */
+		g_hash_table_insert(llt -> tags, g_strdup(key), g_strdup(value));
+		tag_tree_add_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, key, value);
+		poi_manager_add_node_to_poi_set_if_exists(poi_manager, node_id, key, value);
+		if (history){
+			EditAction * action = edit_action_add_tag_new(node_id, key, value);
+			poi_manager_add_action(poi_manager, action);
+			g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_ADDED], 0, node_id);
+		}
+	}
+}
+
+/****************************************************************************************************
+* given a tag, change the key. i.e: remove the old tag and add a new one for the new key with the
+* old value
+****************************************************************************************************/
+void poi_manager_change_tag_key(PoiManager * poi_manager, gboolean history, int node_id, char * old_key, char * key)
+{
+	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
+	char * value = g_strdup((char*)g_hash_table_lookup(llt -> tags, old_key));
+	tag_tree_subtract_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, old_key, value);
+	g_hash_table_remove(llt -> tags, old_key);
+	poi_manager_remove_node_from_poi_set(poi_manager, node_id, old_key, value);
+	poi_manager_add_tag(poi_manager, FALSE, node_id, key, value);
+	if (history){
+		EditAction * action = edit_action_change_tag_key_new(node_id, g_strdup(old_key), g_strdup(key));
+		poi_manager_add_action(poi_manager, action);
+		g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_CHANGED], 0, node_id);
+	}
+}
+
+/****************************************************************************************************
+* given a tag, change the value.
+****************************************************************************************************/
+void poi_manager_change_tag_value(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
+{
+	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
+	char * old_value = (char*)g_hash_table_lookup(llt -> tags, key);
+	tag_tree_subtract_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, key, old_value);
+	poi_manager_remove_node_from_poi_set(poi_manager, node_id, key, old_value);
+	g_hash_table_replace(llt -> tags, g_strdup(key), g_strdup(value)); /* value and key are replaced */
+	tag_tree_add_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, g_strdup(key), g_strdup(value));
+	poi_manager_add_node_to_poi_set_if_exists(poi_manager, node_id, key, value);
+	if (history){
+		EditAction * action = edit_action_change_tag_value_new(node_id, g_strdup(key), g_strdup(value));
+		poi_manager_add_action(poi_manager, action);
+		g_signal_emit (poi_manager, poi_manager_signals[NODE_TAG_CHANGED], 0, node_id);
+	}
+}
+
+/****************************************************************************************************
+* remove the given tag from this node
+****************************************************************************************************/
+void poi_manager_remove_tag(PoiManager * poi_manager, gboolean history, int node_id, char * key, char * value)
+{
+	LonLatTags * llt = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
+	g_hash_table_remove(llt -> tags, key);
+	tag_tree_subtract_node_tag(poi_manager -> ods_edit -> tag_tree, node_id, key, value);
+	poi_manager_remove_node_from_poi_set(poi_manager, node_id, key, value);
 	if (history){
 		EditAction * action = edit_action_remove_tag_new(node_id, key, value);
 		poi_manager_add_action(poi_manager, action);
