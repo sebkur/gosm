@@ -48,6 +48,8 @@ struct _NodeTool
 
 	PoiManager * poi_manager;
 	GtkWidget * view;
+	GtkTreeModel * model;
+	GtkTreeModel * model_sort;
 	int node_id;
 };
 

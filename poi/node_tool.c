@@ -62,6 +62,19 @@ static GtkWidget * node_tool_create_view (NodeTool * node_tool);
 static gboolean node_tool_button_add_cb(GtkWidget * button, PoiManager * poi_manager);
 static gboolean node_tool_button_remove_cb(GtkWidget * button, NodeTool * node_tool);
 static gboolean node_tool_tag_added_cb(PoiManager * poi_manager, int node_id, NodeTool * node_tool);
+static void node_tool_tag_key_changed_cb(GtkCellRendererText * renderer, gchar * path, gchar * text, NodeTool * node_tool);
+static void node_tool_tag_value_changed_cb(GtkCellRendererText * renderer, gchar * path, gchar * text, NodeTool * node_tool);
+
+int node_tool_sort_function(GtkTreeModel * model, GtkTreeIter * a, GtkTreeIter * b, gpointer data)
+{
+	char * key_a;
+	char * key_b;
+	gtk_tree_model_get(model, a, COL_KEY, &key_a, -1);
+	gtk_tree_model_get(model, b, COL_KEY, &key_b, -1);
+	if (key_a == NULL) return -1;
+	if (key_b == NULL) return 1;
+	return strcmp(key_a, key_b);
+}
 
 /****************************************************************************************************
 * constructor
@@ -157,6 +170,9 @@ static GtkWidget * node_tool_create_view (NodeTool * node_tool)
 	                                             renderer,
 	                                             "text", COL_KEY,
 	                                             NULL);
+	g_signal_connect(
+		G_OBJECT(renderer), "edited",
+		G_CALLBACK(node_tool_tag_key_changed_cb), node_tool);
 	renderer = gtk_cell_renderer_text_new ();
 	g_object_set(renderer, "editable", TRUE, NULL);
 	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (view),
@@ -165,15 +181,22 @@ static GtkWidget * node_tool_create_view (NodeTool * node_tool)
 	                                             renderer,
 	                                             "text", COL_VALUE,
 	                                             NULL);
-	model = node_tool_create_model ();
-	gtk_tree_view_set_model (GTK_TREE_VIEW (view), model);
+	g_signal_connect(
+		G_OBJECT(renderer), "edited",
+		G_CALLBACK(node_tool_tag_value_changed_cb), node_tool);
+	node_tool -> model = node_tool_create_model ();
+	node_tool -> model_sort = gtk_tree_model_sort_new_with_model(node_tool -> model);
+	gtk_tree_sortable_set_default_sort_func(GTK_TREE_SORTABLE(node_tool -> model_sort), node_tool_sort_function, NULL, NULL);
+	gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(node_tool -> model_sort),
+		GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID, GTK_SORT_ASCENDING);
+	gtk_tree_view_set_model (GTK_TREE_VIEW (view), node_tool -> model_sort);
 	int n;
 	for (n = 0; n < 2; n++){
 		GtkTreeViewColumn * col = gtk_tree_view_get_column(GTK_TREE_VIEW(view), n);
 		gtk_tree_view_column_set_resizable(col, TRUE);
 		if (n == 1) gtk_tree_view_column_set_sizing(col, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
 	}
-	g_object_unref (model);
+	//g_object_unref (model);
 	return view;
 }
 
@@ -183,8 +206,9 @@ static GtkWidget * node_tool_create_view (NodeTool * node_tool)
 void node_tool_set_tags(NodeTool * node_tool, int node_id)
 {
 	node_tool -> node_id = node_id;
-	GtkTreeView * view = GTK_TREE_VIEW(node_tool -> view);
-	GtkTreeModel * model = gtk_tree_view_get_model(view);
+	//GtkTreeView * view = GTK_TREE_VIEW(node_tool -> view);
+	//GtkTreeModel * model = gtk_tree_view_get_model(view);
+	GtkTreeModel * model = node_tool -> model;
 	GtkTreeIter iter;
 	/* remove old entries */
 	GtkTreePath * path = gtk_tree_path_new_from_indices(0, -1);
@@ -260,3 +284,38 @@ static gboolean node_tool_tag_added_cb(PoiManager * poi_manager, int node_id, No
 	}
 	return FALSE;
 }
+
+static void node_tool_tag_key_changed_cb(GtkCellRendererText * renderer, gchar * path_s, gchar * text, NodeTool * node_tool)
+{
+	int index = atoi(path_s);
+	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
+	GtkTreeIter iter;
+	GtkTreeIter iter_sort;
+	gtk_tree_model_get_iter(node_tool -> model_sort, &iter_sort, path);
+	gtk_tree_model_sort_convert_iter_to_child_iter (
+		GTK_TREE_MODEL_SORT (node_tool -> model_sort),
+		&iter,
+		&iter_sort);
+	char * key;
+	char * value;
+	gtk_tree_model_get(node_tool -> model, &iter, COL_KEY, &key, COL_VALUE, &value, -1);
+	printf("%s:%s -> %s:%s\n", key, value, text, value);
+}
+
+static void node_tool_tag_value_changed_cb(GtkCellRendererText * renderer, gchar * path_s, gchar * text, NodeTool * node_tool)
+{
+	int index = atoi(path_s);
+	GtkTreePath * path = gtk_tree_path_new_from_indices(index, -1);
+	GtkTreeIter iter;
+	GtkTreeIter iter_sort;
+	gtk_tree_model_get_iter(node_tool -> model_sort, &iter_sort, path);
+	gtk_tree_model_sort_convert_iter_to_child_iter (
+		GTK_TREE_MODEL_SORT (node_tool -> model_sort),
+		&iter,
+		&iter_sort);
+	char * key;
+	char * value;
+	gtk_tree_model_get(node_tool -> model, &iter, COL_KEY, &key, COL_VALUE, &value, -1);
+	printf("%s:%s -> %s:%s\n", key, value, key, text);
+}
+
