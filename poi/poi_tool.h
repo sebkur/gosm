@@ -32,6 +32,7 @@
 #include "poi_manager.h"
 #include "poi_selector.h"
 #include "poi_source_selector.h"
+#include "edit_widget.h"
 
 #define GOSM_TYPE_POI_TOOL           (poi_tool_get_type ())
 #define GOSM_POI_TOOL(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_POI_TOOL, PoiTool))
@@ -50,6 +51,7 @@ struct _PoiTool
 	PoiManager * poi_manager;
 	PoiSelector * poi_selector;
 	PoiSourceSelector * poi_source_selector;
+	GtkWidget * edit_widget;
 
 	GtkWidget * button_api;
 };

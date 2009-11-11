@@ -74,6 +74,7 @@ poi/edit/edit_action_change_tag_key.c \
 poi/edit/edit_action_change_tag_value.c \
 poi/edit/edit_action_remove_node.c \
 poi/edit/edit_action_remove_tag.c \
+poi/edit_widget.c \
 gtk_safety.c \
 widget/gtk_custom_frame.c \
 widget/gtk_rollup_button.c \
@@ -158,6 +159,7 @@ poi/edit/edit_action_change_tag_key.o \
 poi/edit/edit_action_change_tag_value.o \
 poi/edit/edit_action_remove_node.o \
 poi/edit/edit_action_remove_tag.o \
+poi/edit_widget.o \
 gtk_safety.o \
 widget/gtk_custom_frame.o \
 widget/gtk_rollup_button.o \

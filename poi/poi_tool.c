@@ -154,6 +154,8 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	/* sources, layout */
 	gtk_box_pack_start(GTK_BOX(box_source), tool_bar_sources, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_source), GTK_WIDGET(poi_tool -> poi_source_selector), TRUE, TRUE, 0);
+	/* edit widget */
+	poi_tool -> edit_widget = edit_widget_new();
 	/* sources, callbacks */
 	g_signal_connect(
 		G_OBJECT(button_sources_add), "clicked",
@@ -175,8 +177,10 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	GtkWidget * notebook = gtk_notebook_new();
 	GtkWidget * label_layers = gtk_label_new("Layers");
 	GtkWidget * label_source = gtk_label_new("Sources");
+	GtkWidget * label_edit = gtk_label_new("Edit");
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), box_layers, label_layers);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), box_source, label_source);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), poi_tool -> edit_widget, label_edit);
 	/* layout */
 	gtk_box_pack_start(GTK_BOX(poi_tool), notebook, TRUE, TRUE, 0);
 	return GTK_WIDGET(poi_tool);
