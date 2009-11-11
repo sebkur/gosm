@@ -34,3 +34,10 @@ char * get_api_url_get(double min_lon, double min_lat, double max_lon, double ma
 
 void toggle_widget_visibility(GtkWidget * widget);
 void set_widget_visibility(GtkWidget * widget, gboolean show);
+
+int * int_malloc(int value);
+int * int_malloc_p(int * value);
+
+gint compare_int_pointers(gconstpointer a, gconstpointer b, gpointer user_data);
+gint compare_strings(gconstpointer a, gconstpointer b, gpointer user_data);
+

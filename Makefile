@@ -41,6 +41,7 @@ atlas/page_math.c \
 namefinder/namefinder_cities.c \
 namefinder/namefinder_countries.c \
 poi/poi_set.c \
+poi/node.c \
 poi/RTree/card.c \
 poi/RTree/gammavol.c \
 poi/RTree/index.c \
@@ -124,6 +125,7 @@ atlas/page_math.o \
 namefinder/namefinder_cities.o \
 namefinder/namefinder_countries.o \
 poi/poi_set.o \
+poi/node.o \
 poi/RTree/card.o \
 poi/RTree/gammavol.o \
 poi/RTree/index.o \

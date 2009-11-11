@@ -93,3 +93,27 @@ void set_widget_visibility(GtkWidget * widget, gboolean show)
 		gtk_widget_hide(widget);
 	}
 }
+
+int * int_malloc(int value)
+{
+	int * i = malloc(sizeof(int));
+	*i = value;
+	return i;
+}
+
+int * int_malloc_p(int * value)
+{
+	int * i = malloc(sizeof(int));
+	*i = *value;
+	return i;
+}
+
+gint compare_int_pointers(gconstpointer a, gconstpointer b, gpointer user_data)
+{
+	return *(int*)a - *(int*)b;
+}
+
+gint compare_strings(gconstpointer a, gconstpointer b, gpointer user_data)
+{
+	return strcmp(a, b);
+}

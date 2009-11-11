@@ -35,6 +35,7 @@ typedef struct _PoiManager        PoiManager;
 typedef struct _PoiManagerClass   PoiManagerClass;
 
 #include "poi_set.h"
+#include "node.h"
 #include "named_poi_set.h"
 #include "styled_poi_set.h"
 #include "osm_reader.h"
@@ -136,7 +137,7 @@ void poi_manager_set_map_area(PoiManager * poi_manager, MapArea * map_area);
 
 void poi_manager_print_node_information(PoiManager * poi_manager, int node_id);
 
-LonLatTags * poi_manager_get_node(PoiManager * poi_manager, int node_id);
+Node * poi_manager_get_node(PoiManager * poi_manager, int node_id);
 
 void poi_manager_clear_pois(PoiManager * poi_manager);
 

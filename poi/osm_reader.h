@@ -30,6 +30,7 @@
 #include <gdk/gdk.h>
 
 #include "../map_types.h"
+#include "node.h"
 
 #define OSM_READER_ELEMENT_NODE 1
 #define OSM_READER_ELEMENT_OTHER 2
@@ -53,7 +54,7 @@ struct _OsmReader
 	int current_level;
 	int current_element;
 	int current_id;
-	LonLatTags * current_node;
+	Node * current_node;
 	char * filename;
 	char * url;
 };

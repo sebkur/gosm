@@ -178,8 +178,9 @@ void tag_tree_subtract_node_tag(
 void tag_tree_add_node(
 	TagTree * tag_tree, 
 	int node_id, 
-	GHashTable * tags)
+	Node * node)
 {
+	GHashTable * tags = node -> tags;
 	GHashTableIter iter;
 	g_hash_table_iter_init(&iter, tags);
 	gpointer key, val;
@@ -209,8 +210,9 @@ void tag_tree_add_node(
 void tag_tree_subtract_node(
 	TagTree * tag_tree,
 	int node_id,
-	GHashTable * tags)
+	Node * node)
 {
+	GHashTable * tags = node -> tags;
 	GHashTableIter iter;
 	g_hash_table_iter_init(&iter, tags);
 	gpointer key, val;

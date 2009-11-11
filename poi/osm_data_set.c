@@ -31,6 +31,7 @@
 #include "styled_poi_set.h"
 #include "named_poi_set.h"
 #include "../map_types.h"
+#include "../tool.h"
 #include "poi_manager.h"
 
 G_DEFINE_TYPE (OsmDataSet, osm_data_set, G_TYPE_OBJECT);
@@ -45,23 +46,11 @@ G_DEFINE_TYPE (OsmDataSet, osm_data_set, G_TYPE_OBJECT);
 //static guint osm_data_set_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, osm_data_set_signals[SIGNAL_NAME_n], 0);
 
-gint osm_data_set_compare_ints(gconstpointer a, gconstpointer b, gpointer user_data)
-{
-	        return *(int*)a - *(int*)b;
-}
-void osm_data_set_destroy_lon_lat_tags(gpointer data)
-{
-	LonLatTags * llt = (LonLatTags*) data;
-	g_hash_table_destroy(llt -> tags);
-	free(llt);
-}
-
 OsmDataSet * osm_data_set_new()
 {
 	OsmDataSet * osm_data_set = g_object_new(GOSM_TYPE_OSM_DATA_SET, NULL);
 
-	osm_data_set -> tree_ids = g_tree_new_full(osm_data_set_compare_ints, NULL, 
-					free, osm_data_set_destroy_lon_lat_tags);
+	osm_data_set -> tree_ids = g_tree_new_full(compare_int_pointers, NULL, free, node_free);
 	osm_data_set -> tag_tree = tag_tree_new();
 	osm_data_set -> all_pois = poi_set_new();
 	osm_data_set -> poi_sets = g_array_new(FALSE, FALSE, sizeof(PoiSet*));
@@ -86,55 +75,24 @@ static void osm_data_set_init(OsmDataSet *osm_data_set)
 {
 }
 
-GTree * duplicate_id_tree(GTree * tree_ids);
-TagTree * duplicate_tag_tree(TagTree * tag_tree);
-PoiSet * duplicate_poi_set(PoiSet * poi_set);
 void osm_data_insert_nodes(OsmDataSet * ods, GArray * poi_sets_original);
 
-gboolean duplicate_id_tree__iter(gpointer key, gpointer val, gpointer data);
-
+/****************************************************************************************************
+* obtain a duplicate of an id-tree
+****************************************************************************************************/
+gboolean duplicate_id_tree__iter(gpointer key, gpointer val, gpointer data)
+{
+	g_tree_insert((GTree*)data, int_malloc(*(int*)key), node_copy((Node*)val));
+	return FALSE;
+}
 GTree * duplicate_id_tree(GTree * tree_ids)
 {
-	GTree * id_tree = g_tree_new_full(osm_data_set_compare_ints, NULL, 
-					free, osm_data_set_destroy_lon_lat_tags);
-	g_tree_foreach(tree_ids, duplicate_id_tree__iter, (gpointer) id_tree);
+	GTree * id_tree = g_tree_new_full(compare_int_pointers, NULL, free, node_free);
+	g_tree_foreach(tree_ids, duplicate_id_tree__iter, id_tree);
 	return id_tree;
 }
 
-gboolean duplicate_id_tree__iter(gpointer key, gpointer val, gpointer data)
-{
-	GTree * id_tree = (GTree*) data;
-	int * node_id = malloc(sizeof(int));
-	*node_id = *(int*)key;
-	LonLatTags * llt = (LonLatTags*) val;
-	LonLatTags * llt_copy = malloc(sizeof(LonLatTags));
-	llt_copy -> lon = llt -> lon;
-	llt_copy -> lat = llt -> lat;
-	llt_copy -> refs = llt -> refs;
-	llt_copy -> tags = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
-	GHashTableIter iter;
-	g_hash_table_iter_init(&iter, llt -> tags);
-	gpointer hash_key, hash_val;
-	while(g_hash_table_iter_next(&iter, &hash_key, &hash_val)){
-		char * hash_k = (char*) hash_key;
-		char * hash_v = (char*) hash_val;
-		int k_len = strlen(hash_k) + 1;
-		int v_len = strlen(hash_v) + 1;
-		char * new_k = malloc(sizeof(char) * k_len);
-		char * new_v = malloc(sizeof(char) * v_len);
-		strncpy(new_k, hash_k, k_len);
-		strncpy(new_v, hash_v, v_len);
-		g_hash_table_insert(llt_copy -> tags, new_k, new_v);
-	}
-	g_tree_insert(id_tree, node_id, llt_copy);
-	return FALSE;
-}
-
-TagTree * duplicate_tag_tree(TagTree * tag_tree)
-{
-	return tag_tree_duplicate_tree(tag_tree);
-}
-
+//TODO: this should be in StyledPoiSet
 PoiSet * duplicate_poi_set(PoiSet * poi_set)
 {
 	StyledPoiSet * styled_poi_set = GOSM_STYLED_POI_SET(poi_set);
@@ -150,11 +108,9 @@ PoiSet * duplicate_poi_set(PoiSet * poi_set)
 	return GOSM_POI_SET(poi_set_new);
 }
 
-gboolean nodes_to_poi_set(gpointer k, gpointer v, gpointer poi_set_p)
+gboolean nodes_to_poi_set(gpointer k, gpointer node, gpointer poi_set)
 {
-	PoiSet * poi_set = GOSM_POI_SET(poi_set_p);
-	LonLatTags * llt = (LonLatTags*)v;
-	poi_set_add(poi_set, llt, *(int*)k);
+	poi_set_add((PoiSet*)poi_set, (Node*)node);
 	return FALSE;
 }
 
@@ -162,7 +118,7 @@ void osm_data_insert_nodes(OsmDataSet * ods, GArray * poi_sets_original)
 {
 	GTree * tree_remaining = poi_manager_tree_intersection(ods -> tree_ids, ods -> tree_ids);
 	/* add to all_pois */
-	g_tree_foreach(ods -> tree_ids, nodes_to_poi_set, (gpointer) ods -> all_pois);
+	g_tree_foreach(ods -> tree_ids, nodes_to_poi_set, ods -> all_pois);
 	/* add to PoiSets */
 	ods -> poi_sets = g_array_new(FALSE, FALSE, sizeof(PoiSet*));
 	int num_poi_sets = poi_sets_original -> len; int n;
@@ -174,23 +130,22 @@ void osm_data_insert_nodes(OsmDataSet * ods, GArray * poi_sets_original)
 		if (elements != NULL){
 			GSequenceIter * iter = g_sequence_get_begin_iter(elements);
 			while(!g_sequence_iter_is_end(iter)){
-				gpointer id_p = g_sequence_get(iter);
-				int id = *(int*)id_p;
-				LonLatTags * llt = g_tree_lookup(ods -> tree_ids, id_p);
-				poi_set_add(poi_set, llt, id);
-				g_tree_remove(tree_remaining, id_p);
+				int id = *(int*)g_sequence_get(iter);
+				Node * node = g_tree_lookup(ods -> tree_ids, &id);
+				poi_set_add(poi_set, node);
+				g_tree_remove(tree_remaining, &id);
 				iter = g_sequence_iter_next(iter);
 			}
 		}
 		g_array_append_val(ods -> poi_sets, poi_set);
 	}
-	g_tree_foreach(tree_remaining, nodes_to_poi_set, (gpointer) ods -> remaining_pois);
+	g_tree_foreach(tree_remaining, nodes_to_poi_set, ods -> remaining_pois);
 }
 
 void osm_data_set_duplicate(OsmDataSet * original, OsmDataSet * copy)
 {
 	copy -> tree_ids = duplicate_id_tree(original -> tree_ids);
-	copy -> tag_tree = duplicate_tag_tree(original -> tag_tree);
+	copy -> tag_tree = tag_tree_duplicate_tree(original -> tag_tree);
 	copy -> all_pois = poi_set_new();
 	copy -> remaining_pois = GOSM_POI_SET(styled_poi_set_new("*", "*", 0, 0, 0, 0.5));
 	poi_set_set_visible(copy -> remaining_pois, TRUE);

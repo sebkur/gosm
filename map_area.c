@@ -40,6 +40,7 @@
 #include "tiles/tilesets.h"
 #include "paths.h"
 
+#include "poi/node.h"
 #include "poi/api_control.h"
 
 #define MATCHES(a,b)	((a & b) == b)
@@ -1562,8 +1563,6 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		}
 	}
 	if (selected_visible){
-		LonLatTags * llt = (LonLatTags*) g_tree_lookup(
-			map_area -> poi_manager -> ods_edit -> tree_ids, &(map_area -> poi_selected_id));
 		cairo_t * cr_marker = gdk_cairo_create(widget->window);
 		cairo_pattern_t * pat_dots = cairo_pattern_create_rgba(selected_r, selected_g, selected_b, selected_a);
 		cairo_set_source(cr_marker, pat_dots);
@@ -1576,9 +1575,9 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 		cairo_destroy(cr_marker);
 	}
 	if (active_visible){
-		LonLatTags * llt = (LonLatTags*) g_tree_lookup(
+		Node * node = (Node*) g_tree_lookup(
 			map_area -> poi_manager -> ods_edit -> tree_ids, &(map_area -> poi_active_id));
-		char * name = g_hash_table_lookup(llt -> tags, "name");
+		char * name = node_get_value(node, "name");
 		if (name == NULL){
 			name = "";
 		}

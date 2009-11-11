@@ -218,11 +218,11 @@ void node_tool_set_tags(NodeTool * node_tool, int node_id)
 	}
 	/* insert new entries */
 	if (node_id != 0){
-		LonLatTags * llt = poi_manager_get_node(node_tool -> poi_manager, node_id);
+		Node * node = poi_manager_get_node(node_tool -> poi_manager, node_id);
 		path = gtk_tree_path_new_from_indices(0, -1);
 		gtk_tree_model_get_iter(model, &iter, path);
 		GHashTableIter hash_iter;
-		g_hash_table_iter_init(&hash_iter, llt -> tags);
+		g_hash_table_iter_init(&hash_iter, node -> tags);
 		gpointer key, val;
 		while(g_hash_table_iter_next(&hash_iter, &key, &val)){
 			gtk_list_store_append (GTK_LIST_STORE(model), &iter);

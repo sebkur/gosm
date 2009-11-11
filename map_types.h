@@ -120,16 +120,6 @@ typedef struct LonLatPairData {
 } LonLatPairData;
 
 /****************************************************************************************************
-* used by poi-managing to associate lon/lat-values to a set of key-value pairs
-****************************************************************************************************/
-typedef struct LonLatTags {
-	double lon;
-	double lat;
-	int refs;
-	GHashTable * tags;
-} LonLatTags;
-
-/****************************************************************************************************
 * used to store 4 double values that represent a colour
 ****************************************************************************************************/
 typedef struct ColorQuadriple {

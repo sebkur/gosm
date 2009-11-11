@@ -230,13 +230,8 @@ static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 			const char * lat_s = osm_reader_get_value(atts, "lat");
 			double lon = strtodouble(lon_s);
 			double lat = strtodouble(lat_s);
-			GHashTable * tags = g_hash_table_new_full(g_str_hash, g_str_equal, destroy_string, destroy_string);
-			LonLatTags * llt = malloc(sizeof(LonLatTags));
-			llt -> lon = lon;
-			llt -> lat = lat;
-			llt -> refs = 0;
-			llt -> tags = tags;
-			osm_reader -> current_node = llt;
+			Node * node = node_new(id, lon, lat);
+			osm_reader -> current_node = node;
 		}else{
 			osm_reader -> current_element = OSM_READER_ELEMENT_OTHER;
 		}
@@ -246,14 +241,7 @@ static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 			const char * k = osm_reader_get_value(atts, "k");
 			if (strcmp(k, "created_by") != 0){
 				const char * v = osm_reader_get_value(atts, "v");
-				int len_k = strlen(k) + 1;
-				int len_v = strlen(v) + 1;
-				/* put into node's hashmap */
-				char * key_map = malloc(sizeof(char) * len_k);
-				char * val_map = malloc(sizeof(char) * len_v);
-				strcpy(key_map, k);
-				strcpy(val_map, v);
-				g_hash_table_insert(osm_reader -> current_node -> tags, key_map, val_map);
+				node_add_tag(osm_reader -> current_node, k, v);
 			}
 		}
 	}
@@ -277,8 +265,7 @@ static void XMLCALL osm_reader_EndElementCallback(	void * userData,
 		}else{
 			/* the last node had no relevant tags
 			   -> it is not inserted into tree */
-			g_hash_table_destroy(osm_reader -> current_node -> tags);
-			free(osm_reader -> current_node);
+			node_free(osm_reader -> current_node);
 		}
 	}
 }

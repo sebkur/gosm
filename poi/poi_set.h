@@ -32,6 +32,7 @@
 #include "RTree/index.h"
 #include "r_r_tree.h"
 #include "../map_types.h"
+#include "node.h"
 
 #define GOSM_TYPE_POI_SET           (poi_set_get_type ())
 #define GOSM_POI_SET(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_POI_SET, PoiSet))
@@ -66,7 +67,7 @@ PoiSet * poi_set_new();
 void poi_set_constructor(PoiSet * poi_set);
 void poi_set_clear(PoiSet * poi_set);
 
-void poi_set_add(PoiSet * poi_set, LonLatTags * llt, int id);
+void poi_set_add(PoiSet * poi_set, Node * node);
 void poi_set_clear_area(PoiSet * poi_set, double min_lon, double min_lat, double max_lon, double max_lat);
 void poi_set_remove_point(PoiSet * poi_set, int node_id, double lon, double lat);
 void poi_set_remove_node(PoiSet * poi_set, int node_id);

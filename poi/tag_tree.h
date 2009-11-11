@@ -29,6 +29,8 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
+#include "node.h"
+
 #define GOSM_TYPE_TAG_TREE           (tag_tree_get_type ())
 #define GOSM_TAG_TREE(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_TAG_TREE, TagTree))
 #define GOSM_TAG_TREE_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_TAG_TREE, TagTreeClass))
@@ -70,12 +72,12 @@ void tag_tree_subtract_node_tag(
 void tag_tree_add_node(
 	TagTree * tag_tree, 
 	int node_id, 
-	GHashTable * tags);
+	Node * node);
 
 void tag_tree_subtract_node(
 	TagTree * tag_tree,
 	int node_id,
-	GHashTable * tags);
+	Node * node);
 
 void tag_tree_add_tag_tree(
 	TagTree * tag_tree,
