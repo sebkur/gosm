@@ -34,7 +34,7 @@
 #define GOSM_EDIT_ACTION_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_EDIT_ACTION, EditActionClass))
 #define GOSM_IS_EDIT_ACTION(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOSM_TYPE_EDIT_ACTION))
 #define GOSM_IS_EDIT_ACTION_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_EDIT_ACTION))
-#define GOSM_EDIT_ACTION_GET_CLASS      (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_EDIT_ACTION, EditActionClass))
+#define GOSM_EDIT_ACTION_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_EDIT_ACTION, EditActionClass))
 
 typedef struct _EditAction        EditAction;
 typedef struct _EditActionClass   EditActionClass;
@@ -48,9 +48,13 @@ struct _EditActionClass
 {
 	GObjectClass parent_class;
 
+	void (* print) (EditAction * action);
+
 	//void (* function_name) (EditAction *edit_action);
 };
 
 EditAction * edit_action_new();
+
+void edit_action_print(EditAction * edit_action);
 
 #endif /* _EDIT_ACTION_H_ */

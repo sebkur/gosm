@@ -1102,6 +1102,7 @@ void poi_manager_print_change_stack(PoiManager * poi_manager)
 	int s;
 	for (s = 0; s < poi_manager -> changes -> len; s++){
 		EditAction * action = g_array_index(poi_manager -> changes, EditAction*, s);
+		edit_action_print(action);
 		int id = G_OBJECT_TYPE(action);
 		if(id == GOSM_TYPE_EDIT_ACTION_ADD_NODE){
 			EditActionAddNode * eaan = GOSM_EDIT_ACTION_ADD_NODE(action);

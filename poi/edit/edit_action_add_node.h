@@ -36,7 +36,7 @@
 #define GOSM_EDIT_ACTION_ADD_NODE_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_EDIT_ACTION_ADD_NODE, EditActionAddNodeClass))
 #define GOSM_IS_EDIT_ACTION_ADD_NODE(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOSM_TYPE_EDIT_ACTION_ADD_NODE))
 #define GOSM_IS_EDIT_ACTION_ADD_NODE_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_EDIT_ACTION_ADD_NODE))
-#define GOSM_EDIT_ACTION_ADD_NODE_GET_CLASS      (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_EDIT_ACTION_ADD_NODE, EditActionAddNodeClass))
+#define GOSM_EDIT_ACTION_ADD_NODE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_EDIT_ACTION_ADD_NODE, EditActionAddNodeClass))
 
 typedef struct _EditActionAddNode        EditActionAddNode;
 typedef struct _EditActionAddNodeClass   EditActionAddNodeClass;
@@ -58,5 +58,7 @@ struct _EditActionAddNodeClass
 };
 
 EditAction * edit_action_add_node_new(int node_id, double lon, double lat);
+
+void edit_action_add_node_print(EditAction * action);
 
 #endif /* _EDIT_ACTION_ADD_NODE_H_ */

@@ -61,3 +61,10 @@ static void edit_action_class_init(EditActionClass *class)
 static void edit_action_init(EditAction *edit_action)
 {
 }
+
+void edit_action_print(EditAction * edit_action)
+{
+	EditActionClass * class = GOSM_EDIT_ACTION_GET_CLASS(edit_action);
+	//EditActionClass * class = (EditActionClass*)(edit_action);
+	if (class -> print) class -> print(edit_action);
+}
