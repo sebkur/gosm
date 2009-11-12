@@ -60,5 +60,6 @@ struct _EditActionAddNodeClass
 EditAction * edit_action_add_node_new(int node_id, double lon, double lat);
 
 void edit_action_add_node_print(EditAction * action);
+char * edit_action_add_node_to_string(EditAction * action);
 
 #endif /* _EDIT_ACTION_ADD_NODE_H_ */

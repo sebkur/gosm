@@ -65,6 +65,11 @@ static void edit_action_init(EditAction *edit_action)
 void edit_action_print(EditAction * edit_action)
 {
 	EditActionClass * class = GOSM_EDIT_ACTION_GET_CLASS(edit_action);
-	//EditActionClass * class = (EditActionClass*)(edit_action);
 	if (class -> print) class -> print(edit_action);
+}
+
+char * edit_action_to_string(EditAction * edit_action)
+{
+	EditActionClass * class = GOSM_EDIT_ACTION_GET_CLASS(edit_action);
+	if (class -> to_string) return class -> to_string(edit_action);
 }

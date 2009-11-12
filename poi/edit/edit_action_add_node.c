@@ -53,6 +53,7 @@ static void edit_action_add_node_class_init(EditActionAddNodeClass *class)
 {
 	EditActionClass * edit_action_class = GOSM_EDIT_ACTION_CLASS(class);
 	edit_action_class -> print = edit_action_add_node_print;
+	edit_action_class -> to_string = edit_action_add_node_to_string;
         /*edit_action_add_node_signals[SIGNAL_NAME_n] = g_signal_new(
                 "signal-name-n",
                 G_OBJECT_CLASS_TYPE (class),
@@ -70,5 +71,13 @@ static void edit_action_add_node_init(EditActionAddNode *edit_action_add_node)
 void edit_action_add_node_print(EditAction * action)
 {
 	EditActionAddNode * add = GOSM_EDIT_ACTION_ADD_NODE(action);
-	printf("implementation %d\n", add -> node_id);
+	printf("add node %d %f %f\n", add -> node_id, add -> lon, add -> lat);
+}
+
+char * edit_action_add_node_to_string(EditAction * action)
+{
+	EditActionAddNode * add = GOSM_EDIT_ACTION_ADD_NODE(action);
+	char * buf = malloc(sizeof(char) * 100);
+	sprintf(buf, "add node %d %f %f", add -> node_id, add -> lon, add -> lat);
+	return buf;
 }

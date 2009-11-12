@@ -27,6 +27,7 @@
 #include <gdk/gdk.h>
 
 #include "edit_widget.h"
+#include "edit/edit_action.h"
 
 G_DEFINE_TYPE (EditWidget, edit_widget, GTK_TYPE_VBOX);
 
@@ -45,9 +46,15 @@ enum {
 	NUM_COLS
 };
 
-GtkWidget * edit_widget_new()
+static void edit_widget_action_added_cb(PoiManager * poi_manager, gpointer action_p, gpointer data);
+
+GtkWidget * edit_widget_new(PoiManager * poi_manager)
 {
 	EditWidget * edit_widget = g_object_new(GOSM_TYPE_EDIT_WIDGET, NULL);
+	edit_widget -> poi_manager = poi_manager;
+	g_signal_connect(
+		G_OBJECT(poi_manager), "action-added",
+		G_CALLBACK(edit_widget_action_added_cb), edit_widget);
 	return GTK_WIDGET(edit_widget);
 }
 
@@ -88,5 +95,21 @@ static void edit_widget_init(EditWidget *edit_widget)
 	                                GTK_POLICY_AUTOMATIC,
 	                                GTK_POLICY_AUTOMATIC);
 	gtk_box_pack_start(GTK_BOX(vbox), scrolled, TRUE, TRUE, 0);
+
+	edit_widget -> view = view;
 }
 
+static void edit_widget_action_added_cb(PoiManager * poi_manager, gpointer action_p, gpointer data)
+{
+	EditWidget * edit_widget = GOSM_EDIT_WIDGET(data);
+	EditAction * action = GOSM_EDIT_ACTION(action_p);
+	char * text = edit_action_to_string(action);
+	GtkListStore * store = GTK_LIST_STORE(gtk_tree_view_get_model(edit_widget -> view));
+	GtkTreeIter iter;
+	gtk_list_store_prepend(store, &iter);
+	gtk_list_store_set (store, &iter,
+				COL_NAME, text,
+				-1);
+	GtkTreePath * path = gtk_tree_path_new_from_indices(0, -1);
+	gtk_tree_view_scroll_to_cell(edit_widget -> view, path, NULL, FALSE, 0, 0);
+}

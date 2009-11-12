@@ -49,6 +49,9 @@ EditAction * edit_action_remove_node_new(int node_id)
 
 static void edit_action_remove_node_class_init(EditActionRemoveNodeClass *class)
 {
+	EditActionClass * edit_action_class = GOSM_EDIT_ACTION_CLASS(class);
+	edit_action_class -> print = edit_action_remove_node_print;
+	edit_action_class -> to_string = edit_action_remove_node_to_string;
         /*edit_action_remove_node_signals[SIGNAL_NAME_n] = g_signal_new(
                 "signal-name-n",
                 G_OBJECT_CLASS_TYPE (class),
@@ -62,3 +65,18 @@ static void edit_action_remove_node_class_init(EditActionRemoveNodeClass *class)
 static void edit_action_remove_node_init(EditActionRemoveNode *edit_action_remove_node)
 {
 }
+
+void edit_action_remove_node_print(EditAction * action)
+{
+	EditActionRemoveNode * a = GOSM_EDIT_ACTION_REMOVE_NODE(action);
+	printf("remove node %d\n", a -> node_id);
+}
+
+char * edit_action_remove_node_to_string(EditAction * action)
+{
+	EditActionRemoveNode * a = GOSM_EDIT_ACTION_REMOVE_NODE(action);
+	char * buf = malloc(sizeof(char) * 100);
+	sprintf(buf, "remove node %d", a -> node_id);
+	return buf;
+}
+

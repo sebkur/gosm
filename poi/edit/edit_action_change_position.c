@@ -51,6 +51,9 @@ EditAction * edit_action_change_position_new(int node_id, double lon, double lat
 
 static void edit_action_change_position_class_init(EditActionChangePositionClass *class)
 {
+	EditActionClass * edit_action_class = GOSM_EDIT_ACTION_CLASS(class);
+	edit_action_class -> print = edit_action_change_position_print;
+	edit_action_class -> to_string = edit_action_change_position_to_string;
         /*edit_action_change_position_signals[SIGNAL_NAME_n] = g_signal_new(
                 "signal-name-n",
                 G_OBJECT_CLASS_TYPE (class),
@@ -64,3 +67,18 @@ static void edit_action_change_position_class_init(EditActionChangePositionClass
 static void edit_action_change_position_init(EditActionChangePosition *edit_action_change_position)
 {
 }
+
+void edit_action_change_position_print(EditAction * action)
+{
+	EditActionChangePosition * a = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
+	printf("move %d %f %f\n", a -> node_id, a -> lon, a -> lat);
+}
+
+char * edit_action_change_position_to_string(EditAction * action)
+{
+	EditActionChangePosition * a = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
+	char * buf = malloc(sizeof(char) * 100);
+	sprintf(buf, "move %d %f %f", a -> node_id, a -> lon, a -> lat);
+	return buf;
+}
+

@@ -51,6 +51,9 @@ EditAction * edit_action_change_tag_key_new(int node_id, char * old_key, char * 
 
 static void edit_action_change_tag_key_class_init(EditActionChangeTagKeyClass *class)
 {
+	EditActionClass * edit_action_class = GOSM_EDIT_ACTION_CLASS(class);
+	edit_action_class -> print = edit_action_change_tag_key_print;
+	edit_action_class -> to_string = edit_action_change_tag_key_to_string;
         /*edit_action_change_tag_key_signals[SIGNAL_NAME_n] = g_signal_new(
                 "signal-name-n",
                 G_OBJECT_CLASS_TYPE (class),
@@ -64,3 +67,18 @@ static void edit_action_change_tag_key_class_init(EditActionChangeTagKeyClass *c
 static void edit_action_change_tag_key_init(EditActionChangeTagKey *edit_action_change_tag_key)
 {
 }
+
+void edit_action_change_tag_key_print(EditAction * action)
+{
+	EditActionChangeTagKey * a = GOSM_EDIT_ACTION_CHANGE_TAG_KEY(action);
+	printf("change tag-key %d %s %s\n", a -> node_id, a -> old_key, a -> new_key);
+}
+
+char * edit_action_change_tag_key_to_string(EditAction * action)
+{
+	EditActionChangeTagKey * a = GOSM_EDIT_ACTION_CHANGE_TAG_KEY(action);
+	char * buf = malloc(sizeof(char) * 100);
+	sprintf(buf, "change tag-key %d %s %s", a -> node_id, a -> old_key, a -> new_key);
+	return buf;
+}
+

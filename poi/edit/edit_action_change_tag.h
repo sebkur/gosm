@@ -55,4 +55,7 @@ struct _EditActionChangeTagClass
 
 EditAction * edit_action_change_tag_new();
 
+void edit_action_change_tag_print(EditAction * action);
+char * edit_action_change_tag_to_string(EditAction * action);
+
 #endif /* _EDIT_ACTION_CHANGE_TAG_H_ */

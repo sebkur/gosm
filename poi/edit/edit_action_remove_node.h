@@ -57,4 +57,7 @@ struct _EditActionRemoveNodeClass
 
 EditAction * edit_action_remove_node_new(int node_id);
 
+void edit_action_remove_node_print(EditAction * action);
+char * edit_action_remove_node_to_string(EditAction * action);
+
 #endif /* _EDIT_ACTION_REMOVE_NODE_H_ */

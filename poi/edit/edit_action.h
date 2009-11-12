@@ -49,6 +49,7 @@ struct _EditActionClass
 	GObjectClass parent_class;
 
 	void (* print) (EditAction * action);
+	char* (* to_string) (EditAction * action);
 
 	//void (* function_name) (EditAction *edit_action);
 };
@@ -56,5 +57,6 @@ struct _EditActionClass
 EditAction * edit_action_new();
 
 void edit_action_print(EditAction * edit_action);
+char * edit_action_to_string(EditAction * edit_action);
 
 #endif /* _EDIT_ACTION_H_ */

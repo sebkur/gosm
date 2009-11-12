@@ -155,7 +155,7 @@ GtkWidget * poi_tool_new(PoiManager * poi_manager)
 	gtk_box_pack_start(GTK_BOX(box_source), tool_bar_sources, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box_source), GTK_WIDGET(poi_tool -> poi_source_selector), TRUE, TRUE, 0);
 	/* edit widget */
-	poi_tool -> edit_widget = edit_widget_new();
+	poi_tool -> edit_widget = edit_widget_new(poi_manager);
 	/* sources, callbacks */
 	g_signal_connect(
 		G_OBJECT(button_sources_add), "clicked",

@@ -59,4 +59,7 @@ struct _EditActionChangeTagValueClass
 
 EditAction * edit_action_change_tag_value_new(int node_id, char * key, char * value);
 
+void edit_action_change_tag_value_print(EditAction * action);
+char * edit_action_change_tag_value_to_string(EditAction * action);
+
 #endif /* _EDIT_ACTION_CHANGE_TAG_VALUE_H_ */

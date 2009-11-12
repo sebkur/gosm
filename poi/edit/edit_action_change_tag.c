@@ -48,6 +48,9 @@ EditAction * edit_action_change_tag_new()
 
 static void edit_action_change_tag_class_init(EditActionChangeTagClass *class)
 {
+	EditActionClass * edit_action_class = GOSM_EDIT_ACTION_CLASS(class);
+	edit_action_class -> print = edit_action_change_tag_print;
+	edit_action_class -> to_string = edit_action_change_tag_to_string;
         /*edit_action_change_tag_signals[SIGNAL_NAME_n] = g_signal_new(
                 "signal-name-n",
                 G_OBJECT_CLASS_TYPE (class),
@@ -61,3 +64,13 @@ static void edit_action_change_tag_class_init(EditActionChangeTagClass *class)
 static void edit_action_change_tag_init(EditActionChangeTag *edit_action_change_tag)
 {
 }
+
+void edit_action_change_tag_print(EditAction * action)
+{
+}
+
+char * edit_action_change_tag_to_string(EditAction * action)
+{
+	EditActionChangeTag * a = GOSM_EDIT_ACTION_CHANGE_TAG(action);
+}
+

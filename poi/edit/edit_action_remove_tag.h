@@ -59,4 +59,7 @@ struct _EditActionRemoveTagClass
 
 EditAction * edit_action_remove_tag_new(int node_id, char * key, char * value);
 
+void edit_action_remove_tag_print(EditAction * action);
+char * edit_action_remove_tag_to_string(EditAction * action);
+
 #endif /* _EDIT_ACTION_REMOVE_TAG_H_ */

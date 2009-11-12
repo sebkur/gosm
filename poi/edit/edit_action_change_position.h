@@ -59,4 +59,7 @@ struct _EditActionChangePositionClass
 
 EditAction * edit_action_change_position_new(int node_id, double lon, double lat);
 
+void edit_action_change_position_print(EditAction * action);
+char * edit_action_change_position_to_string(EditAction * action);
+
 #endif /* _EDIT_ACTION_CHANGE_POSITION_H_ */

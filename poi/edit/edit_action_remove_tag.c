@@ -58,6 +58,9 @@ EditAction * edit_action_remove_tag_new(int node_id, char * ikey, char * ivalue)
 
 static void edit_action_remove_tag_class_init(EditActionRemoveTagClass *class)
 {
+	EditActionClass * edit_action_class = GOSM_EDIT_ACTION_CLASS(class);
+	edit_action_class -> print = edit_action_remove_tag_print;
+	edit_action_class -> to_string = edit_action_remove_tag_to_string;
         /*edit_action_remove_tag_signals[SIGNAL_NAME_n] = g_signal_new(
                 "signal-name-n",
                 G_OBJECT_CLASS_TYPE (class),
@@ -71,3 +74,18 @@ static void edit_action_remove_tag_class_init(EditActionRemoveTagClass *class)
 static void edit_action_remove_tag_init(EditActionRemoveTag *edit_action_remove_tag)
 {
 }
+
+void edit_action_remove_tag_print(EditAction * action)
+{
+	EditActionRemoveTag * a = GOSM_EDIT_ACTION_REMOVE_TAG(action);
+	printf("remove tag %d %s %s\n", a -> node_id, a -> key, a -> value);
+}
+
+char * edit_action_remove_tag_to_string(EditAction * action)
+{
+	EditActionRemoveTag * a = GOSM_EDIT_ACTION_REMOVE_TAG(action);
+	char * buf = malloc(sizeof(char) * 100);
+	sprintf(buf, "remove tag %d %s %s", a -> node_id, a -> key, a -> value);
+	return buf;
+}
+

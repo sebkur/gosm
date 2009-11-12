@@ -29,6 +29,8 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
+#include "poi_manager.h"
+
 #define GOSM_TYPE_EDIT_WIDGET           (edit_widget_get_type ())
 #define GOSM_EDIT_WIDGET(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_EDIT_WIDGET, EditWidget))
 #define GOSM_EDIT_WIDGET_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_EDIT_WIDGET, EditWidgetClass))
@@ -42,6 +44,9 @@ typedef struct _EditWidgetClass   EditWidgetClass;
 struct _EditWidget
 {
 	GtkVBox parent;
+
+	PoiManager * poi_manager;
+	GtkTreeView * view;
 };
 
 struct _EditWidgetClass
@@ -51,6 +56,6 @@ struct _EditWidgetClass
 	//void (* function_name) (EditWidget *edit_widget);
 };
 
-GtkWidget * edit_widget_new();
+GtkWidget * edit_widget_new(PoiManager * poi_manager);
 
 #endif /* _EDIT_WIDGET_H_ */

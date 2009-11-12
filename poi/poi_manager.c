@@ -81,6 +81,7 @@ enum
 	NODE_TAG_ADDED,
 	NODE_TAG_REMOVED,
 	NODE_TAG_CHANGED,
+	ACTION_ADDED,
         LAST_SIGNAL
 };
 
@@ -273,6 +274,14 @@ static void poi_manager_class_init(PoiManagerClass *class)
                 NULL, NULL,
                 g_cclosure_marshal_VOID__INT,
                 G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[ACTION_ADDED] = g_signal_new(
+                "action-added",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, action_added),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__POINTER,
+                G_TYPE_NONE, 1, G_TYPE_POINTER);
 }
 
 static void poi_manager_init(PoiManager *poi_manager)
@@ -1103,35 +1112,6 @@ void poi_manager_print_change_stack(PoiManager * poi_manager)
 	for (s = 0; s < poi_manager -> changes -> len; s++){
 		EditAction * action = g_array_index(poi_manager -> changes, EditAction*, s);
 		edit_action_print(action);
-		int id = G_OBJECT_TYPE(action);
-		if(id == GOSM_TYPE_EDIT_ACTION_ADD_NODE){
-			EditActionAddNode * eaan = GOSM_EDIT_ACTION_ADD_NODE(action);
-			printf("ADD: %d %f %f\n", eaan -> node_id, eaan -> lon, eaan -> lat);
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
-			EditActionRemoveNode * earn = GOSM_EDIT_ACTION_REMOVE_NODE(action);
-			printf("REMOVE: %d\n", earn -> node_id);
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION){
-			EditActionChangePosition * eacp = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
-			printf("REPOSITION: %d %f %f\n", eacp -> node_id, eacp -> lon, eacp -> lat);
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_ADD_TAG){
-			EditActionAddTag * eaat = GOSM_EDIT_ACTION_ADD_TAG(action);
-			printf("ADD TAG: %d %s %s\n", eaat -> node_id, eaat -> key, eaat -> value);
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_KEY){
-			EditActionChangeTagKey * eactk = GOSM_EDIT_ACTION_CHANGE_TAG_KEY(action);
-			printf("CHANGE KEY: %d %s -> %s\n", eactk -> node_id, eactk -> old_key, eactk -> new_key);
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE){
-			EditActionChangeTagValue * eactv = GOSM_EDIT_ACTION_CHANGE_TAG_VALUE(action);
-			printf("CHANGE VAL: %d %s -> %s\n", eactv -> node_id, eactv -> key, eactv -> value);
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_TAG){
-			EditActionRemoveTag * eart = GOSM_EDIT_ACTION_REMOVE_TAG(action);
-			printf("REMOVE TAG: %d %s %s\n", eart -> node_id, eart -> key, eart -> value);
-		}
 	}
 }
 
@@ -1148,6 +1128,7 @@ void poi_manager_add_action(PoiManager * poi_manager, EditAction * action)
 {
 	g_array_append_val(poi_manager -> changes, action);
 	poi_manager_print_change_stack(poi_manager);
+	g_signal_emit (poi_manager, poi_manager_signals[ACTION_ADDED], 0, action);
 }
 
 /****************************************************************************************************
