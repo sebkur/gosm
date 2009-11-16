@@ -31,8 +31,10 @@
 #include "poi/cell_renderer_colour.h"
 #include "poi/edit/edit_action_remove_node.h"
 #include "poi/edit/edit_action_add_node.h"
+#include "poi/edit/edit_action_change_tag_key.h"
 #include "poi/edit/edit_action_change_position.h"
 #include "poi/edit/edit_action.h"
+#include "poi/edit/edit_action_change_tag_value.h"
 #include "poi/edit/edit_action_add_tag.h"
 #include "poi/edit/edit_action_remove_tag.h"
 #include "poi/edit/edit_action_change_tag.h"
@@ -41,8 +43,11 @@
 #include "poi/poi_manager.h"
 #include "poi/poi_tool.h"
 #include "poi/styled_poi_set.h"
+#include "poi/node.h"
 #include "poi/api_control.h"
 #include "poi/osm_data_set.h"
+#include "poi/node_add_tag_dialog.h"
+#include "poi/edit_widget.h"
 #include "menu.h"
 #include "toolbar.h"
 #include "atlas/atlas_tool.h"
@@ -100,8 +105,10 @@ void make_gtk_types_safe()
 	dummy = GOSM_TYPE_CELL_RENDERER_COLOUR;
 	dummy = GOSM_TYPE_EDIT_ACTION_REMOVE_NODE;
 	dummy = GOSM_TYPE_EDIT_ACTION_ADD_NODE;
+	dummy = GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_KEY;
 	dummy = GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION;
 	dummy = GOSM_TYPE_EDIT_ACTION;
+	dummy = GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE;
 	dummy = GOSM_TYPE_EDIT_ACTION_ADD_TAG;
 	dummy = GOSM_TYPE_EDIT_ACTION_REMOVE_TAG;
 	dummy = GOSM_TYPE_EDIT_ACTION_CHANGE_TAG;
@@ -110,8 +117,11 @@ void make_gtk_types_safe()
 	dummy = GOSM_TYPE_POI_MANAGER;
 	dummy = GOSM_TYPE_POI_TOOL;
 	dummy = GOSM_TYPE_STYLED_POI_SET;
+	dummy = GOSM_TYPE_NODE;
 	dummy = GOSM_TYPE_API_CONTROL;
 	dummy = GOSM_TYPE_OSM_DATA_SET;
+	dummy = GOSM_TYPE_NODE_ADD_TAG_DIALOG;
+	dummy = GOSM_TYPE_EDIT_WIDGET;
 	dummy = GOSM_TYPE_MENU;
 	dummy = GOSM_TYPE_TOOLBAR;
 	dummy = GOSM_TYPE_ATLAS_TOOL;

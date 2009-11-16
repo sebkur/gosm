@@ -271,21 +271,23 @@ gtk_safety.o: gtk_safety.c namefinder/namefinder_countries.h \
   poi/osm_reader.h poi/poi_source_load_progress.h \
   poi/cell_renderer_colour.h poi/edit/edit_action_remove_node.h \
   poi/edit/edit_action.h poi/edit/edit_action_add_node.h \
+  poi/edit/edit_action_change_tag_key.h \
   poi/edit/edit_action_change_position.h poi/edit/edit_action.h \
-  poi/edit/edit_action_add_tag.h poi/edit/edit_action_remove_tag.h \
-  poi/edit/edit_action_change_tag.h poi/r_r_tree.h poi/poi_set.h \
-  poi/poi_manager.h poi/poi_tool.h poi/poi_selector.h \
-  poi/poi_source_selector.h poi/edit_widget.h poi/styled_poi_set.h \
-  poi/api_control.h poi/osm_data_set.h menu.h map_area.h config/config.h \
-  toolbar.h bookmark/bookmark_manager.h bookmark/bookmark.h \
-  atlas/atlas_tool.h atlas/atlas.h wizzard/wizzard_download.h \
-  wizzard/select_use_window.h wizzard/../map_types.h \
-  wizzard/tile_download_window.h wizzard/../tiles/tile_loader.h \
-  wizzard/../tiles/../map_types.h wizzard/atlas_template_dialog.h \
-  wizzard/../atlas/atlas.h wizzard/wizzard_export.h \
-  wizzard/select_export_window.h wizzard/wizzard_atlas_pdf.h \
-  wizzard/wizzard_atlas_pdf_window.h wizzard/../imageglue/image_glue.h \
-  wizzard/../imageglue/../map_types.h \
+  poi/edit/edit_action_change_tag_value.h poi/edit/edit_action_add_tag.h \
+  poi/edit/edit_action_remove_tag.h poi/edit/edit_action_change_tag.h \
+  poi/r_r_tree.h poi/poi_set.h poi/poi_manager.h poi/poi_tool.h \
+  poi/poi_selector.h poi/poi_source_selector.h poi/edit_widget.h \
+  poi/styled_poi_set.h poi/node.h poi/api_control.h poi/osm_data_set.h \
+  poi/node_add_tag_dialog.h poi/edit_widget.h menu.h map_area.h \
+  config/config.h toolbar.h bookmark/bookmark_manager.h \
+  bookmark/bookmark.h atlas/atlas_tool.h atlas/atlas.h \
+  wizzard/wizzard_download.h wizzard/select_use_window.h \
+  wizzard/../map_types.h wizzard/tile_download_window.h \
+  wizzard/../tiles/tile_loader.h wizzard/../tiles/../map_types.h \
+  wizzard/atlas_template_dialog.h wizzard/../atlas/atlas.h \
+  wizzard/wizzard_export.h wizzard/select_export_window.h \
+  wizzard/wizzard_atlas_pdf.h wizzard/wizzard_atlas_pdf_window.h \
+  wizzard/../imageglue/image_glue.h wizzard/../imageglue/../map_types.h \
   wizzard/../imageglue/../atlas/atlas.h \
   wizzard/wizzard_atlas_pdf_window.h wizzard/tile_download_window.h \
   wizzard/wizzard_atlas_sequence_window.h wizzard/wizzard_delete_tiles.h \
