@@ -106,6 +106,12 @@ struct _PoiManagerClass
 	void (* node_tag_removed) (PoiManager *poi_manager, int node_id);
 	void (* node_tag_changed) (PoiManager *poi_manager, int node_id);
 	void (* action_added) (PoiManager *poi_manager, gpointer action);
+	void (* action_undo) (PoiManager *poi_manager, int index);
+	void (* action_redo) (PoiManager *poi_manager, int index);
+	void (* action_undo_multiple) (PoiManager *poi_manager, gpointer interval);
+	void (* action_redo_multiple) (PoiManager *poi_manager, gpointer interval);
+	void (* action_remove) (PoiManager *poi_manager, int index);
+	void (* action_remove_multiple) (PoiManager *poi_manager, gpointer interval);
 };
 
 PoiManager * poi_manager_new();

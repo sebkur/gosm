@@ -47,6 +47,8 @@ enum {
 };
 
 static void edit_widget_action_added_cb(PoiManager * poi_manager, gpointer action_p, gpointer data);
+static gboolean edit_widget_undo_cb(GtkWidget * button, EditWidget * edit_widget);
+static gboolean edit_widget_redo_cb(GtkWidget * button, EditWidget * edit_widget);
 
 GtkWidget * edit_widget_new(PoiManager * poi_manager)
 {
@@ -97,6 +99,13 @@ static void edit_widget_init(EditWidget *edit_widget)
 	gtk_box_pack_start(GTK_BOX(vbox), scrolled, TRUE, TRUE, 0);
 
 	edit_widget -> view = view;
+
+	g_signal_connect(
+		G_OBJECT(button_undo), "clicked",
+		G_CALLBACK(edit_widget_undo_cb), edit_widget);
+	g_signal_connect(
+		G_OBJECT(button_redo), "clicked",
+		G_CALLBACK(edit_widget_redo_cb), edit_widget);
 }
 
 static void edit_widget_action_added_cb(PoiManager * poi_manager, gpointer action_p, gpointer data)
@@ -112,4 +121,14 @@ static void edit_widget_action_added_cb(PoiManager * poi_manager, gpointer actio
 				-1);
 	GtkTreePath * path = gtk_tree_path_new_from_indices(0, -1);
 	gtk_tree_view_scroll_to_cell(edit_widget -> view, path, NULL, FALSE, 0, 0);
+}
+
+static gboolean edit_widget_undo_cb(GtkWidget * button, EditWidget * edit_widget)
+{
+	printf("undo\n");
+}
+
+static gboolean edit_widget_redo_cb(GtkWidget * button, EditWidget * edit_widget)
+{
+	printf("redo\n");
 }

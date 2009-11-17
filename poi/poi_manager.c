@@ -82,6 +82,12 @@ enum
 	NODE_TAG_REMOVED,
 	NODE_TAG_CHANGED,
 	ACTION_ADDED,
+	ACTION_UNDO,
+	ACTION_REDO,
+	ACTION_UNDO_MULTIPLE,
+	ACTION_REDO_MULTIPLE,
+	ACTION_REMOVE,
+	ACTION_REMOVE_MULTIPLE,
         LAST_SIGNAL
 };
 
@@ -279,6 +285,54 @@ static void poi_manager_class_init(PoiManagerClass *class)
                 G_OBJECT_CLASS_TYPE (class),
                 G_SIGNAL_RUN_FIRST,
                 G_STRUCT_OFFSET (PoiManagerClass, action_added),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__POINTER,
+                G_TYPE_NONE, 1, G_TYPE_POINTER);
+        poi_manager_signals[ACTION_UNDO] = g_signal_new(
+                "action-undo",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, action_undo),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[ACTION_REDO] = g_signal_new(
+                "action-redo",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, action_redo),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[ACTION_UNDO_MULTIPLE] = g_signal_new(
+                "action-undo-multiple",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, action_undo_multiple),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__POINTER,
+                G_TYPE_NONE, 1, G_TYPE_POINTER);
+        poi_manager_signals[ACTION_REDO_MULTIPLE] = g_signal_new(
+                "action-redo-multiple",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, action_redo_multiple),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__POINTER,
+                G_TYPE_NONE, 1, G_TYPE_POINTER);
+        poi_manager_signals[ACTION_REMOVE] = g_signal_new(
+                "action-remove",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, action_remove),
+                NULL, NULL,
+                g_cclosure_marshal_VOID__INT,
+                G_TYPE_NONE, 1, G_TYPE_INT);
+        poi_manager_signals[ACTION_REMOVE_MULTIPLE] = g_signal_new(
+                "action-remove-multiple",
+                G_OBJECT_CLASS_TYPE (class),
+                G_SIGNAL_RUN_FIRST,
+                G_STRUCT_OFFSET (PoiManagerClass, action_remove_multiple),
                 NULL, NULL,
                 g_cclosure_marshal_VOID__POINTER,
                 G_TYPE_NONE, 1, G_TYPE_POINTER);
