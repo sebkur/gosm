@@ -916,6 +916,7 @@ void poi_manager_clear_pois(PoiManager * poi_manager)
 	poi_manager_apply_change_history(poi_manager);
 	pthread_mutex_unlock(&(poi_manager -> mutex_pois));
 	poi_manager_activate_poi_source(poi_manager, -1);
+	//TODO: clear undo list
 	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, poi_manager -> active_poi_source);
 }
 

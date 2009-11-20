@@ -63,6 +63,7 @@ static gboolean node_tool_button_add_cb(GtkWidget * button, PoiManager * poi_man
 static gboolean node_tool_button_remove_cb(GtkWidget * button, NodeTool * node_tool);
 static gboolean node_tool_tag_added_cb(PoiManager * poi_manager, int node_id, NodeTool * node_tool);
 static gboolean node_tool_undo_cb(PoiManager * poi_manager, int index, NodeTool * node_tool);
+static gboolean node_tool_redo_cb(PoiManager * poi_manager, int index, NodeTool * node_tool);
 static void node_tool_tag_key_changed_cb(GtkCellRendererText * renderer, gchar * path, gchar * text, NodeTool * node_tool);
 static void node_tool_tag_value_changed_cb(GtkCellRendererText * renderer, gchar * path, gchar * text, NodeTool * node_tool);
 
@@ -124,6 +125,9 @@ GtkWidget * node_tool_new(PoiManager * poi_manager)
 	g_signal_connect(
 		G_OBJECT(poi_manager), "action-undo",
 		G_CALLBACK(node_tool_undo_cb), node_tool);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "action-redo",
+		G_CALLBACK(node_tool_redo_cb), node_tool);
 	return GTK_WIDGET(node_tool);
 
 }
@@ -290,6 +294,13 @@ static gboolean node_tool_tag_added_cb(PoiManager * poi_manager, int node_id, No
 }
 
 static gboolean node_tool_undo_cb(PoiManager * poi_manager, int index, NodeTool * node_tool)
+{
+	if (poi_manager_node_exists(poi_manager, node_tool -> node_id)){
+		node_tool_set_tags(node_tool, node_tool -> node_id);
+	}
+}
+
+static gboolean node_tool_redo_cb(PoiManager * poi_manager, int index, NodeTool * node_tool)
 {
 	if (poi_manager_node_exists(poi_manager, node_tool -> node_id)){
 		node_tool_set_tags(node_tool, node_tool -> node_id);
