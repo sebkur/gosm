@@ -48,6 +48,7 @@ enum {
 
 static void edit_widget_action_added_cb(PoiManager * poi_manager, gpointer action_p, gpointer data);
 static void edit_widget_action_undo_cb(PoiManager * poi_manager, int index, gpointer data);
+static void edit_widget_action_redo_cb(PoiManager * poi_manager, int index, gpointer data);
 static void edit_widget_action_remove_multiple_cb(PoiManager * poi_manager, gpointer x, gpointer data);
 static gboolean edit_widget_undo_cb(GtkWidget * button, EditWidget * edit_widget);
 static gboolean edit_widget_redo_cb(GtkWidget * button, EditWidget * edit_widget);
@@ -68,6 +69,9 @@ GtkWidget * edit_widget_new(PoiManager * poi_manager)
 	g_signal_connect(
 		G_OBJECT(poi_manager), "action-undo",
 		G_CALLBACK(edit_widget_action_undo_cb), edit_widget);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "action-redo",
+		G_CALLBACK(edit_widget_action_redo_cb), edit_widget);
 	g_signal_connect(
 		G_OBJECT(poi_manager), "action-remove-multiple",
 		G_CALLBACK(edit_widget_action_remove_multiple_cb), edit_widget);
@@ -156,6 +160,17 @@ static void edit_widget_action_undo_cb(PoiManager * poi_manager, int index, gpoi
 	gtk_widget_queue_draw(GTK_WIDGET(edit_widget -> view));
 }
 
+static void edit_widget_action_redo_cb(PoiManager * poi_manager, int index, gpointer data)
+{
+	EditWidget * edit_widget = GOSM_EDIT_WIDGET(data);
+	// grey out
+	if (index + 1 == poi_manager -> changes -> len){
+		gtk_widget_set_sensitive(edit_widget -> button_redo, FALSE);
+	}
+	gtk_widget_set_sensitive(edit_widget -> button_undo, TRUE);
+	gtk_widget_queue_draw(GTK_WIDGET(edit_widget -> view));
+}
+
 static void edit_widget_action_remove_multiple_cb(PoiManager * poi_manager, gpointer x, gpointer data)
 {
 	int * is = (int*)x;
@@ -192,11 +207,10 @@ void edit_widget_cell_data_func(
 
 static gboolean edit_widget_undo_cb(GtkWidget * button, EditWidget * edit_widget)
 {
-	printf("undo\n");
 	poi_manager_undo(edit_widget -> poi_manager);
 }
 
 static gboolean edit_widget_redo_cb(GtkWidget * button, EditWidget * edit_widget)
 {
-	printf("redo\n");
+	poi_manager_redo(edit_widget -> poi_manager);
 }

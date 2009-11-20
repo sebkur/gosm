@@ -1453,6 +1453,12 @@ void poi_manager_undo(PoiManager * poi_manager)
 
 void poi_manager_redo(PoiManager * poi_manager)
 {
+	if (poi_manager -> change_index + 1 < poi_manager -> changes -> len){
+		poi_manager -> change_index ++;
+		EditAction * action = g_array_index(poi_manager -> changes, EditAction*, poi_manager -> change_index);
+		poi_manager_apply_change(poi_manager, action);
+		g_signal_emit(poi_manager, poi_manager_signals[ACTION_REDO], 0, poi_manager -> change_index);
+	}
 }
 
 gboolean poi_manager_node_exists(PoiManager * poi_manager, int node_id)

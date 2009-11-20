@@ -240,6 +240,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(poi_manager), "node-tag-changed", G_CALLBACK(poi_manager_node_tag_added_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager), "node-tag-removed", G_CALLBACK(poi_manager_node_tag_added_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager), "action-undo", G_CALLBACK(poi_manager_node_tag_added_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "action-redo", G_CALLBACK(poi_manager_node_tag_added_cb), NULL);
 
 	/* Selection-Widget in sidebar */
 	select_tool = select_tool_new();
