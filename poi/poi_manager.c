@@ -913,11 +913,17 @@ void poi_manager_clear_pois(PoiManager * poi_manager)
 	pthread_mutex_lock(&(poi_manager -> mutex_pois));
 	poi_manager_remove_nodes(poi_manager, poi_manager -> ods_base -> tree_ids);
 	osm_data_set_duplicate(poi_manager -> ods_base, poi_manager -> ods_edit);
-	poi_manager_apply_change_history(poi_manager);
+	//poi_manager_apply_change_history(poi_manager);
 	pthread_mutex_unlock(&(poi_manager -> mutex_pois));
 	poi_manager_activate_poi_source(poi_manager, -1);
-	//TODO: clear undo list
 	g_signal_emit (poi_manager, poi_manager_signals[SOURCE_ACTIVATED], 0, poi_manager -> active_poi_source);
+	int len = poi_manager -> changes -> len;
+	if (len > 0){
+		g_array_remove_range(poi_manager -> changes, 0, len);
+		poi_manager -> change_index = -1;
+		int x[3] = {len, 0, len};
+		g_signal_emit (poi_manager, poi_manager_signals[ACTION_REMOVE_MULTIPLE], 0, x);
+	}
 }
 
 /****************************************************************************************************

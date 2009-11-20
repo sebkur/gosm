@@ -186,6 +186,10 @@ static void edit_widget_action_remove_multiple_cb(PoiManager * poi_manager, gpoi
 		gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, path);
 		gtk_list_store_remove(store, &iter);
 	}
+	gtk_widget_set_sensitive(edit_widget -> button_undo, 
+		(poi_manager -> change_index > 0));
+	gtk_widget_set_sensitive(edit_widget -> button_redo, 
+		(poi_manager -> change_index + 2 < poi_manager -> changes -> len));
 }
 
 void edit_widget_cell_data_func(
