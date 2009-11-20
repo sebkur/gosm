@@ -45,7 +45,6 @@ struct _EditActionAddTag
 {
 	EditAction parent;
 
-	int node_id;
 	char * key;
 	char * value;
 };

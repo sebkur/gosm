@@ -63,5 +63,6 @@ struct _OsmDataSetClass
 OsmDataSet * osm_data_set_new();
 
 void osm_data_set_duplicate(OsmDataSet * original, OsmDataSet * copy);
+void osm_data_set_duplicate_node(OsmDataSet * original, OsmDataSet * copy, int node_id);
 
 #endif /* _OSM_DATA_SET_H_ */

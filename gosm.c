@@ -239,6 +239,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(poi_manager), "node-tag-added", G_CALLBACK(poi_manager_node_tag_added_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager), "node-tag-changed", G_CALLBACK(poi_manager_node_tag_added_cb), NULL);
 	g_signal_connect(G_OBJECT(poi_manager), "node-tag-removed", G_CALLBACK(poi_manager_node_tag_added_cb), NULL);
+	g_signal_connect(G_OBJECT(poi_manager), "action-undo", G_CALLBACK(poi_manager_node_tag_added_cb), NULL);
 
 	/* Selection-Widget in sidebar */
 	select_tool = select_tool_new();
@@ -1054,6 +1055,10 @@ static gboolean poi_manager_api_end_cb(PoiManager * poi_manager, int index)
 
 static gboolean poi_manager_node_tag_added_cb(PoiManager * poi_manager, gpointer data)
 {
+	//TODO: extra callback for undoing
+	if (!poi_manager_node_exists(poi_manager, map_area -> poi_selected_id)){
+		map_area -> poi_selected_id = 0;
+	}
 	map_area_repaint(map_area);
 }
 

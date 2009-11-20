@@ -43,7 +43,7 @@ G_DEFINE_TYPE (EditActionChangePosition, edit_action_change_position, GOSM_TYPE_
 EditAction * edit_action_change_position_new(int node_id, double lon, double lat)
 {
 	EditActionChangePosition * edit_action_change_position = g_object_new(GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION, NULL);
-	edit_action_change_position -> node_id = node_id;
+	GOSM_EDIT_ACTION(edit_action_change_position) -> node_id = node_id;
 	edit_action_change_position -> lon = lon;
 	edit_action_change_position -> lat = lat;
 	return GOSM_EDIT_ACTION(edit_action_change_position);
@@ -71,14 +71,14 @@ static void edit_action_change_position_init(EditActionChangePosition *edit_acti
 void edit_action_change_position_print(EditAction * action)
 {
 	EditActionChangePosition * a = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
-	printf("move %d %f %f\n", a -> node_id, a -> lon, a -> lat);
+	printf("move %d %f %f\n", action -> node_id, a -> lon, a -> lat);
 }
 
 char * edit_action_change_position_to_string(EditAction * action)
 {
 	EditActionChangePosition * a = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
 	char * buf = malloc(sizeof(char) * 100);
-	sprintf(buf, "move %d %f %f", a -> node_id, a -> lon, a -> lat);
+	sprintf(buf, "move %d %f %f", action -> node_id, a -> lon, a -> lat);
 	return buf;
 }
 

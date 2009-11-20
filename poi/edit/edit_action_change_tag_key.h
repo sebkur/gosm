@@ -45,7 +45,6 @@ struct _EditActionChangeTagKey
 {
 	EditAction parent;
 
-	int node_id;
 	char * old_key;
 	char * new_key;
 };

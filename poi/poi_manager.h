@@ -63,14 +63,10 @@ struct _PoiManager
 	GObject parent;
 
 	pthread_mutex_t mutex_pois;
-//	PoiSet * all_pois;
-//	PoiSet * remaining_pois;
-//	TagTree * tag_tree;
-//	GTree * tree_ids;
-//	GArray * poi_sets;
 	OsmDataSet * ods_base;
 	OsmDataSet * ods_edit;
 	GArray * changes;
+	int change_index;
 
 	TagTree * tag_tree_new;
 	TagTree * tag_tree_insertion;
@@ -161,5 +157,10 @@ GTree * poi_manager_tree_intersection(GTree * tree1, GTree * tree2);
 
 gboolean poi_manager_can_add_tag(PoiManager * poi_manager);
 int poi_manager_get_selected_node_id(PoiManager * poi_manager);
+
+void poi_manager_undo(PoiManager * poi_manager);
+void poi_manager_redo(PoiManager * poi_manager);
+
+gboolean poi_manager_node_exists(PoiManager * poi_manager, int node_id);
 
 #endif /* _GOSM_POI_MANAGER_H */

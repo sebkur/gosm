@@ -43,7 +43,7 @@ G_DEFINE_TYPE (EditActionChangeTagKey, edit_action_change_tag_key, GOSM_TYPE_EDI
 EditAction * edit_action_change_tag_key_new(int node_id, char * old_key, char * new_key)
 {
 	EditActionChangeTagKey * edit_action_change_tag_key = g_object_new(GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_KEY, NULL);
-	edit_action_change_tag_key -> node_id = node_id;
+	GOSM_EDIT_ACTION(edit_action_change_tag_key) -> node_id = node_id;
 	edit_action_change_tag_key -> old_key = old_key;
 	edit_action_change_tag_key -> new_key = new_key;
 	return GOSM_EDIT_ACTION(edit_action_change_tag_key);
@@ -71,14 +71,14 @@ static void edit_action_change_tag_key_init(EditActionChangeTagKey *edit_action_
 void edit_action_change_tag_key_print(EditAction * action)
 {
 	EditActionChangeTagKey * a = GOSM_EDIT_ACTION_CHANGE_TAG_KEY(action);
-	printf("change tag-key %d %s %s\n", a -> node_id, a -> old_key, a -> new_key);
+	printf("change tag-key %d %s %s\n", action -> node_id, a -> old_key, a -> new_key);
 }
 
 char * edit_action_change_tag_key_to_string(EditAction * action)
 {
 	EditActionChangeTagKey * a = GOSM_EDIT_ACTION_CHANGE_TAG_KEY(action);
 	char * buf = malloc(sizeof(char) * 100);
-	sprintf(buf, "change tag-key %d %s %s", a -> node_id, a -> old_key, a -> new_key);
+	sprintf(buf, "change tag-key %d %s %s", action -> node_id, a -> old_key, a -> new_key);
 	return buf;
 }
 

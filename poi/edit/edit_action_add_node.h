@@ -45,7 +45,6 @@ struct _EditActionAddNode
 {
 	EditAction parent;
 
-	int node_id;
 	double lon;
 	double lat;
 };

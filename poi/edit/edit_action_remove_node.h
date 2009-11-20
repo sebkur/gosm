@@ -45,7 +45,6 @@ struct _EditActionRemoveNode
 {
 	EditAction parent;
 
-	int node_id;
 };
 
 struct _EditActionRemoveNodeClass

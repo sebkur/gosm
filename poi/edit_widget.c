@@ -47,8 +47,16 @@ enum {
 };
 
 static void edit_widget_action_added_cb(PoiManager * poi_manager, gpointer action_p, gpointer data);
+static void edit_widget_action_undo_cb(PoiManager * poi_manager, int index, gpointer data);
+static void edit_widget_action_remove_multiple_cb(PoiManager * poi_manager, gpointer x, gpointer data);
 static gboolean edit_widget_undo_cb(GtkWidget * button, EditWidget * edit_widget);
 static gboolean edit_widget_redo_cb(GtkWidget * button, EditWidget * edit_widget);
+void edit_widget_cell_data_func(
+	GtkTreeViewColumn * tree_column,
+	GtkCellRenderer * cell,
+	GtkTreeModel * tree_model,
+	GtkTreeIter * iter,
+	gpointer data);
 
 GtkWidget * edit_widget_new(PoiManager * poi_manager)
 {
@@ -57,6 +65,12 @@ GtkWidget * edit_widget_new(PoiManager * poi_manager)
 	g_signal_connect(
 		G_OBJECT(poi_manager), "action-added",
 		G_CALLBACK(edit_widget_action_added_cb), edit_widget);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "action-undo",
+		G_CALLBACK(edit_widget_action_undo_cb), edit_widget);
+	g_signal_connect(
+		G_OBJECT(poi_manager), "action-remove-multiple",
+		G_CALLBACK(edit_widget_action_remove_multiple_cb), edit_widget);
 	return GTK_WIDGET(edit_widget);
 }
 
@@ -78,14 +92,14 @@ static void edit_widget_init(EditWidget *edit_widget)
 	gtk_box_pack_start(GTK_BOX(edit_widget), vbox, TRUE, TRUE, 0);
 	GtkWidget * toolbar = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), toolbar, FALSE, FALSE, 0);
-	GtkWidget * button_undo = gtk_button_new();
-	GtkWidget * button_redo = gtk_button_new();
+	edit_widget -> button_undo = gtk_button_new();
+	edit_widget -> button_redo = gtk_button_new();
 	GtkWidget * image_undo = gtk_image_new_from_stock("gtk-undo", GTK_ICON_SIZE_MENU);
 	GtkWidget * image_redo = gtk_image_new_from_stock("gtk-redo", GTK_ICON_SIZE_MENU);
-	gtk_button_set_image(GTK_BUTTON(button_undo), image_undo);
-	gtk_button_set_image(GTK_BUTTON(button_redo), image_redo);
-	gtk_box_pack_start(GTK_BOX(toolbar), button_undo, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(toolbar), button_redo, FALSE, FALSE, 0);
+	gtk_button_set_image(GTK_BUTTON(edit_widget -> button_undo), image_undo);
+	gtk_button_set_image(GTK_BUTTON(edit_widget -> button_redo), image_redo);
+	gtk_box_pack_start(GTK_BOX(toolbar), edit_widget -> button_undo, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(toolbar), edit_widget -> button_redo, FALSE, FALSE, 0);
 	GtkListStore * store = gtk_list_store_new(1, G_TYPE_STRING);
 	GtkTreeView * view = GTK_TREE_VIEW(gtk_tree_view_new());
 	gtk_tree_view_set_model(view, GTK_TREE_MODEL(store));
@@ -97,14 +111,20 @@ static void edit_widget_init(EditWidget *edit_widget)
 	                                GTK_POLICY_AUTOMATIC,
 	                                GTK_POLICY_AUTOMATIC);
 	gtk_box_pack_start(GTK_BOX(vbox), scrolled, TRUE, TRUE, 0);
+	gtk_tree_view_column_set_cell_data_func(
+		gtk_tree_view_get_column(view, COL_NAME),
+		renderer, edit_widget_cell_data_func, edit_widget, NULL);
 
 	edit_widget -> view = view;
 
+	gtk_widget_set_sensitive(edit_widget -> button_undo, FALSE);
+	gtk_widget_set_sensitive(edit_widget -> button_redo, FALSE);
+
 	g_signal_connect(
-		G_OBJECT(button_undo), "clicked",
+		G_OBJECT(edit_widget -> button_undo), "clicked",
 		G_CALLBACK(edit_widget_undo_cb), edit_widget);
 	g_signal_connect(
-		G_OBJECT(button_redo), "clicked",
+		G_OBJECT(edit_widget -> button_redo), "clicked",
 		G_CALLBACK(edit_widget_redo_cb), edit_widget);
 }
 
@@ -121,11 +141,59 @@ static void edit_widget_action_added_cb(PoiManager * poi_manager, gpointer actio
 				-1);
 	GtkTreePath * path = gtk_tree_path_new_from_indices(0, -1);
 	gtk_tree_view_scroll_to_cell(edit_widget -> view, path, NULL, FALSE, 0, 0);
+	gtk_widget_set_sensitive(edit_widget -> button_undo, TRUE);
+	gtk_widget_set_sensitive(edit_widget -> button_redo, FALSE);
+}
+
+static void edit_widget_action_undo_cb(PoiManager * poi_manager, int index, gpointer data)
+{
+	EditWidget * edit_widget = GOSM_EDIT_WIDGET(data);
+	// grey out
+	if (index == 0){
+		gtk_widget_set_sensitive(edit_widget -> button_undo, FALSE);
+	}
+	gtk_widget_set_sensitive(edit_widget -> button_redo, TRUE);
+	gtk_widget_queue_draw(GTK_WIDGET(edit_widget -> view));
+}
+
+static void edit_widget_action_remove_multiple_cb(PoiManager * poi_manager, gpointer x, gpointer data)
+{
+	int * is = (int*)x;
+	EditWidget * edit_widget = GOSM_EDIT_WIDGET(data);
+	GtkListStore * store = GTK_LIST_STORE(gtk_tree_view_get_model(edit_widget -> view));
+	GtkTreeIter iter;
+	int len = is[0];
+	int i;
+	for (i = 0; i < is[2]; i++){
+		int pos = len - (is[1] + is[2]);
+		printf("%d\n", pos);
+		GtkTreePath * path = gtk_tree_path_new_from_indices(pos, -1);
+		gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, path);
+		gtk_list_store_remove(store, &iter);
+	}
+}
+
+void edit_widget_cell_data_func(
+	GtkTreeViewColumn * tree_column,
+	GtkCellRenderer * cell,
+	GtkTreeModel * tree_model,
+	GtkTreeIter * iter,
+	gpointer data)
+{
+	EditWidget * edit_widget = GOSM_EDIT_WIDGET(data);
+	GtkTreePath * path = gtk_tree_model_get_path(gtk_tree_view_get_model(edit_widget -> view), iter);
+	int index = edit_widget -> poi_manager -> changes -> len - gtk_tree_path_get_indices(path)[0] - 1;
+	if (index <= edit_widget -> poi_manager -> change_index){
+		g_object_set(cell, "foreground-gdk", gtk_widget_get_style(GTK_WIDGET(edit_widget -> view)) -> fg, NULL);
+	}else{
+		g_object_set(cell, "foreground-gdk", gtk_widget_get_style(GTK_WIDGET(edit_widget -> view)) -> bg, NULL);
+	}
 }
 
 static gboolean edit_widget_undo_cb(GtkWidget * button, EditWidget * edit_widget)
 {
 	printf("undo\n");
+	poi_manager_undo(edit_widget -> poi_manager);
 }
 
 static gboolean edit_widget_redo_cb(GtkWidget * button, EditWidget * edit_widget)

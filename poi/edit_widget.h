@@ -47,6 +47,9 @@ struct _EditWidget
 
 	PoiManager * poi_manager;
 	GtkTreeView * view;
+
+	GtkWidget * button_undo;
+	GtkWidget * button_redo;
 };
 
 struct _EditWidgetClass

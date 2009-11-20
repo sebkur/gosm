@@ -151,3 +151,25 @@ void osm_data_set_duplicate(OsmDataSet * original, OsmDataSet * copy)
 	poi_set_set_visible(copy -> remaining_pois, TRUE);
 	osm_data_insert_nodes(copy, original -> poi_sets);
 }
+
+void osm_data_set_duplicate_node(OsmDataSet * original, OsmDataSet * copy, int node_id)
+{
+	g_tree_insert(copy -> tree_ids, int_malloc(node_id), node_copy(g_tree_lookup(original -> tree_ids, &node_id)));
+	Node * node = g_tree_lookup(copy -> tree_ids, &node_id);
+	tag_tree_add_node(copy -> tag_tree, node_id, node);
+	poi_set_add(copy -> all_pois, node);
+	gboolean one = FALSE;
+	int num_poi_sets = copy -> poi_sets -> len; int n;
+	for (n = 0; n < num_poi_sets; n++){
+		PoiSet * poi_set = g_array_index(copy -> poi_sets, PoiSet*, n);
+		char * key = named_poi_set_get_key(GOSM_NAMED_POI_SET(poi_set));
+		char * val = named_poi_set_get_value(GOSM_NAMED_POI_SET(poi_set));
+		if (node_get_value(node, key) != NULL){
+			if (strcmp(node_get_value(node, key), val) == 0){
+				poi_set_add(poi_set, node);
+				one = TRUE;
+			}
+		}
+	}
+	if(!one) poi_set_add(copy -> remaining_pois, node);
+}

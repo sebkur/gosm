@@ -45,7 +45,6 @@ struct _EditActionRemoveTag
 {
 	EditAction parent;
 
-	int node_id;
 	char * key;
 	char * value;
 };

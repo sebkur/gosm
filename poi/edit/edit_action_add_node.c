@@ -43,7 +43,7 @@ G_DEFINE_TYPE (EditActionAddNode, edit_action_add_node, GOSM_TYPE_EDIT_ACTION);
 EditAction * edit_action_add_node_new(int node_id, double lon, double lat)
 {
 	EditActionAddNode * edit_action_add_node = g_object_new(GOSM_TYPE_EDIT_ACTION_ADD_NODE, NULL);
-	edit_action_add_node -> node_id = node_id;
+	GOSM_EDIT_ACTION(edit_action_add_node) -> node_id = node_id;
 	edit_action_add_node -> lon = lon;
 	edit_action_add_node -> lat = lat;
 	return GOSM_EDIT_ACTION(edit_action_add_node);
@@ -71,13 +71,13 @@ static void edit_action_add_node_init(EditActionAddNode *edit_action_add_node)
 void edit_action_add_node_print(EditAction * action)
 {
 	EditActionAddNode * add = GOSM_EDIT_ACTION_ADD_NODE(action);
-	printf("add node %d %f %f\n", add -> node_id, add -> lon, add -> lat);
+	printf("add node %d %f %f\n", action -> node_id, add -> lon, add -> lat);
 }
 
 char * edit_action_add_node_to_string(EditAction * action)
 {
 	EditActionAddNode * add = GOSM_EDIT_ACTION_ADD_NODE(action);
 	char * buf = malloc(sizeof(char) * 100);
-	sprintf(buf, "add node %d %f %f", add -> node_id, add -> lon, add -> lat);
+	sprintf(buf, "add node %d %f %f", action -> node_id, add -> lon, add -> lat);
 	return buf;
 }

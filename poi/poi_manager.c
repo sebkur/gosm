@@ -115,6 +115,7 @@ PoiManager * poi_manager_new()
 	poi_manager -> ods_base = osm_data_set_new();
 	poi_manager -> ods_edit = osm_data_set_new();
 	poi_manager -> changes = g_array_new(FALSE, FALSE, sizeof(EditAction*));
+	poi_manager -> change_index = -1;
 
 	poi_manager -> poi_sources = g_array_new(FALSE, FALSE, sizeof(PoiSource*));
 	poi_manager -> active_poi_source = -1;
@@ -1103,56 +1104,60 @@ void poi_manager_reposition(PoiManager * poi_manager, int node_id, double lon, d
 *****************************************************************************************************
 ****************************************************************************************************/
 
+void poi_manager_apply_change(PoiManager * poi_manager, EditAction * action)
+{
+	int id = G_OBJECT_TYPE(action);
+	if(id == GOSM_TYPE_EDIT_ACTION_ADD_NODE){
+		EditActionAddNode * eaan = GOSM_EDIT_ACTION_ADD_NODE(action);
+		poi_manager_add_node_id(poi_manager, FALSE, action -> node_id, eaan -> lon, eaan -> lat);
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
+		EditActionRemoveNode * earn = GOSM_EDIT_ACTION_REMOVE_NODE(action);
+		if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, action -> node_id)){
+			poi_manager_remove_node(poi_manager, FALSE, action -> node_id);
+		}
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION){
+		EditActionChangePosition * eacp = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
+		if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, action -> node_id)){
+			poi_manager_reposition(poi_manager, action -> node_id, eacp -> lon, eacp -> lat);
+		}
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_ADD_TAG){
+		EditActionAddTag * eaat = GOSM_EDIT_ACTION_ADD_TAG(action);
+		if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, action -> node_id)){
+			poi_manager_add_tag(poi_manager, FALSE, action -> node_id, eaat -> key, eaat -> value);
+		}
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_KEY){
+		EditActionChangeTagKey * eactk = GOSM_EDIT_ACTION_CHANGE_TAG_KEY(action);
+		if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, action -> node_id)){
+			poi_manager_change_tag_key(poi_manager, FALSE, action -> node_id, eactk -> old_key, eactk -> new_key);
+		}
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE){
+		EditActionChangeTagValue * eactv = GOSM_EDIT_ACTION_CHANGE_TAG_VALUE(action);
+		if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, action -> node_id)){
+			poi_manager_change_tag_value(poi_manager, FALSE, action -> node_id, eactv -> key, eactv -> value);
+		}
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_TAG){
+		EditActionRemoveTag * eart = GOSM_EDIT_ACTION_REMOVE_TAG(action);
+		if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, action -> node_id)){
+			poi_manager_remove_tag(poi_manager, FALSE, action -> node_id, eart -> key, eart -> value);
+		}
+	}
+}
+
 /****************************************************************************************************
 * the list of changes will be applied to the base dataset to reflect the changes made by the user
 ****************************************************************************************************/
-//TODO: an interface with virtual functions for EditAction?
 void poi_manager_apply_change_history(PoiManager * poi_manager)
 {
 	int s;
 	for (s = 0; s < poi_manager -> changes -> len; s++){
 		EditAction * action = g_array_index(poi_manager -> changes, EditAction*, s);
-		int id = G_OBJECT_TYPE(action);
-		if(id == GOSM_TYPE_EDIT_ACTION_ADD_NODE){
-			EditActionAddNode * eaan = GOSM_EDIT_ACTION_ADD_NODE(action);
-			poi_manager_add_node_id(poi_manager, FALSE, eaan -> node_id, eaan -> lon, eaan -> lat);
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
-			EditActionRemoveNode * earn = GOSM_EDIT_ACTION_REMOVE_NODE(action);
-			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, earn -> node_id)){
-				poi_manager_remove_node(poi_manager, FALSE, earn -> node_id);
-			}
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION){
-			EditActionChangePosition * eacp = GOSM_EDIT_ACTION_CHANGE_POSITION(action);
-			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eacp -> node_id)){
-				poi_manager_reposition(poi_manager, eacp -> node_id, eacp -> lon, eacp -> lat);
-			}
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_ADD_TAG){
-			EditActionAddTag * eaat = GOSM_EDIT_ACTION_ADD_TAG(action);
-			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eaat -> node_id)){
-				poi_manager_add_tag(poi_manager, FALSE, eaat -> node_id, eaat -> key, eaat -> value);
-			}
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_KEY){
-			EditActionChangeTagKey * eactk = GOSM_EDIT_ACTION_CHANGE_TAG_KEY(action);
-			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eactk -> node_id)){
-				poi_manager_change_tag_key(poi_manager, FALSE, eactk -> node_id, eactk -> old_key, eactk -> new_key);
-			}
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE){
-			EditActionChangeTagValue * eactv = GOSM_EDIT_ACTION_CHANGE_TAG_VALUE(action);
-			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eactv -> node_id)){
-				poi_manager_change_tag_value(poi_manager, FALSE, eactv -> node_id, eactv -> key, eactv -> value);
-			}
-		}
-		if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_TAG){
-			EditActionRemoveTag * eart = GOSM_EDIT_ACTION_REMOVE_TAG(action);
-			if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, eart -> node_id)){
-				poi_manager_remove_tag(poi_manager, FALSE, eart -> node_id, eart -> key, eart -> value);
-			}
-		}
+		poi_manager_apply_change(poi_manager, action);
 	}
 }
 
@@ -1180,8 +1185,19 @@ void poi_manager_print_change_stack(PoiManager * poi_manager)
 ****************************************************************************************************/
 void poi_manager_add_action(PoiManager * poi_manager, EditAction * action)
 {
+	printf("%d %d\n", poi_manager -> change_index, poi_manager -> changes -> len);
+	//TODO: weird: this doesn't work all time if "-1" on the right instead of "+1" on the left
+	if (poi_manager -> change_index + 1 < poi_manager -> changes -> len){
+		int i = poi_manager -> change_index + 1;
+		int l = poi_manager -> changes -> len - 1 - poi_manager -> change_index;
+		int x[3] = {poi_manager -> changes -> len, i, l};
+		printf("removing %d %d\n", i, l);
+		g_array_remove_range(poi_manager -> changes, i, l);
+		g_signal_emit (poi_manager, poi_manager_signals[ACTION_REMOVE_MULTIPLE], 0, x);
+	}
 	g_array_append_val(poi_manager -> changes, action);
 	poi_manager_print_change_stack(poi_manager);
+	poi_manager -> change_index++;
 	g_signal_emit (poi_manager, poi_manager_signals[ACTION_ADDED], 0, action);
 }
 
@@ -1365,4 +1381,81 @@ gboolean poi_manager_can_add_tag(PoiManager * poi_manager)
 int poi_manager_get_selected_node_id(PoiManager * poi_manager)
 {
 	return poi_manager -> map_area -> poi_selected_id;
+}
+
+void poi_manager_undo_action_by_invoking_actions(PoiManager * poi_manager, int index)
+{
+	EditAction * action = g_array_index(poi_manager -> changes, EditAction*, index);
+	int node_id = action -> node_id;
+	tag_tree_subtract_node(poi_manager -> ods_edit -> tag_tree, node_id, 
+		g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id));
+	int i;
+	for (i = 0; i < poi_manager -> ods_edit -> poi_sets -> len; i++){
+		PoiSet * poi_set = g_array_index(poi_manager -> ods_edit -> poi_sets, PoiSet*, i);
+		if (poi_set_contains_point(poi_set, node_id)){
+			poi_set_remove_node(poi_set, node_id);
+		}
+	}
+	if (poi_set_contains_point(poi_manager -> ods_edit -> remaining_pois, node_id)){
+		poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), node_id);
+	}
+	if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, node_id)){
+		poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> all_pois), node_id);
+	}
+	if (node_id > 0){
+		osm_data_set_duplicate_node(poi_manager -> ods_base, poi_manager -> ods_edit, node_id);
+	}
+	for (i = 0; i < index; i++){
+		EditAction * action = g_array_index(poi_manager -> changes, EditAction*, i);
+		if (action -> node_id == node_id){
+			poi_manager_apply_change(poi_manager, action);
+		}
+	}
+}
+
+void poi_manager_undo_action(PoiManager * poi_manager, int index)
+{
+	EditAction * action = g_array_index(poi_manager -> changes, EditAction*, index);
+	int id = G_OBJECT_TYPE(action);
+	if(id == GOSM_TYPE_EDIT_ACTION_ADD_NODE){
+		EditActionAddNode * eaan = GOSM_EDIT_ACTION_ADD_NODE(action);
+		poi_set_remove_node(poi_manager -> ods_edit -> all_pois, action -> node_id);
+		poi_set_remove_node(poi_manager -> ods_edit -> remaining_pois, action -> node_id);
+		g_tree_remove(poi_manager -> ods_edit -> tree_ids, &(action -> node_id));
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION){
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_ADD_TAG){
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_KEY){
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE){
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+	}
+	if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_TAG){
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+	}
+}
+void poi_manager_undo(PoiManager * poi_manager)
+{
+	if (poi_manager -> change_index > -1){
+		poi_manager_undo_action(poi_manager, poi_manager -> change_index);
+		poi_manager -> change_index--;
+		g_signal_emit(poi_manager, poi_manager_signals[ACTION_UNDO], 0, poi_manager -> change_index + 1);
+	}
+}
+
+void poi_manager_redo(PoiManager * poi_manager)
+{
+}
+
+gboolean poi_manager_node_exists(PoiManager * poi_manager, int node_id)
+{
+	return poi_set_contains_point(poi_manager -> ods_edit -> all_pois, node_id);
 }

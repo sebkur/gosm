@@ -42,6 +42,8 @@ typedef struct _EditActionClass   EditActionClass;
 struct _EditAction
 {
 	GObject parent;
+
+	int node_id;
 };
 
 struct _EditActionClass

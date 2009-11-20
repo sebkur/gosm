@@ -43,7 +43,7 @@ G_DEFINE_TYPE (EditActionRemoveNode, edit_action_remove_node, GOSM_TYPE_EDIT_ACT
 EditAction * edit_action_remove_node_new(int node_id)
 {
 	EditActionRemoveNode * edit_action_remove_node = g_object_new(GOSM_TYPE_EDIT_ACTION_REMOVE_NODE, NULL);
-	edit_action_remove_node -> node_id = node_id;
+	GOSM_EDIT_ACTION(edit_action_remove_node) -> node_id = node_id;
 	return GOSM_EDIT_ACTION(edit_action_remove_node);
 }
 
@@ -69,14 +69,14 @@ static void edit_action_remove_node_init(EditActionRemoveNode *edit_action_remov
 void edit_action_remove_node_print(EditAction * action)
 {
 	EditActionRemoveNode * a = GOSM_EDIT_ACTION_REMOVE_NODE(action);
-	printf("remove node %d\n", a -> node_id);
+	printf("remove node %d\n", action -> node_id);
 }
 
 char * edit_action_remove_node_to_string(EditAction * action)
 {
 	EditActionRemoveNode * a = GOSM_EDIT_ACTION_REMOVE_NODE(action);
 	char * buf = malloc(sizeof(char) * 100);
-	sprintf(buf, "remove node %d", a -> node_id);
+	sprintf(buf, "remove node %d", action -> node_id);
 	return buf;
 }
 

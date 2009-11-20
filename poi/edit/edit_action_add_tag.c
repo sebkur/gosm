@@ -44,7 +44,7 @@ G_DEFINE_TYPE (EditActionAddTag, edit_action_add_tag, GOSM_TYPE_EDIT_ACTION);
 EditAction * edit_action_add_tag_new(int node_id, char * ikey, char * ivalue)
 {
 	EditActionAddTag * edit_action_add_tag = g_object_new(GOSM_TYPE_EDIT_ACTION_ADD_TAG, NULL);
-	edit_action_add_tag -> node_id = node_id;
+	GOSM_EDIT_ACTION(edit_action_add_tag) -> node_id = node_id;
 	int len_k = strlen(ikey) + 1;
 	int len_v = strlen(ivalue) + 1;
 	char * key = malloc(sizeof(char) * len_k);
@@ -78,14 +78,14 @@ static void edit_action_add_tag_init(EditActionAddTag *edit_action_add_tag)
 void edit_action_add_tag_print(EditAction * action)
 {
 	EditActionAddTag * a = GOSM_EDIT_ACTION_ADD_TAG(action);
-	printf("add tag %d %s %s\n", a -> node_id, a -> key, a -> value);
+	printf("add tag %d %s %s\n", action -> node_id, a -> key, a -> value);
 }
 
 char * edit_action_add_tag_to_string(EditAction * action)
 {
 	EditActionAddTag * a = GOSM_EDIT_ACTION_ADD_TAG(action);
 	char * buf = malloc(sizeof(char) * 100);
-	sprintf(buf, "add tag %d %s %s", a -> node_id, a -> key, a -> value);
+	sprintf(buf, "add tag %d %s %s", action -> node_id, a -> key, a -> value);
 	return buf;
 }
 
