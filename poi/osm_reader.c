@@ -228,9 +228,11 @@ static void XMLCALL osm_reader_StartElementCallback(	void * userData,
 			osm_reader -> current_id = id;
 			const char * lon_s = osm_reader_get_value(atts, "lon");
 			const char * lat_s = osm_reader_get_value(atts, "lat");
+			const char * ver_s = osm_reader_get_value(atts, "version");
 			double lon = strtodouble(lon_s);
 			double lat = strtodouble(lat_s);
-			Node * node = node_new(id, lon, lat);
+			int version = atoi(ver_s);
+			Node * node = node_new(id, version, lon, lat);
 			osm_reader -> current_node = node;
 		}else{
 			osm_reader -> current_element = OSM_READER_ELEMENT_OTHER;

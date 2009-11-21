@@ -59,7 +59,7 @@ char * get_abs_uri(char * filename)
 char * get_api_url_get(double min_lon, double min_lat, double max_lon, double max_lat)
 {
 	char * api_prefix = "http://api.openstreetmap.org/api/0.6/map?bbox=";
-	//api_prefix = "http://api06.dev.openstreetmap.org/api/0.6/map?bbox=";
+	api_prefix = "http://api06.dev.openstreetmap.org/api/0.6/map?bbox=";
 	int len = 60 + strlen(api_prefix);
 
 	char * buf = malloc(sizeof(char) * len);

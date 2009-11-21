@@ -73,6 +73,7 @@ gboolean sorted_sequence_contains(SortedSequence * sequence, gpointer data)
 {
 	GSequenceIter * iter = g_sequence_search(sequence -> seq, data, sequence -> cmp_func, NULL);
 	GSequenceIter * prev = g_sequence_iter_prev(iter);
+	if (g_sequence_iter_is_end(prev)) return FALSE;
 	gpointer element = g_sequence_get(prev);
 	return sequence -> cmp_func(data, element, NULL) == 0;
 }

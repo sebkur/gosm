@@ -30,6 +30,8 @@
 #include <gdk/gdk.h>
 #include <curl/curl.h>
 
+#include "node.h"
+
 #define GOSM_TYPE_API_CONTROL           (api_control_get_type ())
 #define GOSM_API_CONTROL(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_API_CONTROL, ApiControl))
 #define GOSM_API_CONTROL_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_API_CONTROL, ApiControlClass))
@@ -62,6 +64,10 @@ struct _ApiControlClass
 
 ApiControl * api_control_new();
 
-void api_control_test(ApiControl * api_control, double lon, double lat);
+void api_control_initialize(ApiControl * api_control);
+int api_control_create_changeset(ApiControl * api_control);
+int api_control_close_changeset(ApiControl * api_control, int cs_id);
+int api_control_create_node(ApiControl * api_control, int cs_id, Node * node);
+int api_control_delete_node(ApiControl * api_control, int cs_id, Node * node);
 
 #endif /* _API_CONTROL_H_ */

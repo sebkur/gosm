@@ -54,6 +54,7 @@
 #include "edit/edit_action_change_tag_key.h"
 #include "edit/edit_action_change_tag_value.h"
 #include "../data_structures/sorted_sequence.h"
+#include "api_control.h"
 
 /****************************************************************************************************
 * PoiManager is the central management unit for Points of interests
@@ -1226,7 +1227,7 @@ int poi_manager_add_node(PoiManager * poi_manager, double lon, double lat)
 ****************************************************************************************************/
 void poi_manager_add_node_id(PoiManager * poi_manager, gboolean history, int node_id, double lon, double lat)
 {
-	Node * node = node_new(node_id, lon, lat);
+	Node * node = node_new(node_id, 1, lon, lat);
 	g_tree_insert(poi_manager -> ods_edit -> tree_ids, int_malloc(node_id), node);
 	poi_set_add(poi_manager -> ods_edit -> all_pois, node);
 	poi_set_add(poi_manager -> ods_edit -> remaining_pois, node);
@@ -1520,5 +1521,28 @@ void poi_manager_save(PoiManager * poi_manager)
 		int node_id = *(int*)sorted_sequence_get(nodes_del, i);
 		printf("%d\n", node_id);
 	}
+	ApiControl * api_control = api_control_new();
+	api_control_initialize(api_control);
+	int cs = api_control_create_changeset(api_control);
+	if (cs < 0) return;
+	for (i = 0; i < sorted_sequence_get_length(nodes_new); i++){
+		int node_id = *(int*)sorted_sequence_get(nodes_new, i);
+		Node * node = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
+		printf("id: %d, version: %d\n", node_id, node -> version);
+		api_control_create_node(api_control, cs, node);
+	}
+	for (i = 0; i < sorted_sequence_get_length(nodes_mod); i++){
+		int node_id = *(int*)sorted_sequence_get(nodes_mod, i);
+		Node * node = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
+		printf("id: %d, version: %d\n", node_id, node -> version);
+		api_control_change_node(api_control, cs, node);
+	}
+	for (i = 0; i < sorted_sequence_get_length(nodes_del); i++){
+		int node_id = *(int*)sorted_sequence_get(nodes_del, i);
+		Node * node = g_tree_lookup(poi_manager -> ods_base -> tree_ids, &node_id);
+		printf("id: %d, version: %d\n", node_id, node -> version);
+		api_control_delete_node(api_control, cs, node);
+	}
+	api_control_close_changeset(api_control, cs);
 }
 

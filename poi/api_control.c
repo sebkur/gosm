@@ -67,112 +67,10 @@ static void api_control_init(ApiControl *api_control)
 {
 }
 
-size_t send_data(void * ptr, size_t size, size_t nmemb, void * data);
-size_t recv_data(void * ptr, size_t size, size_t nmemb, void * data);
-
-void api_control_test(ApiControl * api_control, double lon, double lat)
-{
-	CURL * handle = api_control -> handle;
-	char * pwd = "zsebastian:openrevolution23";
-	//curl_easy_setopt(handle, CURLOPT_VERBOSE, 1);
-	curl_easy_setopt(handle, CURLOPT_USERPWD, pwd);
-	curl_easy_setopt(handle, CURLOPT_PUT, 1);
-	curl_easy_setopt(handle, CURLOPT_READFUNCTION, send_data);
-	curl_easy_setopt(handle, CURLOPT_READDATA, (gpointer) api_control);
-	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, recv_data);
-	curl_easy_setopt(handle, CURLOPT_WRITEDATA, (gpointer) api_control);
-	char * url;
-	int perform, status;
-	long response;
-	// create a changeset
-	url = "http://api06.dev.openstreetmap.org/api/0.6/changeset/create";
-	curl_easy_setopt(handle, CURLOPT_URL, url);
-	api_control -> send = 
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\
-		<osm version=\"0.6\">\
-		<changeset>\
-		<tag k=\"created_by\" v=\"gosm/0.1.0\" />\
-		</changeset>\
-		</osm>";
-	api_control -> bytes_total = strlen(api_control -> send);
-	perform = curl_easy_perform(handle);
-	status  = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response);
-	printf("response code: %ld\n", response);
-	if (response != 200){
-		printf("error\n");
-		return;
-	}
-	int cs_id = atoi(api_control -> recv);
-	free(api_control -> recv);
-	api_control -> bytes_recv = 0;
-	printf("changeset id %d\n", cs_id);
-	// create a node
-	url = "http://api06.dev.openstreetmap.org/api/0.6/node/create";
-	curl_easy_setopt(handle, CURLOPT_URL, url);
-	char * text1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\
-		<osm version=\"0.6\">\
-		<node changeset=\"";
-	char * text2 = "\" lon=\"";
-	char * text3 = "\" lat=\"";
-	char * text4 = "\">\
-		<tag k=\"name\" v=\"Foo Inn\"/>\
-		<tag k=\"amenity\" v=\"restaurant\"/>\
-		</node>\
-		</osm>";
-	char * text = malloc(sizeof(char) * (strlen(text1) + strlen(text4) + 100));
-	char * s_id = malloc(sizeof(char) * 20);
-	char * s_lon = malloc(sizeof(char) * 20);
-	char * s_lat = malloc(sizeof(char) * 20);
-	sprintf(s_id, "%d", cs_id);
-	sprintdouble(s_lon, lon, 7);
-	sprintdouble(s_lat, lat, 7);
-	text[0] = '\0';
-	strcat(text, text1);
-	strcat(text, s_id);
-	strcat(text, text2);
-	strcat(text, s_lon);
-	strcat(text, text3);
-	strcat(text, s_lat);
-	strcat(text, text4);
-	free(s_id); free(s_lon); free(s_lat);
-	api_control -> send = text;
-	printf("%s\n", api_control -> send);
-	api_control -> bytes_sent = 0;
-	api_control -> bytes_total = strlen(api_control -> send);
-	perform = curl_easy_perform(handle);
-	free(text);
-	status  = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response);
-	printf("response code: %ld\n", response);
-	if (response != 200){
-		printf("error\n");
-		return;
-	}
-	int node_id = atoi(api_control -> recv);
-	free(api_control -> recv);
-	api_control -> bytes_recv = 0;
-	printf("node id %d\n", node_id);
-	// close changeset
-	char * url_s = "http://api06.dev.openstreetmap.org/api/0.6/changeset/%d/close";
-	url = malloc(sizeof(char) * (strlen(url_s) + 20));
-	sprintf(url, url_s, cs_id);
-	curl_easy_setopt(handle, CURLOPT_URL, url);
-	api_control -> bytes_sent = 0;
-	api_control -> bytes_total = 0;
-	perform = curl_easy_perform(handle);
-	free(url);
-	status  = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response);
-	printf("response code: %ld\n", response);
-	if (response != 200){
-		printf("error\n");
-		return;
-	}
-	printf("successfully closed changeset\n");
-}
-
 size_t send_data(void * ptr, size_t size, size_t nmemb, void * data)
 {
 	ApiControl * api_control = GOSM_API_CONTROL(data);
-	printf("PUT requested %d bytes\n", size*nmemb);
+	//printf("PUT requested %d bytes\n", size*nmemb);
 	if (api_control -> bytes_sent < api_control -> bytes_total){
 		int bytes_left = api_control -> bytes_total - api_control -> bytes_sent;
 		int requested = size * nmemb;
@@ -196,4 +94,239 @@ size_t recv_data(void * ptr, size_t size, size_t nmemb, void * data)
 	strncpy(recv, ptr, s);
 	api_control -> recv = recv;
 	return s;
+}
+
+void api_control_initialize(ApiControl * api_control)
+{
+	CURL * handle = api_control -> handle;
+	char * pwd = "zsebastian:openrevolution23";
+	//curl_easy_setopt(handle, CURLOPT_VERBOSE, 1);
+	curl_easy_setopt(handle, CURLOPT_USERPWD, pwd);
+	curl_easy_setopt(handle, CURLOPT_PUT, 1);
+	curl_easy_setopt(handle, CURLOPT_READFUNCTION, send_data);
+	curl_easy_setopt(handle, CURLOPT_READDATA, (gpointer) api_control);
+	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, recv_data);
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, (gpointer) api_control);
+}
+
+int api_control_create_changeset(ApiControl * api_control)
+{
+	CURL * handle = api_control -> handle;
+	long response;
+	char * url = "http://api06.dev.openstreetmap.org/api/0.6/changeset/create";
+	curl_easy_setopt(handle, CURLOPT_URL, url);
+	curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, NULL);
+	api_control -> send = 
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\
+<osm version=\"0.6\">\
+<changeset>\
+<tag k=\"created_by\" v=\"gosm/0.1.0\" />\
+</changeset>\
+</osm>";
+	api_control -> bytes_total = strlen(api_control -> send);
+	int perform = curl_easy_perform(handle);
+	int status  = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response);
+	printf("response code: %ld\n", response);
+	if (response != 200){
+		printf("error\n");
+		return -1;
+	}
+	int cs_id = atoi(api_control -> recv);
+	free(api_control -> recv);
+	api_control -> bytes_recv = 0;
+	printf("changeset id %d\n", cs_id);
+	return cs_id;
+}
+
+int api_control_close_changeset(ApiControl * api_control, int cs_id)
+{
+	CURL * handle = api_control -> handle;
+	long response;
+	char * url_s = "http://api06.dev.openstreetmap.org/api/0.6/changeset/%d/close";
+	char * url = malloc(sizeof(char) * (strlen(url_s) + 20));
+	sprintf(url, url_s, cs_id);
+	curl_easy_setopt(handle, CURLOPT_URL, url);
+	curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, NULL);
+	api_control -> bytes_sent = 0;
+	api_control -> bytes_total = 0;
+	int perform = curl_easy_perform(handle);
+	free(url);
+	int status  = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response);
+	printf("response code: %ld\n", response);
+	if (response != 200){
+		printf("error\n");
+		return;
+	}
+	printf("successfully closed changeset\n");
+}
+
+int api_control_create_node(ApiControl * api_control, int cs_id, Node * node)
+{
+	CURL * handle = api_control -> handle;
+	long response;
+	char * url = "http://api06.dev.openstreetmap.org/api/0.6/node/create";
+	curl_easy_setopt(handle, CURLOPT_URL, url);
+	curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, NULL);
+	char * text1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\
+<osm version=\"0.6\">\
+<node changeset=\"";
+	char * text2 = "\" lon=\"";
+	char * text3 = "\" lat=\"";
+	char * text4 = "\">";
+	char * text5 = "<tag k=\"%s\" v=\"%s\"/>";
+	char * text6 = "</node></osm>";
+	char * s_id = malloc(sizeof(char) * 20);
+	char * s_lon = malloc(sizeof(char) * 20);
+	char * s_lat = malloc(sizeof(char) * 20);
+	sprintf(s_id, "%d", cs_id);
+	sprintdouble(s_lon, node -> lon, 7);
+	sprintdouble(s_lat, node -> lat, 7);
+	/* create key value strings */
+	GHashTable * tags = node -> tags;
+	int num_tags = g_hash_table_size(tags);
+	char ** kvs = malloc(sizeof(char*) * num_tags);
+	int n = 0;
+	GHashTableIter iter;
+	g_hash_table_iter_init(&iter, tags);
+	gpointer hash_key, hash_val;
+	while(g_hash_table_iter_next(&iter, &hash_key, &hash_val)){
+		char * hash_k = (char*) hash_key;
+		char * hash_v = (char*) hash_val;
+		kvs[n] = malloc(sizeof(char) * (strlen(text5) + 1000));
+		sprintf(kvs[n], text5, hash_k, hash_v);
+		n++;
+	}
+	/* create payload */
+	char * text = malloc(sizeof(char) * (strlen(text1) + 100 + num_tags * 1100));
+	text[0] = '\0';
+	strcat(text, text1);
+	strcat(text, s_id);
+	strcat(text, text2);
+	strcat(text, s_lon);
+	strcat(text, text3);
+	strcat(text, s_lat);
+	strcat(text, text4);
+	for (n = 0; n < num_tags; n++){
+		strcat(text, kvs[n]);
+	}
+	strcat(text, text6);
+	free(s_id); free(s_lon); free(s_lat);
+	api_control -> send = text;
+	printf("%s\n", api_control -> send);
+	api_control -> bytes_sent = 0;
+	api_control -> bytes_total = strlen(api_control -> send);
+	int perform = curl_easy_perform(handle);
+	free(text);
+	for (n = 0; n < num_tags; n++){
+		free(kvs[n]);
+	}
+	free(kvs);
+	int status = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response);
+	printf("response code: %ld\n", response);
+	if (response != 200){
+		printf("error\n");
+		return -1;
+	}
+	int node_id = atoi(api_control -> recv);
+	free(api_control -> recv);
+	api_control -> bytes_recv = 0;
+	printf("node id %d\n", node_id);
+	return node_id;
+}
+
+int api_control_change_delete_node(ApiControl * api_control, int cs_id, Node * node, gboolean delete)
+{
+	CURL * handle = api_control -> handle;
+	long response;
+	char * url_s = "http://api06.dev.openstreetmap.org/api/0.6/node/%d";
+	char * url = malloc(sizeof(char) * (strlen(url_s) + 20));
+	sprintf(url, url_s, node -> id);
+	curl_easy_setopt(handle, CURLOPT_URL, url);
+	curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, NULL);
+	if (delete) curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "DELETE");
+	char * text1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\
+<osm version=\"0.6\">\
+<node changeset=\"";
+	char * text_id = "\" id=\"";
+	char * text2 = "\" lon=\"";
+	char * text3 = "\" lat=\"";
+	char * text_ver = "\" version=\"";
+	char * text4 = "\">";
+	char * text5 = "<tag k=\"%s\" v=\"%s\"/>";
+	char * text6 = "</node></osm>";
+	char * s_id = malloc(sizeof(char) * 20);
+	char * s_node_id = malloc(sizeof(char) * 20);
+	char * s_lon = malloc(sizeof(char) * 20);
+	char * s_lat = malloc(sizeof(char) * 20);
+	char * s_version = malloc(sizeof(char) * 20);
+	sprintf(s_id, "%d", cs_id);
+	sprintf(s_node_id, "%d", node -> id);
+	sprintdouble(s_lon, node -> lon, 7);
+	sprintdouble(s_lat, node -> lat, 7);
+	sprintf(s_version, "%d", node -> version);
+	/* create key value strings */
+	GHashTable * tags = node -> tags;
+	int num_tags = g_hash_table_size(tags);
+	char ** kvs = malloc(sizeof(char*) * num_tags);
+	int n = 0;
+	GHashTableIter iter;
+	g_hash_table_iter_init(&iter, tags);
+	gpointer hash_key, hash_val;
+	while(g_hash_table_iter_next(&iter, &hash_key, &hash_val)){
+		char * hash_k = (char*) hash_key;
+		char * hash_v = (char*) hash_val;
+		kvs[n] = malloc(sizeof(char) * (strlen(text5) + 1000));
+		sprintf(kvs[n], text5, hash_k, hash_v);
+		n++;
+	}
+	/* create payload */
+	char * text = malloc(sizeof(char) * (strlen(text1) + 100 + num_tags * 1100));
+	text[0] = '\0';
+	strcat(text, text1);
+	strcat(text, s_id);
+	strcat(text, text_id);
+	strcat(text, s_node_id);
+	strcat(text, text2);
+	strcat(text, s_lon);
+	strcat(text, text3);
+	strcat(text, s_lat);
+	strcat(text, text_ver);
+	strcat(text, s_version);
+	strcat(text, text4);
+	for (n = 0; n < num_tags; n++){
+		strcat(text, kvs[n]);
+	}
+	strcat(text, text6);
+	free(s_id); free(s_lon); free(s_lat);
+	api_control -> send = text;
+	printf("%s\n", api_control -> send);
+	api_control -> bytes_sent = 0;
+	api_control -> bytes_total = strlen(api_control -> send);
+	int perform = curl_easy_perform(handle);
+	free(text);
+	for (n = 0; n < num_tags; n++){
+		free(kvs[n]);
+	}
+	free(kvs);
+	int status = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response);
+	printf("response code: %ld\n", response);
+	if (response != 200){
+		printf("error\n");
+		return -1;
+	}
+	int version = atoi(api_control -> recv);
+	free(api_control -> recv);
+	api_control -> bytes_recv = 0;
+	printf("new version %d\n", version);
+	return version;
+}
+
+int api_control_change_node(ApiControl * api_control, int cs_id, Node * node)
+{
+	api_control_change_delete_node(api_control, cs_id, node, FALSE);
+}
+
+int api_control_delete_node(ApiControl * api_control, int cs_id, Node * node)
+{
+	api_control_change_delete_node(api_control, cs_id, node, TRUE);
 }

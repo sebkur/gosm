@@ -44,6 +44,7 @@ struct _Node
 	GObject parent;
 
 	int id;
+	int version;
 	double lon;
 	double lat;
 	GHashTable * tags;
@@ -58,7 +59,7 @@ struct _NodeClass
 	//void (* function_name) (Node *node);
 };
 
-Node * node_new(int id, double lon, double lat);
+Node * node_new(int id, int version, double lon, double lat);
 void node_free(Node * node);
 void node_add_tag(Node * node, char * key, char * value);
 char * node_get_value(Node * node, char * key);

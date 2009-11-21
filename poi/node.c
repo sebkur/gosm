@@ -40,10 +40,11 @@ G_DEFINE_TYPE (Node, node, G_TYPE_OBJECT);
 //static guint node_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, node_signals[SIGNAL_NAME_n], 0);
 
-Node * node_new(int id, double lon, double lat)
+Node * node_new(int id, int version, double lon, double lat)
 {
 	Node * node = g_object_new(GOSM_TYPE_NODE, NULL);
 	node -> id = id;
+	node -> version = version;
 	node -> lon = lon;
 	node -> lat = lat;
 	node -> tags = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
@@ -85,7 +86,7 @@ char * node_get_value(Node * node, char * key)
 
 Node * node_copy(Node * node)
 {
-	Node * copy = node_new(node -> id, node -> lon, node -> lat);
+	Node * copy = node_new(node -> id, node -> version, node -> lon, node -> lat);
 	copy -> refs = node -> refs;
 	GHashTableIter iter;
 	g_hash_table_iter_init(&iter, node -> tags);
