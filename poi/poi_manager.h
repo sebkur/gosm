@@ -160,6 +160,7 @@ int poi_manager_get_selected_node_id(PoiManager * poi_manager);
 
 void poi_manager_undo(PoiManager * poi_manager);
 void poi_manager_redo(PoiManager * poi_manager);
+void poi_manager_save(PoiManager * poi_manager);
 
 gboolean poi_manager_node_exists(PoiManager * poi_manager, int node_id);
 

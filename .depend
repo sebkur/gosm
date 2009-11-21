@@ -16,6 +16,8 @@ toolbar.o: toolbar.c toolbar.h map_area.h map_types.h \
   bookmark/bookmark.h bookmark/bookmark_location.h \
   bookmark/bookmark_enter_name_dialog.h
 tool.o: tool.c tool.h
+sorted_sequence.o: data_structures/sorted_sequence.c \
+  data_structures/sorted_sequence.h
 ringbuffer.o: tiles/ringbuffer.c tiles/ringbuffer.h
 tile_cache.o: tiles/tile_cache.c tiles/tile_cache.h tiles/ringbuffer.h
 tilemath.o: tiles/tilemath.c tiles/tilemath.h

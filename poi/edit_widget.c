@@ -52,6 +52,7 @@ static void edit_widget_action_redo_cb(PoiManager * poi_manager, int index, gpoi
 static void edit_widget_action_remove_multiple_cb(PoiManager * poi_manager, gpointer x, gpointer data);
 static gboolean edit_widget_undo_cb(GtkWidget * button, EditWidget * edit_widget);
 static gboolean edit_widget_redo_cb(GtkWidget * button, EditWidget * edit_widget);
+static gboolean edit_widget_save_cb(GtkWidget * button, EditWidget * edit_widget);
 void edit_widget_cell_data_func(
 	GtkTreeViewColumn * tree_column,
 	GtkCellRenderer * cell,
@@ -98,12 +99,16 @@ static void edit_widget_init(EditWidget *edit_widget)
 	gtk_box_pack_start(GTK_BOX(vbox), toolbar, FALSE, FALSE, 0);
 	edit_widget -> button_undo = gtk_button_new();
 	edit_widget -> button_redo = gtk_button_new();
+	edit_widget -> button_save = gtk_button_new();
 	GtkWidget * image_undo = gtk_image_new_from_stock("gtk-undo", GTK_ICON_SIZE_MENU);
 	GtkWidget * image_redo = gtk_image_new_from_stock("gtk-redo", GTK_ICON_SIZE_MENU);
+	GtkWidget * image_save = gtk_image_new_from_stock("gtk-save", GTK_ICON_SIZE_MENU);
 	gtk_button_set_image(GTK_BUTTON(edit_widget -> button_undo), image_undo);
 	gtk_button_set_image(GTK_BUTTON(edit_widget -> button_redo), image_redo);
+	gtk_button_set_image(GTK_BUTTON(edit_widget -> button_save), image_save);
 	gtk_box_pack_start(GTK_BOX(toolbar), edit_widget -> button_undo, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(toolbar), edit_widget -> button_redo, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(toolbar), edit_widget -> button_save, FALSE, FALSE, 0);
 	GtkListStore * store = gtk_list_store_new(1, G_TYPE_STRING);
 	GtkTreeView * view = GTK_TREE_VIEW(gtk_tree_view_new());
 	gtk_tree_view_set_model(view, GTK_TREE_MODEL(store));
@@ -130,6 +135,9 @@ static void edit_widget_init(EditWidget *edit_widget)
 	g_signal_connect(
 		G_OBJECT(edit_widget -> button_redo), "clicked",
 		G_CALLBACK(edit_widget_redo_cb), edit_widget);
+	g_signal_connect(
+		G_OBJECT(edit_widget -> button_save), "clicked",
+		G_CALLBACK(edit_widget_save_cb), edit_widget);
 }
 
 static void edit_widget_action_added_cb(PoiManager * poi_manager, gpointer action_p, gpointer data)
@@ -217,4 +225,9 @@ static gboolean edit_widget_undo_cb(GtkWidget * button, EditWidget * edit_widget
 static gboolean edit_widget_redo_cb(GtkWidget * button, EditWidget * edit_widget)
 {
 	poi_manager_redo(edit_widget -> poi_manager);
+}
+
+static gboolean edit_widget_save_cb(GtkWidget * button, EditWidget * edit_widget)
+{
+	poi_manager_save(edit_widget -> poi_manager);
 }

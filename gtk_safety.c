@@ -48,6 +48,7 @@
 #include "poi/osm_data_set.h"
 #include "poi/node_add_tag_dialog.h"
 #include "poi/edit_widget.h"
+#include "data_structures/sorted_sequence.h"
 #include "menu.h"
 #include "toolbar.h"
 #include "atlas/atlas_tool.h"
@@ -122,6 +123,7 @@ void make_gtk_types_safe()
 	dummy = GOSM_TYPE_OSM_DATA_SET;
 	dummy = GOSM_TYPE_NODE_ADD_TAG_DIALOG;
 	dummy = GOSM_TYPE_EDIT_WIDGET;
+	dummy = GOSM_TYPE_SORTED_SEQUENCE;
 	dummy = GOSM_TYPE_MENU;
 	dummy = GOSM_TYPE_TOOLBAR;
 	dummy = GOSM_TYPE_ATLAS_TOOL;

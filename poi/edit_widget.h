@@ -50,6 +50,7 @@ struct _EditWidget
 
 	GtkWidget * button_undo;
 	GtkWidget * button_redo;
+	GtkWidget * button_save;
 };
 
 struct _EditWidgetClass

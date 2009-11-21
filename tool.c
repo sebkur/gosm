@@ -110,6 +110,9 @@ int * int_malloc_p(int * value)
 
 gint compare_int_pointers(gconstpointer a, gconstpointer b, gpointer user_data)
 {
+	if (a == NULL && b == NULL) return 0;
+	if (a == NULL) return -1;
+	if (b == NULL) return 1;
 	return *(int*)a - *(int*)b;
 }
 

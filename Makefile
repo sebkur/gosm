@@ -4,6 +4,7 @@ SRC = \
 menu.c \
 toolbar.c \
 tool.c \
+data_structures/sorted_sequence.c \
 tiles/ringbuffer.c \
 tiles/tile_cache.c \
 tiles/tilemath.c \
@@ -89,6 +90,7 @@ OBJ = \
 menu.o \
 toolbar.o \
 tool.o \
+data_structures/sorted_sequence.o \
 tiles/ringbuffer.o \
 tiles/tile_cache.o \
 tiles/tilemath.o \

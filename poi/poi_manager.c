@@ -53,6 +53,7 @@
 #include "edit/edit_action_change_tag.h"
 #include "edit/edit_action_change_tag_key.h"
 #include "edit/edit_action_change_tag_value.h"
+#include "../data_structures/sorted_sequence.h"
 
 /****************************************************************************************************
 * PoiManager is the central management unit for Points of interests
@@ -1390,24 +1391,26 @@ int poi_manager_get_selected_node_id(PoiManager * poi_manager)
 	return poi_manager -> map_area -> poi_selected_id;
 }
 
-void poi_manager_undo_action_by_invoking_actions(PoiManager * poi_manager, int index)
+void poi_manager_undo_action_by_invoking_actions(PoiManager * poi_manager, int index, gboolean remove)
 {
 	EditAction * action = g_array_index(poi_manager -> changes, EditAction*, index);
 	int node_id = action -> node_id;
-	tag_tree_subtract_node(poi_manager -> ods_edit -> tag_tree, node_id, 
-		g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id));
 	int i;
-	for (i = 0; i < poi_manager -> ods_edit -> poi_sets -> len; i++){
-		PoiSet * poi_set = g_array_index(poi_manager -> ods_edit -> poi_sets, PoiSet*, i);
-		if (poi_set_contains_point(poi_set, node_id)){
-			poi_set_remove_node(poi_set, node_id);
+	if(remove){
+		tag_tree_subtract_node(poi_manager -> ods_edit -> tag_tree, node_id, 
+			g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id));
+		for (i = 0; i < poi_manager -> ods_edit -> poi_sets -> len; i++){
+			PoiSet * poi_set = g_array_index(poi_manager -> ods_edit -> poi_sets, PoiSet*, i);
+			if (poi_set_contains_point(poi_set, node_id)){
+				poi_set_remove_node(poi_set, node_id);
+			}
 		}
-	}
-	if (poi_set_contains_point(poi_manager -> ods_edit -> remaining_pois, node_id)){
-		poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), node_id);
-	}
-	if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, node_id)){
-		poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> all_pois), node_id);
+		if (poi_set_contains_point(poi_manager -> ods_edit -> remaining_pois, node_id)){
+			poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> remaining_pois), node_id);
+		}
+		if (poi_set_contains_point(poi_manager -> ods_edit -> all_pois, node_id)){
+			poi_set_remove_node(GOSM_POI_SET(poi_manager -> ods_edit -> all_pois), node_id);
+		}
 	}
 	if (node_id > 0){
 		osm_data_set_duplicate_node(poi_manager -> ods_base, poi_manager -> ods_edit, node_id);
@@ -1431,22 +1434,22 @@ void poi_manager_undo_action(PoiManager * poi_manager, int index)
 		g_tree_remove(poi_manager -> ods_edit -> tree_ids, &(action -> node_id));
 	}
 	if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
-		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index, FALSE);
 	}
 	if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_POSITION){
-		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index, TRUE);
 	}
 	if(id == GOSM_TYPE_EDIT_ACTION_ADD_TAG){
-		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index, TRUE);
 	}
 	if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_KEY){
-		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index, TRUE);
 	}
 	if(id == GOSM_TYPE_EDIT_ACTION_CHANGE_TAG_VALUE){
-		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index, TRUE);
 	}
 	if(id == GOSM_TYPE_EDIT_ACTION_REMOVE_TAG){
-		poi_manager_undo_action_by_invoking_actions(poi_manager, index);
+		poi_manager_undo_action_by_invoking_actions(poi_manager, index, TRUE);
 	}
 }
 void poi_manager_undo(PoiManager * poi_manager)
@@ -1472,3 +1475,50 @@ gboolean poi_manager_node_exists(PoiManager * poi_manager, int node_id)
 {
 	return poi_set_contains_point(poi_manager -> ods_edit -> all_pois, node_id);
 }
+
+void poi_manager_save(PoiManager * poi_manager)
+{
+	SortedSequence * nodes_new = sorted_sequence_new(free, compare_int_pointers);
+	SortedSequence * nodes_mod = sorted_sequence_new(free, compare_int_pointers);
+	SortedSequence * nodes_del = sorted_sequence_new(free, compare_int_pointers);
+	int i;
+	for (i = 0; i <= poi_manager -> change_index; i++){
+		EditAction * action = g_array_index(poi_manager -> changes, EditAction*, i);
+		int type = G_OBJECT_TYPE(action);
+		int node_id = action -> node_id;
+		if(type == GOSM_TYPE_EDIT_ACTION_REMOVE_NODE){
+			if (node_id < 0){
+				sorted_sequence_remove(nodes_new, &node_id);
+			}else{
+				sorted_sequence_remove(nodes_mod, &node_id);
+				sorted_sequence_insert(nodes_del, int_malloc(node_id));
+			}
+		}else{
+			if (node_id < 0){
+				if (!sorted_sequence_contains(nodes_new, &node_id)){
+					sorted_sequence_insert(nodes_new, int_malloc(node_id));
+				}
+			}else{
+				if (!sorted_sequence_contains(nodes_mod, &node_id)){
+					sorted_sequence_insert(nodes_mod, int_malloc(node_id));
+				}
+			}
+		}
+	}
+	printf("NEW\n");
+	for (i = 0; i < sorted_sequence_get_length(nodes_new); i++){
+		int node_id = *(int*)sorted_sequence_get(nodes_new, i);
+		printf("%d\n", node_id);
+	}
+	printf("MOD\n");
+	for (i = 0; i < sorted_sequence_get_length(nodes_mod); i++){
+		int node_id = *(int*)sorted_sequence_get(nodes_mod, i);
+		printf("%d\n", node_id);
+	}
+	printf("DELETE\n");
+	for (i = 0; i < sorted_sequence_get_length(nodes_del); i++){
+		int node_id = *(int*)sorted_sequence_get(nodes_del, i);
+		printf("%d\n", node_id);
+	}
+}
+
