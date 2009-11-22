@@ -99,3 +99,7 @@ Node * node_copy(Node * node)
 	return copy;
 }
 
+int node_get_number_of_tags(Node * node)
+{
+	return g_hash_table_size(node -> tags);
+}

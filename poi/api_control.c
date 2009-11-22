@@ -33,6 +33,8 @@
 
 G_DEFINE_TYPE (ApiControl, api_control, G_TYPE_OBJECT);
 
+#define API(x) "http://api06.dev.openstreetmap.org/api/0.6/" x
+
 /*enum
 {
         SIGNAL_NAME_1,
@@ -113,7 +115,7 @@ int api_control_create_changeset(ApiControl * api_control)
 {
 	CURL * handle = api_control -> handle;
 	long response;
-	char * url = "http://api06.dev.openstreetmap.org/api/0.6/changeset/create";
+	char * url = API("changeset/create");
 	curl_easy_setopt(handle, CURLOPT_URL, url);
 	curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, NULL);
 	api_control -> send = 
@@ -142,7 +144,7 @@ int api_control_close_changeset(ApiControl * api_control, int cs_id)
 {
 	CURL * handle = api_control -> handle;
 	long response;
-	char * url_s = "http://api06.dev.openstreetmap.org/api/0.6/changeset/%d/close";
+	char * url_s = API("changeset/%d/close");
 	char * url = malloc(sizeof(char) * (strlen(url_s) + 20));
 	sprintf(url, url_s, cs_id);
 	curl_easy_setopt(handle, CURLOPT_URL, url);
@@ -164,7 +166,7 @@ int api_control_create_node(ApiControl * api_control, int cs_id, Node * node)
 {
 	CURL * handle = api_control -> handle;
 	long response;
-	char * url = "http://api06.dev.openstreetmap.org/api/0.6/node/create";
+	char * url = API("node/create");
 	curl_easy_setopt(handle, CURLOPT_URL, url);
 	curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, NULL);
 	char * text1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\
@@ -238,7 +240,7 @@ int api_control_change_delete_node(ApiControl * api_control, int cs_id, Node * n
 {
 	CURL * handle = api_control -> handle;
 	long response;
-	char * url_s = "http://api06.dev.openstreetmap.org/api/0.6/node/%d";
+	char * url_s = API("node/%d");
 	char * url = malloc(sizeof(char) * (strlen(url_s) + 20));
 	sprintf(url, url_s, node -> id);
 	curl_easy_setopt(handle, CURLOPT_URL, url);

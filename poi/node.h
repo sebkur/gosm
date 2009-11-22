@@ -64,5 +64,6 @@ void node_free(Node * node);
 void node_add_tag(Node * node, char * key, char * value);
 char * node_get_value(Node * node, char * key);
 Node * node_copy(Node * node);
+int node_get_number_of_tags(Node * node);
 
 #endif /* _NODE_H_ */

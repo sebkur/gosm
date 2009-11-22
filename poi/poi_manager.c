@@ -1530,19 +1530,28 @@ void poi_manager_save(PoiManager * poi_manager)
 		Node * node = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
 		printf("id: %d, version: %d\n", node_id, node -> version);
 		api_control_create_node(api_control, cs, node);
+		//TODO: update node id
 	}
 	for (i = 0; i < sorted_sequence_get_length(nodes_mod); i++){
 		int node_id = *(int*)sorted_sequence_get(nodes_mod, i);
 		Node * node = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
 		printf("id: %d, version: %d\n", node_id, node -> version);
 		api_control_change_node(api_control, cs, node);
+		//TODO: on failure, inspect changes in remotely changed version
 	}
 	for (i = 0; i < sorted_sequence_get_length(nodes_del); i++){
 		int node_id = *(int*)sorted_sequence_get(nodes_del, i);
 		Node * node = g_tree_lookup(poi_manager -> ods_base -> tree_ids, &node_id);
 		printf("id: %d, version: %d\n", node_id, node -> version);
 		api_control_delete_node(api_control, cs, node);
+		//TODO: on failure, inspect changes in remotely changed version
 	}
 	api_control_close_changeset(api_control, cs);
+
+	int len = poi_manager -> changes -> len;
+	int x[3] = {len, 0, len};
+	g_array_remove_range(poi_manager -> changes, 0, len);
+	poi_manager -> change_index = -1;
+	g_signal_emit (poi_manager, poi_manager_signals[ACTION_REMOVE_MULTIPLE], 0, x);
 }
 
