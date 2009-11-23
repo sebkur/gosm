@@ -49,7 +49,7 @@ G_DEFINE_TYPE (PoiSet, poi_set, G_TYPE_OBJECT);
 
 //static guint poi_set_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, poi_set_signals[SIGNAL_NAME_n], 0);
-
+void poi_set_add_with_different_node_id(PoiSet * poi_set, Node * node, int node_id);
 
 /****************************************************************************************************
 * functions for the binary tree
@@ -115,18 +115,23 @@ static void poi_set_init(PoiSet *poi_set)
 ****************************************************************************************************/
 void poi_set_add(PoiSet * poi_set, Node * node)
 {
+	poi_set_add_with_different_node_id(poi_set, node, node -> id);
+}
+
+void poi_set_add_with_different_node_id(PoiSet * poi_set, Node * node, int node_id)
+{
 	/* a node might be added, that is already present */
 	// TODO: this should be obsolete now
-	if (g_tree_lookup(poi_set -> points, &(node -> id)) == NULL){
+	if (g_tree_lookup(poi_set -> points, &(node_id)) == NULL){
 		/* insert into binary tree */
-		g_tree_insert(poi_set -> points, int_malloc(node -> id), node);
+		g_tree_insert(poi_set -> points, int_malloc(node_id), node);
 		/* insert into rtree */
 		struct Rect * rect = malloc(sizeof(struct Rect));
 		rect -> boundary[0] = node -> lon;
 		rect -> boundary[1] = node -> lat;
 		rect -> boundary[2] = node -> lon;
 		rect -> boundary[3] = node -> lat;
-		r_r_tree_insert_rect(poi_set -> rtree, rect, node -> id);
+		r_r_tree_insert_rect(poi_set -> rtree, rect, node_id);
 		free(rect);
 	}
 }
@@ -248,5 +253,12 @@ void poi_set_reposition(PoiSet * poi_set, int node_id, double new_lon, double ne
 	rect -> boundary[3] = new_lat;
 	r_r_tree_insert_rect(poi_set -> rtree, rect, node_id);
 	free(rect);
+}
+
+void poi_set_change_node_id(PoiSet * poi_set, int id_old, int id_new)
+{
+	Node * node = (Node*) g_tree_lookup(poi_set -> points, &(id_old));
+	poi_set_remove_node(poi_set, id_old);
+	poi_set_add_with_different_node_id(poi_set, node, id_new);
 }
 

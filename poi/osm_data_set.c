@@ -173,3 +173,30 @@ void osm_data_set_duplicate_node(OsmDataSet * original, OsmDataSet * copy, int n
 	}
 	if(!one) poi_set_add(copy -> remaining_pois, node);
 }
+
+void osm_data_set_change_node_id(OsmDataSet * ods, int id_old, int id_new)
+{
+	Node * node;
+	int * old_key;
+	g_tree_lookup_extended(ods -> tree_ids, &id_old, &old_key, &node);
+	g_tree_steal(ods -> tree_ids, &id_old);
+	free(old_key);
+	g_tree_insert(ods -> tree_ids, int_malloc(id_new), node);
+	int num_poi_sets = ods -> poi_sets -> len; int n;
+	for (n = 0; n < num_poi_sets; n++){
+		PoiSet * poi_set = g_array_index(ods -> poi_sets, PoiSet*, n);
+		if (poi_set_contains_point(poi_set, id_old)){
+			poi_set_change_node_id(poi_set, id_old, id_new);
+		}
+	}
+	if (poi_set_contains_point(ods -> all_pois, id_old)){
+		poi_set_change_node_id(ods -> all_pois, id_old, id_new);
+	}
+	if (poi_set_contains_point(ods -> remaining_pois, id_old)){
+		poi_set_change_node_id(ods -> remaining_pois, id_old, id_new);
+	}
+	tag_tree_subtract_node(ods -> tag_tree, id_old, node);
+	tag_tree_add_node(ods -> tag_tree, id_new, node);
+	node -> id = id_new;
+}
+

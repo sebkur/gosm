@@ -64,5 +64,6 @@ OsmDataSet * osm_data_set_new();
 
 void osm_data_set_duplicate(OsmDataSet * original, OsmDataSet * copy);
 void osm_data_set_duplicate_node(OsmDataSet * original, OsmDataSet * copy, int node_id);
+void osm_data_set_change_node_id(OsmDataSet * ods, int id_old, int id_new);
 
 #endif /* _OSM_DATA_SET_H_ */

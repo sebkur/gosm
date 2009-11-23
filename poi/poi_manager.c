@@ -106,6 +106,7 @@ static gboolean poi_manager_osm_reader_finished_cb(OsmReader * osm_reader, int s
 static gboolean poi_manager_osm_reader_api_finished_cb(OsmReader * osm_reader, int status, gpointer data);
 void poi_manager_add_node_id(PoiManager * poi_manager, gboolean history, int node_id, double lon, double lat);
 void poi_manager_apply_change_history(PoiManager * poi_manager);
+void poi_manager_change_node_id(PoiManager * poi_manager, int old_id, int new_id);
 
 /****************************************************************************************************
 * constructor
@@ -1254,8 +1255,8 @@ void poi_manager_remove_node(PoiManager * poi_manager, gboolean history, int nod
 			poi_set_remove_point(poi_set, node_id, node -> lon, node -> lat);
 		}
 	}
+        tag_tree_subtract_node(poi_manager -> ods_edit -> tag_tree, node_id, node);
 	g_tree_remove(poi_manager -> ods_edit -> tree_ids, &node_id);
-	// TODO: remove from tag_tree (it does actually not matter up to now)
 	if (history){
 		EditAction * action = edit_action_remove_node_new(node_id);
 		poi_manager_add_action(poi_manager, action);
@@ -1529,22 +1530,34 @@ void poi_manager_save(PoiManager * poi_manager)
 		int node_id = *(int*)sorted_sequence_get(nodes_new, i);
 		Node * node = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
 		printf("id: %d, version: %d\n", node_id, node -> version);
-		api_control_create_node(api_control, cs, node);
-		//TODO: update node id
+		int api = api_control_create_node(api_control, cs, node);
+		if (api < 0){
+			//TODO: error
+		}else{
+			//TODO: update node id
+			int new_id = api; int old_id = node_id;
+			poi_manager_change_node_id(poi_manager, old_id, new_id);
+		}
 	}
 	for (i = 0; i < sorted_sequence_get_length(nodes_mod); i++){
 		int node_id = *(int*)sorted_sequence_get(nodes_mod, i);
 		Node * node = g_tree_lookup(poi_manager -> ods_edit -> tree_ids, &node_id);
 		printf("id: %d, version: %d\n", node_id, node -> version);
-		api_control_change_node(api_control, cs, node);
-		//TODO: on failure, inspect changes in remotely changed version
+		int api = api_control_change_node(api_control, cs, node);
+		if (api < 0){
+			//TODO: on failure, inspect changes in remotely changed version
+		}else{
+		}
 	}
 	for (i = 0; i < sorted_sequence_get_length(nodes_del); i++){
 		int node_id = *(int*)sorted_sequence_get(nodes_del, i);
 		Node * node = g_tree_lookup(poi_manager -> ods_base -> tree_ids, &node_id);
 		printf("id: %d, version: %d\n", node_id, node -> version);
-		api_control_delete_node(api_control, cs, node);
-		//TODO: on failure, inspect changes in remotely changed version
+		int api = api_control_delete_node(api_control, cs, node);
+		if (api < 0){
+			//TODO: on failure, inspect changes in remotely changed version
+		}else{
+		}
 	}
 	api_control_close_changeset(api_control, cs);
 
@@ -1555,3 +1568,7 @@ void poi_manager_save(PoiManager * poi_manager)
 	g_signal_emit (poi_manager, poi_manager_signals[ACTION_REMOVE_MULTIPLE], 0, x);
 }
 
+void poi_manager_change_node_id(PoiManager * poi_manager, int old_id, int new_id)
+{
+	osm_data_set_change_node_id(poi_manager -> ods_edit, old_id, new_id);
+}

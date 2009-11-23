@@ -76,5 +76,6 @@ void poi_set_set_visible(PoiSet * poi_set, gboolean visible);
 gboolean poi_set_get_visible(PoiSet * poi_set);
 gboolean poi_set_contains_point(PoiSet * poi_set, int node_id);
 void poi_set_reposition(PoiSet * poi_set, int node_id, double new_lon, double new_lat);
+void poi_set_change_node_id(PoiSet * poi_set, int id_old, int id_new);
 
 #endif /* _POI_SET_H_ */
