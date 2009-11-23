@@ -30,6 +30,7 @@
 #include <curl/curl.h>
 
 #include "api_control.h"
+#include "../config/config.h"
 
 G_DEFINE_TYPE (ApiControl, api_control, G_TYPE_OBJECT);
 
@@ -44,6 +45,8 @@ G_DEFINE_TYPE (ApiControl, api_control, G_TYPE_OBJECT);
 
 //static guint api_control_signals[LAST_SIGNAL] = { 0 };
 //g_signal_emit (widget, api_control_signals[SIGNAL_NAME_n], 0);
+
+extern Config * config;
 
 ApiControl * api_control_new()
 {
@@ -101,7 +104,9 @@ size_t recv_data(void * ptr, size_t size, size_t nmemb, void * data)
 void api_control_initialize(ApiControl * api_control)
 {
 	CURL * handle = api_control -> handle;
-	char * pwd = "zsebastian:openrevolution23";
+	char * user = (char*)config_get_entry_data(config, "osm_account_user");
+	char * pass = (char*)config_get_entry_data(config, "osm_account_pass");
+	char * pwd = g_strconcat(user, ":", pass, NULL);
 	//curl_easy_setopt(handle, CURLOPT_VERBOSE, 1);
 	curl_easy_setopt(handle, CURLOPT_USERPWD, pwd);
 	curl_easy_setopt(handle, CURLOPT_PUT, 1);
