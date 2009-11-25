@@ -1,0 +1,39 @@
+#################################
+SXDL - Simple Xml Document Layout
+#################################
+
+This should become a library after a little more development.
+
+sxdl should be possible to render a language that is oriented
+on HTML. This language is neither a subset of HTML nor will
+there be huge capabilites.
+
+I design it for replacing webkit in gosm. since the functionality
+used in gosm is really marginal, this should not be too difficult.
+
+For the moment, sxdl only supports the following tags:
+
+### basic text
+<font>some text here</font>
+
+### line-breaks
+<br />
+
+### images
+<img src="your image path" />
+
+### tables
+<table>
+	<tr>
+		<td>other tags here</td>
+		...
+	</tr>
+	...
+</table>
+
+########################
+BUGS / PLANNED FEATURES:
+########################
+* path-handling needs to be implemented
+* cell-spacing
+* valign
