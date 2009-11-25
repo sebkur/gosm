@@ -23,6 +23,7 @@ There is a of work to do in general:
 	- clean up!!!
 	- take care of memory. use free() more often!
 
+- the 4 mode buttons can toggled of while active. bad.
 - when updating node_ids upon edit: if map_area has some node selected, ids...
 - string-searching in loaded .osm-data (streets, amenities, ...)
 - let the user edit map-sources (cloudmade, ...)

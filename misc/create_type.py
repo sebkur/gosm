@@ -60,7 +60,7 @@ def get_header(name, parent_mixed, type_return):
 	"#define GOSM_"+names[1]+"_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_"+names[1]+", "+names[2]+"Class))\n" + \
 	"#define GOSM_IS_"+names[1]+"(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOSM_TYPE_"+names[1]+"))\n" + \
 	"#define GOSM_IS_"+names[1]+"_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_"+names[1]+"))\n" + \
-	"#define GOSM_"+names[1]+"_GET_CLASS      (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_"+names[1]+", "+names[2]+"Class))\n" + \
+	"#define GOSM_"+names[1]+"_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_"+names[1]+", "+names[2]+"Class))\n" + \
 	"\n" + \
 	"typedef struct _"+names[2]+"        "+names[2]+";\n" + \
 	"typedef struct _"+names[2]+"Class   "+names[2]+"Class;\n" + \
