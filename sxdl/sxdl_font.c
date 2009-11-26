@@ -58,7 +58,7 @@ SxdlFont * sxdl_font_new(int size)
 void sxdl_font_set_text(SxdlFont * sxdl_font, char * text)
 {
 	sxdl_font -> text = g_strdup(text);
-	printf("%s %s\n", text, sxdl_font -> text);
+	//printf("%s %s\n", text, sxdl_font -> text);
 }
 
 static void sxdl_font_class_init(SxdlFontClass *class)
@@ -93,6 +93,7 @@ void sxdl_font_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, in
 void sxdl_font_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
 	int * used_width, int * used_height)
 {
+	printf("%d\n", width_proposed);
 	SxdlFont * sxdl_font = (SxdlFont*)sxdl_base;
 	sxdl_font_paint(sxdl_font, widget, used_width, used_height, FALSE, 0, 0, width_proposed);
 }
@@ -130,4 +131,5 @@ void sxdl_font_paint(SxdlFont * sxdl_font, GtkWidget * widget, int * width, int 
 	g_object_unref(pc_marker);
 	g_object_unref(pl_marker);
 	pango_attr_list_unref(attrs);
+	printf("font\n");
 }

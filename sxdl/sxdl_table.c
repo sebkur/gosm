@@ -120,11 +120,14 @@ void sxdl_table_layout(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, i
 	start_cols[0] = 0;
 	start_rows[0] = 0;
 	for (c = 0; c < n_cols; c++){
+		double factor = 0;
+		if (play != 0) factor = ((double)too_much / (double)play);
 		size_cols[c] = (int)(size_max_cols[c] -
-			(size_max_cols[c] - size_min_cols[c]) * ((double)too_much / (double)play));
+			(size_max_cols[c] - size_min_cols[c]) * factor);
 		if (c != 0){
 			start_cols[c] = start_cols[c-1] + size_cols[c-1];
 		}
+		printf("%d\n", play);
 	}
 	int total_w = 0, total_h = 0, row_h;
 	for (r = 0; r < n_rows; r++){
@@ -210,7 +213,7 @@ void sxdl_table_layout(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, i
 	}
 	*used_width = width;
 	*used_height = total_h;
-	printf("table height %d\n", total_h);
+	//printf("table height %d\n", total_h);
 }
 
 void sxdl_table_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,

@@ -86,6 +86,7 @@ sxdl_image_paint(SxdlImage * image, GtkWidget * widget, int * w, int * h, gboole
 	}
 	*w = img_w;
 	*h = img_h;
+	printf("image\n");
 }
 
 void sxdl_image_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,

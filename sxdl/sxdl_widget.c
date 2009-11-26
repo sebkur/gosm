@@ -140,7 +140,7 @@ static void XMLCALL sxdl_widget_StartElementCallback(
 						const XML_Char ** atts)
 {
 	SxdlWidget * sxdl = (SxdlWidget*)userData;
-	printf("start %s\n", name);
+	//printf("start %s\n", name);
 	      if (strcmp(name, "font") == 0){
 		sxdl -> tag = TAG_FONT;
 		SxdlFont * e = sxdl_font_new(10);
@@ -160,7 +160,7 @@ static void XMLCALL sxdl_widget_StartElementCallback(
 		double r = 0, g = 0, b = 0;
 		char * border_colour_s = sxdl_widget_get_value(atts, "bordercolor");
 		if (border_colour_s != NULL) read_hex_colour_double(border_colour_s, &r, &g, &b);
-		printf("%e %e %e\n", r, g, b);
+		//printf("%e %e %e\n", r, g, b);
 		sxdl -> tag = TAG_TABLE;
 		SxdlTable * e = sxdl_table_new(border, r, g, b);
 		g_array_append_val(sxdl -> stack, e);
@@ -226,19 +226,19 @@ static void XMLCALL sxdl_widget_EndElementCallback(
 		g_array_remove_index(sxdl -> stack, sxdl -> stack -> len - 1);
 		sxdl -> tag = TAG_OTHER;
 	}else if (strcmp(name, "table") == 0){
-		printf("TABLE\n");
+		//printf("TABLE\n");
 		SxdlContainer * c = g_array_index(sxdl -> stack, SxdlContainer*, sxdl -> stack -> len - 2);
 		sxdl_container_add(c, GOSM_SXDL_BASE(e));
 		g_array_remove_index(sxdl -> stack, sxdl -> stack -> len - 1);
 		sxdl -> tag = TAG_OTHER;
 	}else if (strcmp(name, "tr") == 0){
-		printf("TR\n");
+		//printf("TR\n");
 		SxdlTable * c = g_array_index(sxdl -> stack, SxdlTable*, sxdl -> stack -> len - 2);
 		sxdl_table_add_row(c, GOSM_SXDL_TABLE_ROW(e));
 		g_array_remove_index(sxdl -> stack, sxdl -> stack -> len - 1);
 		sxdl -> tag = TAG_TABLE;
 	}else if (strcmp(name, "td") == 0){
-		printf("TD\n");
+		//printf("TD\n");
 		SxdlTableRow * r = g_array_index(sxdl -> stack, SxdlTableRow*, sxdl -> stack -> len - 3);
 		SxdlTableCell * c = g_array_index(sxdl -> stack, SxdlTableCell*, sxdl -> stack -> len - 2);
 		sxdl_table_row_add_cell(r, GOSM_SXDL_TABLE_CELL(c));
@@ -305,7 +305,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	int min_w, min_w_h, max_w, max_w_h, w, h;
 	sxdl_base_get_size(GOSM_SXDL_BASE(sxdl -> document), widget, 0, 0, &min_w, &min_w_h);
 	sxdl_base_get_size(GOSM_SXDL_BASE(sxdl -> document), widget, -1, -1, &max_w, &max_w_h);
-	printf("%dx%d %dx%d\n", min_w, min_w_h, max_w, max_w_h);
+	//printf("%dx%d %dx%d\n", min_w, min_w_h, max_w, max_w_h);
 	int layout_w = min_w > width ? min_w : width;
 	sxdl_base_render(GOSM_SXDL_BASE(sxdl -> document), widget, 0, 0, layout_w, -1, &w, &h);
 	
@@ -314,7 +314,7 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	cairo_set_source_surface(cr, surface_img, 0.0, 0.0);
 	int img_w = cairo_image_surface_get_width(surface_img);
 	int img_h = cairo_image_surface_get_height(surface_img);
-	printf("%d %d\n", img_w, img_h);
+	//printf("%d %d\n", img_w, img_h);
 	cairo_rectangle(cr, 0, 0, img_w, img_h);
 	//cairo_fill(cr);
 	return FALSE;
