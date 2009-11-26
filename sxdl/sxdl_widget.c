@@ -98,6 +98,28 @@ static void sxdl_widget_init(SxdlWidget *sxdl_widget)
 {
 }
 
+void read_hex_colour_int(char * hex, int * r, int * g, int * b)
+{
+	*r = 0; *g = 0; *b = 0;
+	if (strlen(hex) != 7) return;
+	char hash[2]; strncpy(hash, hex, 1); hash[1] = '\0';
+	char pr[3]; strncpy(pr, &hex[1], 2); pr[2] = '\0';
+	char pg[3]; strncpy(pg, &hex[3], 2); pg[2] = '\0';
+	char pb[3]; strncpy(pb, &hex[5], 2); pb[2] = '\0';
+	*r = strtol(pr, (char **) NULL, 16);
+	*g = strtol(pg, (char **) NULL, 16);
+	*b = strtol(pb, (char **) NULL, 16);
+}
+
+void read_hex_colour_double(char * hex, double * r, double * g, double * b)
+{
+	int ir, ig, ib;
+	read_hex_colour_int(hex, &ir, &ig, &ib);
+	*r = ((double)ir)/((double)255);
+	*g = ((double)ig)/((double)255);
+	*b = ((double)ib)/((double)255);
+}
+
 const char * sxdl_widget_get_value(const XML_Char ** atts, char * search_key)
 {
 	const XML_Char ** ptr = atts;
@@ -132,19 +154,45 @@ static void XMLCALL sxdl_widget_StartElementCallback(
 		SxdlImage * e = sxdl_image_new(sxdl_widget_get_value(atts, "src"));
 		g_array_append_val(sxdl -> stack, e);
 	}else if (strcmp(name, "table") == 0){
-		printf("a\n");
+		int border = 0;
+		char * border_s = sxdl_widget_get_value(atts, "border");
+		if (border_s != NULL) border = atoi(border_s);
+		double r = 0, g = 0, b = 0;
+		char * border_colour_s = sxdl_widget_get_value(atts, "bordercolor");
+		if (border_colour_s != NULL) read_hex_colour_double(border_colour_s, &r, &g, &b);
+		printf("%e %e %e\n", r, g, b);
 		sxdl -> tag = TAG_TABLE;
-		SxdlTable * e = sxdl_table_new();
+		SxdlTable * e = sxdl_table_new(border, r, g, b);
 		g_array_append_val(sxdl -> stack, e);
 	}else if (strcmp(name, "tr") == 0){
-		printf("b\n");
 		sxdl -> tag = TAG_TR;
 		SxdlTableRow * e = sxdl_table_row_new();
 		g_array_append_val(sxdl -> stack, e);
 	}else if (strcmp(name, "td") == 0){
-		printf("c\n");
 		sxdl -> tag = TAG_TD;
-		SxdlTableCell * e = sxdl_table_cell_new();
+		SxdlTableValign valign;
+		SxdlTableHalign halign;
+		char * valign_s = sxdl_widget_get_value(atts, "valign");
+		char * halign_s = sxdl_widget_get_value(atts, "halign");
+		if (valign_s == NULL){
+			valign = SXDL_TABLE_VALIGN_TOP;
+		}else if (strcmp(valign_s, "bottom") == 0){
+			valign = SXDL_TABLE_VALIGN_BOTTOM;
+		}else if (strcmp(valign_s, "center") == 0){
+			valign = SXDL_TABLE_VALIGN_CENTER;
+		}else{
+			valign = SXDL_TABLE_VALIGN_TOP;
+		}
+		if (halign_s == NULL){
+			halign = SXDL_TABLE_HALIGN_LEFT;
+		}else if (strcmp(halign_s, "right") == 0){
+			halign = SXDL_TABLE_HALIGN_RIGHT;
+		}else if (strcmp(halign_s, "center") == 0){
+			halign = SXDL_TABLE_HALIGN_CENTER;
+		}else{
+			halign = SXDL_TABLE_HALIGN_LEFT;
+		}
+		SxdlTableCell * e = sxdl_table_cell_new_with_align(valign, halign);
 		SxdlContainer * c = sxdl_container_new();
 		sxdl_table_cell_add_container(e, c);
 		g_array_append_val(sxdl -> stack, e);
@@ -269,6 +317,5 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	printf("%d %d\n", img_w, img_h);
 	cairo_rectangle(cr, 0, 0, img_w, img_h);
 	//cairo_fill(cr);
-
 	return FALSE;
 }

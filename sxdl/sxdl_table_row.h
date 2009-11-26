@@ -29,9 +29,6 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "sxdl_base.h"
-#include "sxdl_table_cell.h"
-
 #define GOSM_TYPE_SXDL_TABLE_ROW           (sxdl_table_row_get_type ())
 #define GOSM_SXDL_TABLE_ROW(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_SXDL_TABLE_ROW, SxdlTableRow))
 #define GOSM_SXDL_TABLE_ROW_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_SXDL_TABLE_ROW, SxdlTableRowClass))
@@ -41,6 +38,9 @@
 
 typedef struct _SxdlTableRow        SxdlTableRow;
 typedef struct _SxdlTableRowClass   SxdlTableRowClass;
+
+#include "sxdl_base.h"
+#include "sxdl_table_cell.h"
 
 struct _SxdlTableRow
 {

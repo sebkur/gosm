@@ -29,9 +29,6 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "sxdl_base.h"
-#include "sxdl_container.h"
-
 #define GOSM_TYPE_SXDL_TABLE_CELL           (sxdl_table_cell_get_type ())
 #define GOSM_SXDL_TABLE_CELL(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_SXDL_TABLE_CELL, SxdlTableCell))
 #define GOSM_SXDL_TABLE_CELL_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_SXDL_TABLE_CELL, SxdlTableCellClass))
@@ -42,11 +39,17 @@
 typedef struct _SxdlTableCell        SxdlTableCell;
 typedef struct _SxdlTableCellClass   SxdlTableCellClass;
 
+#include "sxdl_base.h"
+#include "sxdl_container.h"
+#include "sxdl_table.h"
+
 struct _SxdlTableCell
 {
 	SxdlBase parent;
 
 	SxdlContainer * content;
+	SxdlTableValign valign;
+	SxdlTableHalign halign;
 };
 
 struct _SxdlTableCellClass
@@ -57,6 +60,7 @@ struct _SxdlTableCellClass
 };
 
 SxdlTableCell * sxdl_table_cell_new();
+SxdlTableCell * sxdl_table_cell_new_with_align(SxdlTableValign valign, SxdlTableHalign halign);
 
 void sxdl_table_cell_add_container(SxdlTableCell * cell, SxdlContainer * content);
 

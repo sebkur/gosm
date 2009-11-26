@@ -29,9 +29,6 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "sxdl_base.h"
-#include "sxdl_table_row.h"
-
 #define GOSM_TYPE_SXDL_TABLE           (sxdl_table_get_type ())
 #define GOSM_SXDL_TABLE(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_SXDL_TABLE, SxdlTable))
 #define GOSM_SXDL_TABLE_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_SXDL_TABLE, SxdlTableClass))
@@ -39,14 +36,33 @@
 #define GOSM_IS_SXDL_TABLE_CLASS(obj)  (G_TYPE_CHECK_CLASS_TYPE ((obj), GOSM_TYPE_SXDL_TABLE))
 #define GOSM_SXDL_TABLE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GOSM_TYPE_SXDL_TABLE, SxdlTableClass))
 
+typedef enum{
+	SXDL_TABLE_VALIGN_TOP,
+	SXDL_TABLE_VALIGN_BOTTOM,
+	SXDL_TABLE_VALIGN_CENTER
+} SxdlTableValign;
+
+typedef enum{
+	SXDL_TABLE_HALIGN_LEFT,
+	SXDL_TABLE_HALIGN_RIGHT,
+	SXDL_TABLE_HALIGN_CENTER
+} SxdlTableHalign;
+
 typedef struct _SxdlTable        SxdlTable;
 typedef struct _SxdlTableClass   SxdlTableClass;
+
+#include "sxdl_base.h"
+#include "sxdl_table_row.h"
 
 struct _SxdlTable
 {
 	SxdlBase parent;
 
 	GArray * rows;
+	int border;
+	double border_r;
+	double border_g;
+	double border_b;
 };
 
 struct _SxdlTableClass
@@ -56,7 +72,7 @@ struct _SxdlTableClass
 	//void (* function_name) (SxdlTable *sxdl_table);
 };
 
-SxdlTable * sxdl_table_new();
+SxdlTable * sxdl_table_new(int border, double r, double g, double b);
 
 void sxdl_table_add_row(SxdlTable * table, SxdlTableRow * table_row);
 

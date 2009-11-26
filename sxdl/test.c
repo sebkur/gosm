@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 	gdk_threads_init();
 	gtk_init(&argc, &argv);
 
-	int width = 600;
+	int width = 300;
 	int height = 500;
 	GtkWidget * main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(main_window), "Sxdl Renderer");

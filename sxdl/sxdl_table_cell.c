@@ -47,7 +47,14 @@ void sxdl_table_cell_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int widt
 
 SxdlTableCell * sxdl_table_cell_new()
 {
+	return sxdl_table_cell_new_with_align(SXDL_TABLE_VALIGN_TOP, SXDL_TABLE_HALIGN_LEFT);
+}
+
+SxdlTableCell * sxdl_table_cell_new_with_align(SxdlTableValign valign, SxdlTableHalign halign)
+{
 	SxdlTableCell * sxdl_table_cell = g_object_new(GOSM_TYPE_SXDL_TABLE_CELL, NULL);
+	sxdl_table_cell -> valign = valign;
+	sxdl_table_cell -> halign = halign;
 	return sxdl_table_cell;
 }
 

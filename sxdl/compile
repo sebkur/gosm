@@ -1,1 +1,0 @@
-gcc -g -o test test.c sxdl_widget.c sxdl_base.c sxdl_font.c sxdl_image.c sxdl_container.c sxdl_break.c sxdl_table.c sxdl_table_row.c sxdl_table_cell.c `pkg-config --cflags --libs glib-2.0 gthread-2.0 gtk+-2.0 gdk-2.0 cairo pango` -lexpat

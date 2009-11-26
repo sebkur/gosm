@@ -48,10 +48,14 @@ void sxdl_table_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_pro
 void sxdl_table_get_sizes(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
 	int ** s_cols, int ** s_rows);
 
-SxdlTable * sxdl_table_new()
+SxdlTable * sxdl_table_new(int border, double r, double g, double b)
 {
 	SxdlTable * sxdl_table = g_object_new(GOSM_TYPE_SXDL_TABLE, NULL);
 	sxdl_table -> rows = g_array_new(FALSE, FALSE, sizeof(SxdlTableRow*));
+	sxdl_table -> border = border;
+	sxdl_table -> border_r = r;
+	sxdl_table -> border_g = g;
+	sxdl_table -> border_b = b;
 	return sxdl_table;
 }
 
@@ -91,8 +95,8 @@ int sxdl_table_get_n_columns(SxdlTable * sxdl_table)
 	return cols;
 }
 
-void sxdl_table_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height)
+void sxdl_table_layout(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
+	int * used_width, int * used_height, gboolean actually_paint)
 {
 	SxdlTable * table = (SxdlTable*)sxdl_base;
 	int n_rows = sxdl_table_get_n_rows(table);
@@ -111,7 +115,10 @@ void sxdl_table_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, i
 	too_much = too_much > 0 ? too_much : 0;
 	int size_cols[n_cols];
 	int start_cols[n_cols];
+	int size_rows[n_rows];
+	int start_rows[n_rows];
 	start_cols[0] = 0;
+	start_rows[0] = 0;
 	for (c = 0; c < n_cols; c++){
 		size_cols[c] = (int)(size_max_cols[c] -
 			(size_max_cols[c] - size_min_cols[c]) * ((double)too_much / (double)play));
@@ -128,19 +135,88 @@ void sxdl_table_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, i
 			sxdl_base_get_size(GOSM_SXDL_BASE(cell), widget, size_cols[c], 0, &w, &h);
 			row_h = h > row_h ? h : row_h;
 		}
-		for (c = 0; c < row -> cells -> len; c++){
-			SxdlTableCell * cell = g_array_index(row -> cells, SxdlTableCell*, c);
-			sxdl_base_get_size(GOSM_SXDL_BASE(cell), widget, size_cols[c], 0, &w, &h);
-			//TODO: use valign-property
-			sxdl_base_render(GOSM_SXDL_BASE(cell), widget, 
-				x + start_cols[c], y + total_h + (row_h - h) / 2, size_cols[c], 0, &w, &h);
-			//row_h = h > row_h ? h : row_h;
+		size_rows[r] = row_h;
+		if (r != 0){
+			start_rows[r] = start_rows[r-1] + size_rows[r-1];
+		}
+		if (actually_paint){
+			for (c = 0; c < row -> cells -> len; c++){
+				SxdlTableCell * cell = g_array_index(row -> cells, SxdlTableCell*, c);
+				sxdl_base_get_size(GOSM_SXDL_BASE(cell), widget, size_cols[c], 0, &w, &h);
+				int ypos = y + total_h;
+				int xpos = x + start_cols[c];
+				switch(cell -> valign){
+					case(SXDL_TABLE_VALIGN_TOP):{
+						break;
+					}
+					case(SXDL_TABLE_VALIGN_BOTTOM):{
+						ypos += (row_h - h);
+						break;
+					}
+					case(SXDL_TABLE_VALIGN_CENTER):{
+						ypos += (row_h - h) / 2;
+						break;
+					}
+				}
+				switch(cell -> halign){
+					case(SXDL_TABLE_HALIGN_LEFT):{
+						break;
+					}
+					case(SXDL_TABLE_HALIGN_RIGHT):{
+						xpos += (size_cols[c] - w);
+						break;
+					}
+					case(SXDL_TABLE_HALIGN_CENTER):{
+						xpos += (size_cols[c] - w) / 2;
+						break;
+					}
+				}
+				sxdl_base_render(GOSM_SXDL_BASE(cell), widget, 
+					xpos, ypos, size_cols[c], 0, &w, &h);
+			}
 		}
 		total_h += row_h;
 	}
-	*used_width = start_cols[n_cols] + size_cols[n_cols];
+	int width = start_cols[n_cols - 1] + size_cols[n_cols - 1];
+	if (actually_paint && table -> border > 0){
+		cairo_t * cr_lines = gdk_cairo_create(widget -> window);
+		cairo_set_line_width(cr_lines, table -> border);
+		for (r = 0; r <= n_rows; r++){
+			double ry = y;
+			if (table -> border % 2 == 1) ry += 0.5;
+			if (r == n_rows){
+				ry += start_rows[r-1] + size_rows[r-1];
+			}else{
+				ry += start_rows[r];
+			}
+			cairo_move_to(cr_lines, x, ry);
+			cairo_line_to(cr_lines, x + width, ry);
+		}
+		for (c = 0; c <= n_cols; c++){
+			double cx = x;
+			if (table -> border % 2 == 1) cx += 0.5;
+			if (c == n_cols){
+				cx += start_cols[c-1] + size_cols[c-1];
+			}else{
+				cx += start_cols[c];
+			}
+			cairo_move_to(cr_lines, cx, y);
+			cairo_line_to(cr_lines, cx, y + total_h);
+		}
+		cairo_pattern_t * pat_lines = cairo_pattern_create_rgb(
+			table -> border_r, table -> border_g, table -> border_b);
+		cairo_set_source(cr_lines, pat_lines);
+		cairo_stroke(cr_lines);
+	}
+	*used_width = width;
 	*used_height = total_h;
 	printf("table height %d\n", total_h);
+}
+
+void sxdl_table_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
+	int * used_width, int * used_height)
+{
+	sxdl_table_layout(sxdl_base, widget, x, y, width_proposed, height_proposed, used_width, used_height, TRUE);
 }
 
 void sxdl_table_get_sizes(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
@@ -193,49 +269,7 @@ void sxdl_table_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_pro
 			*used_height += size_rows[r];
 		}
 	}else{
-		//TODO: duplicate code. this is the render code
-		SxdlTable * table = (SxdlTable*)sxdl_base;
-		int n_rows = sxdl_table_get_n_rows(table);
-		int n_cols = sxdl_table_get_n_columns(table);
-		int * size_min_cols, * size_min_cols_rows, * size_max_cols, * size_max_cols_rows, c, r, w, h;
-		sxdl_table_get_sizes(sxdl_base, widget, 0, 0,   &size_min_cols, &size_min_cols_rows);
-		sxdl_table_get_sizes(sxdl_base, widget, -1, -1, &size_max_cols, &size_max_cols_rows);
-		int min_width = 0;
-		int max_width = 0;
-		for (c = 0; c < n_cols; c++){
-			min_width += size_min_cols[c];
-			max_width += size_max_cols[c];
-		}
-		int too_much = max_width - width_proposed;
-		int play = max_width - min_width;
-		too_much = too_much > 0 ? too_much : 0;
-		int size_cols[n_cols];
-		int start_cols[n_cols];
-		start_cols[0] = 0;
-		for (c = 0; c < n_cols; c++){
-			size_cols[c] = (int)(size_max_cols[c] -
-				(size_max_cols[c] - size_min_cols[c]) * ((double)too_much / (double)play));
-			if (c != 0){
-				start_cols[c] = start_cols[c-1] + size_cols[c-1];
-			}
-		}
-		int total_w = 0, total_h = 0, row_h;
-		for (r = 0; r < n_rows; r++){
-			SxdlTableRow * row = g_array_index(table -> rows, SxdlTableRow*, r);
-			row_h = 0;
-			for (c = 0; c < row -> cells -> len; c++){
-				SxdlTableCell * cell = g_array_index(row -> cells, SxdlTableCell*, c);
-				sxdl_base_get_size(GOSM_SXDL_BASE(cell), widget, size_cols[c], 0, &w, &h);
-				row_h = h > row_h ? h : row_h;
-			}
-			for (c = 0; c < row -> cells -> len; c++){
-				SxdlTableCell * cell = g_array_index(row -> cells, SxdlTableCell*, c);
-				sxdl_base_get_size(GOSM_SXDL_BASE(cell), widget, size_cols[c], 0, &w, &h);
-			}
-			total_h += row_h;
-		}
-		*used_width = start_cols[n_cols] + size_cols[n_cols];
-		*used_height = total_h;
+		sxdl_table_layout(sxdl_base, widget, 0, 0, width_proposed, height_proposed, used_width, used_height, FALSE);
 	}
 }
 
