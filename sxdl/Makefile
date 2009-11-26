@@ -6,6 +6,7 @@ sxdl_break.c \
 sxdl_container.c \
 sxdl_font.c \
 sxdl_image.c \
+sxdl_size_cache.c \
 sxdl_table.c \
 sxdl_table_cell.c \
 sxdl_table_row.c \
@@ -18,6 +19,7 @@ sxdl_break.o \
 sxdl_container.o \
 sxdl_font.o \
 sxdl_image.o \
+sxdl_size_cache.o \
 sxdl_table.o \
 sxdl_table_cell.o \
 sxdl_table_row.o \

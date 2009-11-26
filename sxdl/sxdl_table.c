@@ -127,7 +127,6 @@ void sxdl_table_layout(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, i
 		if (c != 0){
 			start_cols[c] = start_cols[c-1] + size_cols[c-1];
 		}
-		printf("%d\n", play);
 	}
 	int total_w = 0, total_h = 0, row_h;
 	for (r = 0; r < n_rows; r++){

@@ -1,16 +1,18 @@
-sxdl_base.o: sxdl_base.c sxdl_base.h
-sxdl_break.o: sxdl_break.c sxdl_break.h sxdl_base.h
+sxdl_base.o: sxdl_base.c sxdl_base.h sxdl_size_cache.h
+sxdl_break.o: sxdl_break.c sxdl_break.h sxdl_base.h sxdl_size_cache.h
 sxdl_container.o: sxdl_container.c sxdl_container.h sxdl_base.h \
-  sxdl_break.h
-sxdl_font.o: sxdl_font.c sxdl_font.h sxdl_base.h
-sxdl_image.o: sxdl_image.c sxdl_image.h sxdl_base.h
-sxdl_table.o: sxdl_table.c sxdl_table.h sxdl_base.h sxdl_table_row.h \
-  sxdl_table_cell.h sxdl_container.h
+  sxdl_size_cache.h sxdl_break.h
+sxdl_font.o: sxdl_font.c sxdl_font.h sxdl_base.h sxdl_size_cache.h
+sxdl_image.o: sxdl_image.c sxdl_image.h sxdl_base.h sxdl_size_cache.h
+sxdl_size_cache.o: sxdl_size_cache.c sxdl_size_cache.h
+sxdl_table.o: sxdl_table.c sxdl_table.h sxdl_base.h sxdl_size_cache.h \
+  sxdl_table_row.h sxdl_table_cell.h sxdl_container.h
 sxdl_table_cell.o: sxdl_table_cell.c sxdl_table_cell.h sxdl_base.h \
-  sxdl_container.h sxdl_table.h sxdl_table_row.h
+  sxdl_size_cache.h sxdl_container.h sxdl_table.h sxdl_table_row.h
 sxdl_table_row.o: sxdl_table_row.c sxdl_table_row.h sxdl_base.h \
-  sxdl_table_cell.h sxdl_container.h sxdl_table.h
-sxdl_widget.o: sxdl_widget.c sxdl_widget.h sxdl_base.h sxdl_container.h \
-  sxdl_break.h sxdl_font.h sxdl_image.h sxdl_table_cell.h sxdl_table.h \
-  sxdl_table_row.h
-test.o: test.c sxdl_widget.h sxdl_base.h sxdl_container.h
+  sxdl_size_cache.h sxdl_table_cell.h sxdl_container.h sxdl_table.h
+sxdl_widget.o: sxdl_widget.c sxdl_widget.h sxdl_base.h sxdl_size_cache.h \
+  sxdl_container.h sxdl_break.h sxdl_font.h sxdl_image.h \
+  sxdl_table_cell.h sxdl_table.h sxdl_table_row.h
+test.o: test.c sxdl_widget.h sxdl_base.h sxdl_size_cache.h \
+  sxdl_container.h

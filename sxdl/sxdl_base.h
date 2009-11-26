@@ -29,6 +29,8 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
+#include "sxdl_size_cache.h"
+
 #define GOSM_TYPE_SXDL_BASE           (sxdl_base_get_type ())
 #define GOSM_SXDL_BASE(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GOSM_TYPE_SXDL_BASE, SxdlBase))
 #define GOSM_SXDL_BASE_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GOSM_TYPE_SXDL_BASE, SxdlBaseClass))
@@ -42,6 +44,8 @@ typedef struct _SxdlBaseClass   SxdlBaseClass;
 struct _SxdlBase
 {
 	GObject parent;
+
+	SxdlSizeCache * size_cache;
 };
 
 struct _SxdlBaseClass

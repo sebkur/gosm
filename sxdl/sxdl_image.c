@@ -76,17 +76,19 @@ static void sxdl_image_init(SxdlImage *sxdl_image)
 sxdl_image_paint(SxdlImage * image, GtkWidget * widget, int * w, int * h, gboolean actually_paint, int x, int y, int width_proposed)
 {
 	cairo_t * cr = gdk_cairo_create(widget -> window);
-	cairo_surface_t * surface_img = cairo_image_surface_create_from_png (image -> src);
-	cairo_set_source_surface(cr, surface_img, x, y);
-	int img_w = cairo_image_surface_get_width(surface_img);
-	int img_h = cairo_image_surface_get_height(surface_img);
+	if (image -> surface_img == NULL){
+		image -> surface_img = cairo_image_surface_create_from_png (image -> src);
+	}
+	cairo_set_source_surface(cr, image -> surface_img, x, y);
+	int img_w = cairo_image_surface_get_width(image -> surface_img);
+	int img_h = cairo_image_surface_get_height(image -> surface_img);
 	if (actually_paint){
 		cairo_rectangle(cr, x, y, img_w, img_h);
 		cairo_fill(cr);
 	}
 	*w = img_w;
 	*h = img_h;
-	printf("image\n");
+	//printf("image\n");
 }
 
 void sxdl_image_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,

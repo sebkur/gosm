@@ -48,6 +48,7 @@ struct _SxdlImage
 	char * src;
 	int width;
 	int height;
+	cairo_surface_t * surface_img;
 };
 
 struct _SxdlImageClass
