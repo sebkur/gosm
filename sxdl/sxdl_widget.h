@@ -54,6 +54,13 @@ struct _SxdlWidget
 	GArray * stack;
 	char * text;
 	SxdlContainer * document;
+
+	GtkAdjustment * hadj;
+	GtkAdjustment * vadj;
+	int height_total;
+	int height_visible;
+	int offset_h;
+	int offset_v;
 };
 
 struct _SxdlWidgetClass

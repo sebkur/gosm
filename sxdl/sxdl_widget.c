@@ -64,11 +64,55 @@ enum {
 
 static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event);
 void parse_file(SxdlWidget * sxdl, char * filename);
+static gboolean sxdl_widget_set_scroll_adjustments(GtkWidget * widget, GtkAdjustment * hadj, GtkAdjustment * vadj);
+static void sxdl_widget_adjustment_changed(GtkAdjustment * adj, SxdlWidget * sxdl);
+void sxdl_widget_update_adjustments(SxdlWidget * sxdl);
 
 SxdlWidget * sxdl_widget_new()
 {
 	SxdlWidget * sxdl_widget = g_object_new(GOSM_TYPE_SXDL_WIDGET, NULL);
+	sxdl_widget -> offset_h = 0;
+	sxdl_widget -> offset_v = 0;
+	g_signal_connect(
+		G_OBJECT(sxdl_widget), "set-scroll-adjustments",
+		G_CALLBACK(sxdl_widget_set_scroll_adjustments), NULL);
 	return sxdl_widget;
+}
+
+static gboolean sxdl_widget_set_scroll_adjustments(GtkWidget * widget, GtkAdjustment * hadj, GtkAdjustment * vadj)
+{
+	printf("foo %p %p\n", hadj, vadj);
+	SxdlWidget * sxdl = GOSM_SXDL_WIDGET(widget);
+	sxdl -> hadj = hadj;
+	sxdl -> vadj = vadj;
+	g_signal_connect (
+		G_OBJECT(vadj), "value-changed",
+		G_CALLBACK(sxdl_widget_adjustment_changed), sxdl);
+	gtk_adjustment_set_upper(vadj, 1.0);
+	gtk_adjustment_changed(vadj);
+	return TRUE;
+}
+
+static void sxdl_widget_adjustment_changed(GtkAdjustment * adj, SxdlWidget * sxdl)
+{
+	double val = gtk_adjustment_get_value(adj);
+	printf("%f\n", val);
+	if (adj == sxdl -> vadj){
+		//sxdl -> offset_v = - (sxdl -> height_total - sxdl -> height_visible) * val;
+		sxdl -> offset_v = -val;
+		gtk_widget_queue_draw(sxdl);
+	}
+}
+
+void sxdl_widget_update_adjustments(SxdlWidget * sxdl)
+{
+	int total = sxdl -> height_total;
+	int visible = sxdl -> height_visible;
+	gtk_adjustment_set_page_size(sxdl -> vadj, visible);
+	//gtk_adjustment_set_page_size(sxdl -> vadj, 0.5);
+//	gtk_adjustment_set_lower(sxdl -> vadj, 0.0);
+	gtk_adjustment_set_upper(sxdl -> vadj, total);
+//	gtk_adjustment_changed(sxdl -> vadj);
 }
 
 void sxdl_widget_set_uri(SxdlWidget * sxdl_widget, char * filename)
@@ -81,7 +125,9 @@ void sxdl_widget_set_uri(SxdlWidget * sxdl_widget, char * filename)
 
 static void sxdl_widget_class_init(SxdlWidgetClass *class)
 {
+	GObjectClass *object_class;
 	GtkWidgetClass *widget_class;
+	object_class = (GObjectClass*)class;
 	widget_class = GTK_WIDGET_CLASS(class);
 	widget_class -> expose_event = expose_cb;
         /*sxdl_widget_signals[SIGNAL_NAME_n] = g_signal_new(
@@ -92,6 +138,16 @@ static void sxdl_widget_class_init(SxdlWidgetClass *class)
                 NULL, NULL,
                 g_cclosure_marshal_VOID__VOID,
                 G_TYPE_NONE, 0);*/
+	widget_class->set_scroll_adjustments_signal = g_signal_new (
+		"set-scroll-adjustments",
+		G_TYPE_FROM_CLASS (object_class),
+		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
+		G_STRUCT_OFFSET (GtkTreeViewClass, set_scroll_adjustments),
+		NULL, NULL,
+		gtk_marshal_VOID__POINTER_POINTER,
+		G_TYPE_NONE, 2,
+		GTK_TYPE_ADJUSTMENT,
+		GTK_TYPE_ADJUSTMENT);
 }
 
 static void sxdl_widget_init(SxdlWidget *sxdl_widget)
@@ -307,15 +363,13 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	sxdl_base_get_size(GOSM_SXDL_BASE(sxdl -> document), widget, -1, -1, &max_w, &max_w_h);
 	//printf("%dx%d %dx%d\n", min_w, min_w_h, max_w, max_w_h);
 	int layout_w = min_w > width ? min_w : width;
-	sxdl_base_render(GOSM_SXDL_BASE(sxdl -> document), widget, 0, 0, layout_w, -1, &w, &h);
+	sxdl_base_render(GOSM_SXDL_BASE(sxdl -> document), widget, 0, sxdl -> offset_v, layout_w, -1, &w, &h);
+
+	if (sxdl -> height_visible = height){
+		sxdl -> height_total = h;
+		sxdl -> height_visible = height;
+		sxdl_widget_update_adjustments(sxdl);
+	}
 	
-	/* pic */
-	cairo_surface_t * surface_img = cairo_image_surface_create_from_png ("1.png");
-	cairo_set_source_surface(cr, surface_img, 0.0, 0.0);
-	int img_w = cairo_image_surface_get_width(surface_img);
-	int img_h = cairo_image_surface_get_height(surface_img);
-	//printf("%d %d\n", img_w, img_h);
-	cairo_rectangle(cr, 0, 0, img_w, img_h);
-	//cairo_fill(cr);
 	return FALSE;
 }
