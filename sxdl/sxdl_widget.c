@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <libgen.h>
 
 #include "sxdl_widget.h"
 #include "sxdl_break.h"
@@ -116,12 +117,26 @@ void sxdl_widget_update_adjustments(SxdlWidget * sxdl)
 	gtk_adjustment_set_upper(sxdl -> hadj, sxdl -> width_total);
 }
 
-void sxdl_widget_set_uri(SxdlWidget * sxdl_widget, char * filename)
+void sxdl_widget_set_base_path(SxdlWidget * sxdl_widget, char * uri)
+{
+	char * abs;
+	if (g_str_has_prefix(uri, "file://")){
+		abs = &uri[7];
+	}else{
+		abs = uri;
+	}
+	sxdl_widget -> full_path = g_strdup(abs);
+	char * dn = dirname(abs);
+	sxdl_widget -> base_path = g_strconcat(dn, "/", NULL);
+}
+
+void sxdl_widget_set_uri(SxdlWidget * sxdl_widget, char * uri)
 {
 	sxdl_widget -> stack = g_array_new(FALSE, FALSE, sizeof(SxdlWidget*));
 	sxdl_widget -> document = sxdl_container_new();
 	g_array_append_val(sxdl_widget -> stack, sxdl_widget -> document);
-	parse_file(sxdl_widget, filename);
+	sxdl_widget_set_base_path(sxdl_widget, uri);
+	parse_file(sxdl_widget, sxdl_widget -> full_path);
 }
 
 static void sxdl_widget_class_init(SxdlWidgetClass *class)
@@ -208,7 +223,7 @@ static void XMLCALL sxdl_widget_StartElementCallback(
 		g_array_append_val(sxdl -> stack, e);
 	}else if (strcmp(name, "img") == 0){
 		sxdl -> tag = TAG_IMG;
-		SxdlImage * e = sxdl_image_new(sxdl_widget_get_value(atts, "src"));
+		SxdlImage * e = sxdl_image_new(sxdl -> base_path, sxdl_widget_get_value(atts, "src"));
 		g_array_append_val(sxdl -> stack, e);
 	}else if (strcmp(name, "table") == 0){
 		int border = 0;

@@ -45,7 +45,9 @@ struct _SxdlImage
 {
 	SxdlBase parent;
 
+	char * base_path;
 	char * src;
+	char * full_path;
 	int width;
 	int height;
 	cairo_surface_t * surface_img;
@@ -58,6 +60,6 @@ struct _SxdlImageClass
 	//void (* function_name) (SxdlImage *sxdl_image);
 };
 
-SxdlImage * sxdl_image_new(char * src);
+SxdlImage * sxdl_image_new(char * base_path, char * src);
 
 #endif /* _SXDL_IMAGE_H_ */

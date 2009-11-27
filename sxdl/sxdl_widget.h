@@ -49,6 +49,9 @@ struct _SxdlWidget
 {
 	GtkDrawingArea parent;
 
+	char * base_path;
+	char * full_path;
+
 	GdkEventExpose * event;
 	int tag;
 	GArray * stack;
