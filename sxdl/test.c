@@ -34,12 +34,12 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(main_window), "hide", G_CALLBACK(exit), NULL);
 
 	SxdlWidget * sxdl = sxdl_widget_new();
+	sxdl_widget_set_uri(sxdl, filename);
         GtkWidget * scrolled = gtk_scrolled_window_new(NULL, NULL);
         gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
                                         GTK_POLICY_AUTOMATIC,
                                         GTK_POLICY_AUTOMATIC);
         gtk_container_add(GTK_CONTAINER(scrolled), sxdl);
-	sxdl_widget_set_uri(sxdl, filename);
 	gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(scrolled));
 
 	gtk_widget_show_all(main_window);

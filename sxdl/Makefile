@@ -11,6 +11,7 @@ sxdl_table.c \
 sxdl_table_cell.c \
 sxdl_table_row.c \
 sxdl_widget.c \
+sxdl_marshal.c \
 test.c
 
 OBJ = \
@@ -24,6 +25,7 @@ sxdl_table.o \
 sxdl_table_cell.o \
 sxdl_table_row.o \
 sxdl_widget.o \
+sxdl_marshal.o \
 test.o
 
 CC  = /usr/bin/gcc

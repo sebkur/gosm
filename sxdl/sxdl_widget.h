@@ -51,6 +51,7 @@ struct _SxdlWidget
 
 	char * base_path;
 	char * full_path;
+	gboolean new_uri;
 
 	GdkEventExpose * event;
 	int tag;
@@ -71,6 +72,11 @@ struct _SxdlWidget
 struct _SxdlWidgetClass
 {
 	GtkDrawingAreaClass parent_class;
+
+	void (* set_scroll_adjustments) (
+		GtkWidget * widget,
+		GtkAdjustment * hadjustment,
+		GtkAdjustment * vadjustment);
 
 	//void (* function_name) (SxdlWidget *sxdl_widget);
 };

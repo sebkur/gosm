@@ -94,6 +94,7 @@ sxdl/sxdl_table.c \
 sxdl/sxdl_table_cell.c \
 sxdl/sxdl_table_row.c \
 sxdl/sxdl_widget.c \
+sxdl/sxdl_marshal.c \
 gosm.c
 
 OBJ = \
@@ -190,6 +191,7 @@ sxdl/sxdl_table.o \
 sxdl/sxdl_table_cell.o \
 sxdl/sxdl_table_row.o \
 sxdl/sxdl_widget.o \
+sxdl/sxdl_marshal.o \
 gosm.o
 
 CC  = /usr/bin/gcc
