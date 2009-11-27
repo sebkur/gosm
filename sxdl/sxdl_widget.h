@@ -55,6 +55,8 @@ struct _SxdlWidget
 
 	GdkEventExpose * event;
 	int tag;
+	int tag_index;
+	int tag_index_chars;
 	GArray * stack;
 	char * text;
 	SxdlContainer * document;

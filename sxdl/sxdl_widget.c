@@ -74,6 +74,8 @@ SxdlWidget * sxdl_widget_new()
 {
 	SxdlWidget * sxdl_widget = g_object_new(GOSM_TYPE_SXDL_WIDGET, NULL);
 	sxdl_widget -> document = sxdl_container_new();
+	sxdl_widget -> tag_index = 0;
+	sxdl_widget -> tag_index_chars = 0;
 	sxdl_widget -> offset_h = 0;
 	sxdl_widget -> offset_v = 0;
 	sxdl_widget -> height_total = 0;
@@ -227,6 +229,7 @@ static void XMLCALL sxdl_widget_StartElementCallback(
 						const XML_Char ** atts)
 {
 	SxdlWidget * sxdl = (SxdlWidget*)userData;
+	sxdl -> tag_index ++;
 	//printf("start %s\n", name);
 	      if (strcmp(name, "font") == 0){
 		sxdl -> tag = TAG_FONT;
@@ -342,9 +345,16 @@ static void XMLCALL sxdl_widget_CharacterDataCallback(
 					int len)
 {
 	SxdlWidget * sxdl = (SxdlWidget*)userData;
-	char * st = malloc(sizeof(char) * (len+1));
-	strncpy(st, s, len);
-	st[len] = '\0';
+	if (sxdl -> tag_index != sxdl -> tag_index_chars){
+		sxdl -> tag_index_chars = sxdl -> tag_index;
+		sxdl -> text = "";
+	}
+	int l = strlen(sxdl -> text) + len;
+	char * st = malloc(sizeof(char) * (l + 1));
+	st[0] = '\0';
+	strcat(st, sxdl -> text);
+	strncat(st, s, len);
+	st[l] = '\0';
 	sxdl -> text = st;
 }
 
