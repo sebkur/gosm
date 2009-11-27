@@ -415,27 +415,30 @@ static gboolean sxdl_widget_expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	sxdl_base_get_size(GOSM_SXDL_BASE(sxdl -> document), widget, -1, -1, &max_w, &max_w_h);
 	//printf("%dx%d %dx%d\n", min_w, min_w_h, max_w, max_w_h);
 	int layout_w = min_w > width ? min_w : width;
+	Clip clip = {0, 0, width, height};
 	sxdl_base_render(GOSM_SXDL_BASE(sxdl -> document), widget, 
-		sxdl -> offset_h, sxdl -> offset_v, layout_w, -1, &w, &h);
+		sxdl -> offset_h, sxdl -> offset_v, layout_w, -1, &w, &h, &clip);
 
 	gboolean adjust = FALSE;
-	if (sxdl -> height_visible != height || sxdl -> new_uri){
+	//TODO: make one if from those two downwards
+	if (sxdl -> height_visible != height || sxdl -> width_visible != width || sxdl -> new_uri){
+		gboolean queue = FALSE;
 		sxdl -> height_total = h;
 		sxdl -> height_visible = height;
 		if (height >= h){
 			sxdl -> offset_v = 0;
-			gtk_widget_queue_draw(sxdl);
+			queue = TRUE;
 		}
-		adjust = TRUE;
-	}
-	if (sxdl -> width_visible != width || sxdl -> new_uri){
 		sxdl -> width_total = w;
 		sxdl -> width_visible = width;
 		if (width >= w){
 			sxdl -> offset_h = 0;
-			gtk_widget_queue_draw(sxdl);
+			queue = TRUE;
 		}
 		adjust = TRUE;
+		if (queue) gtk_widget_queue_draw(sxdl);
+	}
+	if (sxdl -> width_visible != width || sxdl -> new_uri){
 	}
 	if (adjust){
 		sxdl_widget_update_adjustments(sxdl);

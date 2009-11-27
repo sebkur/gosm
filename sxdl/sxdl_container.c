@@ -42,7 +42,7 @@ G_DEFINE_TYPE (SxdlContainer, sxdl_container, GOSM_TYPE_SXDL_BASE);
 //g_signal_emit (widget, sxdl_container_signals[SIGNAL_NAME_n], 0);
 
 void sxdl_container_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height);
+	int * used_width, int * used_height, Clip * clip);
 void sxdl_container_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
 	int * used_width, int * used_height);
 void sxdl_container_get_line_size(SxdlContainer * container, int index, GtkWidget * widget,
@@ -76,7 +76,7 @@ static void sxdl_container_init(SxdlContainer *sxdl_container)
 }
 
 void sxdl_container_render_line(SxdlContainer * container, int index, GtkWidget * widget, int x, int y, 
-	int width_proposed, int height_proposed, int * used_width, int * used_height)
+	int width_proposed, int height_proposed, int * used_width, int * used_height, Clip * clip)
 {
 	int min_w, min_w_h, max_w, max_w_h;
 	sxdl_container_get_line_size(container, index, widget, 0, 0, &min_w, &min_w_h);
@@ -99,7 +99,7 @@ void sxdl_container_render_line(SxdlContainer * container, int index, GtkWidget 
 		}
 		sxdl_base_get_size(base, widget, layout_w, -1, &use_ew, &use_ew_eh);
 		int w, h;
-		sxdl_base_render(base, widget, px, y, layout_w, -1, &w, &h);
+		sxdl_base_render(base, widget, px, y, layout_w, -1, &w, &h, clip);
 		px += layout_w;
 		lw += layout_w;
 		lh = use_ew_eh > lh ? use_ew_eh : lh;
@@ -109,7 +109,7 @@ void sxdl_container_render_line(SxdlContainer * container, int index, GtkWidget 
 }
 
 void sxdl_container_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height)
+	int * used_width, int * used_height, Clip * clip)
 {
 	SxdlContainer * container = (SxdlContainer*)sxdl_base;
 	int py = y;
@@ -117,7 +117,7 @@ void sxdl_container_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int 
 	int i;
 	for (i = 0; i < container -> lines -> len; i++){
 		int w, h;
-		sxdl_container_render_line(container, i, widget, x, py, width_proposed, height_proposed, &w, &h);
+		sxdl_container_render_line(container, i, widget, x, py, width_proposed, height_proposed, &w, &h, clip);
 		py += h;
 		ch += h;
 		cw = w > cw ? w : cw;

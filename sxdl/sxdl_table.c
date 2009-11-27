@@ -42,7 +42,7 @@ G_DEFINE_TYPE (SxdlTable, sxdl_table, GOSM_TYPE_SXDL_BASE);
 //g_signal_emit (widget, sxdl_table_signals[SIGNAL_NAME_n], 0);
 
 void sxdl_table_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height);
+	int * used_width, int * used_height, Clip * clip);
 void sxdl_table_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
 	int * used_width, int * used_height);
 void sxdl_table_get_sizes(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
@@ -96,7 +96,7 @@ int sxdl_table_get_n_columns(SxdlTable * sxdl_table)
 }
 
 void sxdl_table_layout(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height, gboolean actually_paint)
+	int * used_width, int * used_height, gboolean actually_paint, Clip * clip)
 {
 	SxdlTable * table = (SxdlTable*)sxdl_base;
 	int n_rows = sxdl_table_get_n_rows(table);
@@ -174,7 +174,7 @@ void sxdl_table_layout(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, i
 					}
 				}
 				sxdl_base_render(GOSM_SXDL_BASE(cell), widget, 
-					xpos, ypos, size_cols[c], 0, &w, &h);
+					xpos, ypos, size_cols[c], 0, &w, &h, clip);
 			}
 		}
 		total_h += row_h;
@@ -216,9 +216,9 @@ void sxdl_table_layout(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, i
 }
 
 void sxdl_table_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height)
+	int * used_width, int * used_height, Clip * clip)
 {
-	sxdl_table_layout(sxdl_base, widget, x, y, width_proposed, height_proposed, used_width, used_height, TRUE);
+	sxdl_table_layout(sxdl_base, widget, x, y, width_proposed, height_proposed, used_width, used_height, TRUE, clip);
 }
 
 void sxdl_table_get_sizes(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
@@ -271,7 +271,7 @@ void sxdl_table_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_pro
 			*used_height += size_rows[r];
 		}
 	}else{
-		sxdl_table_layout(sxdl_base, widget, 0, 0, width_proposed, height_proposed, used_width, used_height, FALSE);
+		sxdl_table_layout(sxdl_base, widget, 0, 0, width_proposed, height_proposed, used_width, used_height, FALSE, NULL);
 	}
 }
 

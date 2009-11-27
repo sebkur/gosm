@@ -41,7 +41,7 @@ G_DEFINE_TYPE (SxdlImage, sxdl_image, GOSM_TYPE_SXDL_BASE);
 //g_signal_emit (widget, sxdl_image_signals[SIGNAL_NAME_n], 0);
 
 void sxdl_image_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height);
+	int * used_width, int * used_height, Clip * clip);
 void sxdl_image_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
 	int * used_width, int * used_height);
 
@@ -94,7 +94,7 @@ sxdl_image_paint(SxdlImage * image, GtkWidget * widget, int * w, int * h, gboole
 }
 
 void sxdl_image_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height)
+	int * used_width, int * used_height, Clip * clip)
 {
 	SxdlImage * sxdl_image = (SxdlImage*)sxdl_base;
 	int w, h;

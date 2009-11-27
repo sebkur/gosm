@@ -41,7 +41,7 @@ G_DEFINE_TYPE (SxdlTableRow, sxdl_table_row, GOSM_TYPE_SXDL_BASE);
 //g_signal_emit (widget, sxdl_table_row_signals[SIGNAL_NAME_n], 0);
 
 void sxdl_table_row_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height);
+	int * used_width, int * used_height, Clip * clip);
 void sxdl_table_row_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
 	int * used_width, int * used_height);
 
@@ -72,7 +72,7 @@ static void sxdl_table_row_init(SxdlTableRow *sxdl_table_row)
 }
 
 void sxdl_table_row_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height)
+	int * used_width, int * used_height, Clip * clip)
 {
 	SxdlTableRow * sxdl_table_row = (SxdlTableRow*)sxdl_base;
 }

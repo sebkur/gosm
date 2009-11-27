@@ -42,11 +42,11 @@ G_DEFINE_TYPE (SxdlFont, sxdl_font, GOSM_TYPE_SXDL_BASE);
 //g_signal_emit (widget, sxdl_font_signals[SIGNAL_NAME_n], 0);
 
 void sxdl_font_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height);
+	int * used_width, int * used_height, Clip * clip);
 void sxdl_font_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
 	int * used_width, int * used_height);
 void sxdl_font_paint(SxdlFont * sxdl_font, GtkWidget * widget, int * width, int * height, 
-	gboolean actually_paint, int x, int y, int layout_width);
+	gboolean actually_paint, int x, int y, int layout_width, Clip * clip);
 
 SxdlFont * sxdl_font_new(int size)
 {
@@ -83,11 +83,11 @@ static void sxdl_font_init(SxdlFont *sxdl_font)
 }
 
 void sxdl_font_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height)
+	int * used_width, int * used_height, Clip * clip)
 {
 	SxdlFont * sxdl_font = (SxdlFont*)sxdl_base;
 	int w, h;
-	sxdl_font_paint(sxdl_font, widget, &w, &h, TRUE, x, y, width_proposed);
+	sxdl_font_paint(sxdl_font, widget, &w, &h, TRUE, x, y, width_proposed, clip);
 	*used_width = w;
 	*used_height = h;
 }
@@ -99,13 +99,13 @@ void sxdl_font_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_prop
 	if (!sxdl_size_cache_get(sxdl_base -> size_cache, width_proposed, used_width, used_height)){
 		//printf("MISS\n");
 		SxdlFont * sxdl_font = (SxdlFont*)sxdl_base;
-		sxdl_font_paint(sxdl_font, widget, used_width, used_height, FALSE, 0, 0, width_proposed);
+		sxdl_font_paint(sxdl_font, widget, used_width, used_height, FALSE, 0, 0, width_proposed, NULL);
 		sxdl_size_cache_add(sxdl_base -> size_cache, width_proposed, *used_width, *used_height);
 	}
 }
 
 void sxdl_font_paint(SxdlFont * sxdl_font, GtkWidget * widget, int * width, int * height, 
-	gboolean actually_paint, int x, int y, int layout_width)
+	gboolean actually_paint, int x, int y, int layout_width, Clip * clip)
 {
 	char * text = sxdl_font -> text;
 	cairo_t * cr_font = gdk_cairo_create(widget -> window);
@@ -127,6 +127,9 @@ void sxdl_font_paint(SxdlFont * sxdl_font, GtkWidget * widget, int * width, int 
 	pango_layout_get_pixel_extents(pl_marker, &rect1, &rect2);
 	*width = rect2.width; *height = rect2.height;
 	if (actually_paint){
+		printf("%d %d %d %d\n", clip -> x, clip -> y, clip -> width, clip -> height);
+		cairo_rectangle(cr_font, clip -> x, clip -> y, clip -> width, clip -> height);
+		cairo_clip(cr_font);
 		cairo_move_to(cr_font, x, y);
 		cairo_pattern_t * pat_font = cairo_pattern_create_rgba(0.0, 0.0, 0.0, 1.0);
 		cairo_set_source(cr_font, pat_font);

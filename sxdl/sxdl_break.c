@@ -41,7 +41,7 @@ G_DEFINE_TYPE (SxdlBreak, sxdl_break, GOSM_TYPE_SXDL_BASE);
 //g_signal_emit (widget, sxdl_break_signals[SIGNAL_NAME_n], 0);
 
 void sxdl_break_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height);
+	int * used_width, int * used_height, Clip * clip);
 void sxdl_break_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
 	int * used_width, int * used_height);
 
@@ -71,7 +71,7 @@ static void sxdl_break_init(SxdlBreak *sxdl_break)
 }
 
 void sxdl_break_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height)
+	int * used_width, int * used_height, Clip * clip)
 {
 	SxdlBreak * sxdl_break = (SxdlBreak*)sxdl_base;
 	*used_width = 0;

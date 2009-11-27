@@ -41,6 +41,13 @@
 typedef struct _SxdlBase        SxdlBase;
 typedef struct _SxdlBaseClass   SxdlBaseClass;
 
+typedef struct{
+	int x;
+	int y;
+	int width;
+	int height;
+} Clip;
+
 struct _SxdlBase
 {
 	GObject parent;
@@ -53,14 +60,15 @@ struct _SxdlBaseClass
 	GObjectClass parent_class;
 	
 	void (* render) (SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-		int * used_width, int * used_height);
+		int * used_width, int * used_height, Clip * clip);
 	void (* get_size) (SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
 		int * used_width, int * used_height);
 };
 
 SxdlBase * sxdl_base_new();
 
-void sxdl_base_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed, int * used_width, int * used_height);
+void sxdl_base_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y,
+	int width_proposed, int height_proposed, int * used_width, int * used_height, Clip * clip);
 void sxdl_base_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed, int * used_width, int * used_height);
 
 #endif /* _SXDL_BASE_H_ */

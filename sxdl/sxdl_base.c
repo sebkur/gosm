@@ -63,11 +63,11 @@ static void sxdl_base_init(SxdlBase *sxdl_base)
 }
 
 void sxdl_base_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
-	int * used_width, int * used_height)
+	int * used_width, int * used_height, Clip * clip)
 {
 	SxdlBaseClass * class = GOSM_SXDL_BASE_GET_CLASS(sxdl_base);
 	if (class -> render) class -> render(sxdl_base, widget, x, y, width_proposed, height_proposed,
-		used_width, used_height);
+		used_width, used_height, clip);
 }
 
 void sxdl_base_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_proposed, int height_proposed,
