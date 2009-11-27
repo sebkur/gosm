@@ -84,6 +84,8 @@ static gboolean sxdl_widget_set_scroll_adjustments(GtkWidget * widget, GtkAdjust
 	SxdlWidget * sxdl = GOSM_SXDL_WIDGET(widget);
 	sxdl -> hadj = hadj;
 	sxdl -> vadj = vadj;
+	gtk_adjustment_set_step_increment(hadj, 10);
+	gtk_adjustment_set_step_increment(vadj, 10);
 	g_signal_connect (
 		G_OBJECT(vadj), "value-changed",
 		G_CALLBACK(sxdl_widget_adjustment_changed), sxdl);
@@ -356,6 +358,17 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	cairo_set_source(cr, pat);
 	cairo_rectangle(cr, 0, 0, width, height);
 	cairo_fill(cr);
+
+	if (sxdl -> height_total + sxdl -> offset_v < sxdl -> height_visible && sxdl -> offset_v != 0){
+		sxdl -> offset_v = sxdl -> height_visible - sxdl -> height_total;
+		gtk_adjustment_set_value(sxdl -> vadj, -sxdl -> offset_v);
+		gtk_adjustment_value_changed(sxdl -> vadj);
+	}
+	if (sxdl -> width_total + sxdl -> offset_h < sxdl -> width_visible && sxdl -> offset_h != 0){
+		sxdl -> offset_h = sxdl -> width_visible - sxdl -> width_total;
+		gtk_adjustment_set_value(sxdl -> hadj, -sxdl -> offset_h);
+		gtk_adjustment_value_changed(sxdl -> hadj);
+	}
 
 	int min_w, min_w_h, max_w, max_w_h, w, h;
 	sxdl_base_get_size(GOSM_SXDL_BASE(sxdl -> document), widget, 0, 0, &min_w, &min_w_h);

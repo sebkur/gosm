@@ -97,7 +97,7 @@ void sxdl_font_get_size(SxdlBase * sxdl_base, GtkWidget * widget, int width_prop
 {
 	//printf("%d\n", width_proposed);
 	if (!sxdl_size_cache_get(sxdl_base -> size_cache, width_proposed, used_width, used_height)){
-		printf("MISS\n");
+		//printf("MISS\n");
 		SxdlFont * sxdl_font = (SxdlFont*)sxdl_base;
 		sxdl_font_paint(sxdl_font, widget, used_width, used_height, FALSE, 0, 0, width_proposed);
 		sxdl_size_cache_add(sxdl_base -> size_cache, width_proposed, *used_width, *used_height);
