@@ -113,10 +113,12 @@ void sxdl_font_paint(SxdlFont * sxdl_font, GtkWidget * widget, int * width, int 
 	PangoLayout * pl_marker = pango_layout_new(pc_marker);
 	pango_layout_set_text(pl_marker, text, -1);
 	PangoAttrList * attrs = pango_attr_list_new();
-	PangoAttribute * weight = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
+	//PangoAttribute * weight = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
 	PangoAttribute * size = pango_attr_size_new(PANGO_SCALE * 10);
-	pango_attr_list_insert(attrs, weight);
+	PangoAttribute * family = pango_attr_family_new("Sans-Serif");
+	//pango_attr_list_insert(attrs, weight);
 	pango_attr_list_insert(attrs, size);
+	pango_attr_list_insert(attrs, family);
 	pango_layout_set_attributes(pl_marker, attrs);
 	pango_layout_set_width(pl_marker, PANGO_SCALE * layout_width);
 	//pango_layout_set_alignment(pl_marker, PANGO_ALIGN_CENTER);
@@ -126,7 +128,7 @@ void sxdl_font_paint(SxdlFont * sxdl_font, GtkWidget * widget, int * width, int 
 	*width = rect2.width; *height = rect2.height;
 	if (actually_paint){
 		cairo_move_to(cr_font, x, y);
-		cairo_pattern_t * pat_font = cairo_pattern_create_rgba(0.15, 0.15, 0.15, 0.9);
+		cairo_pattern_t * pat_font = cairo_pattern_create_rgba(0.0, 0.0, 0.0, 1.0);
 		cairo_set_source(cr_font, pat_font);
 		cairo_move_to(cr_font, x, y);
 		pango_cairo_show_layout(cr_font, pl_marker);
