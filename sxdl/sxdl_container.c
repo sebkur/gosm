@@ -75,7 +75,8 @@ static void sxdl_container_init(SxdlContainer *sxdl_container)
 {
 }
 
-int sxdl_container_render_line(SxdlContainer * container, int index, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed)
+void sxdl_container_render_line(SxdlContainer * container, int index, GtkWidget * widget, int x, int y, 
+	int width_proposed, int height_proposed, int * used_width, int * used_height)
 {
 	int min_w, min_w_h, max_w, max_w_h;
 	sxdl_container_get_line_size(container, index, widget, 0, 0, &min_w, &min_w_h);
@@ -100,12 +101,11 @@ int sxdl_container_render_line(SxdlContainer * container, int index, GtkWidget *
 		int w, h;
 		sxdl_base_render(base, widget, px, y, layout_w, -1, &w, &h);
 		px += layout_w;
-		//lw += ew;
+		lw += layout_w;
 		lh = use_ew_eh > lh ? use_ew_eh : lh;
 	}
-	//*used_width = lw;
-	//*used_height = lh;
-	return lh;
+	*used_width = lw;
+	*used_height = lh;
 }
 
 void sxdl_container_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,
@@ -116,11 +116,13 @@ void sxdl_container_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int 
 	int cw = 0, ch = 0;
 	int i;
 	for (i = 0; i < container -> lines -> len; i++){
-		int lh = sxdl_container_render_line(container, i, widget, x, py, width_proposed, height_proposed);
-		py += lh;
-		ch += lh;
+		int w, h;
+		sxdl_container_render_line(container, i, widget, x, py, width_proposed, height_proposed, &w, &h);
+		py += h;
+		ch += h;
+		cw = w > cw ? w : cw;
 	}
-	*used_width = 0; //TODO: return width
+	*used_width = cw;
 	*used_height = ch;
 }
 

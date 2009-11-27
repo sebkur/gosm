@@ -81,38 +81,37 @@ SxdlWidget * sxdl_widget_new()
 
 static gboolean sxdl_widget_set_scroll_adjustments(GtkWidget * widget, GtkAdjustment * hadj, GtkAdjustment * vadj)
 {
-	printf("foo %p %p\n", hadj, vadj);
 	SxdlWidget * sxdl = GOSM_SXDL_WIDGET(widget);
 	sxdl -> hadj = hadj;
 	sxdl -> vadj = vadj;
 	g_signal_connect (
 		G_OBJECT(vadj), "value-changed",
 		G_CALLBACK(sxdl_widget_adjustment_changed), sxdl);
-	gtk_adjustment_set_upper(vadj, 1.0);
-	gtk_adjustment_changed(vadj);
+	g_signal_connect (
+		G_OBJECT(hadj), "value-changed",
+		G_CALLBACK(sxdl_widget_adjustment_changed), sxdl);
 	return TRUE;
 }
 
 static void sxdl_widget_adjustment_changed(GtkAdjustment * adj, SxdlWidget * sxdl)
 {
 	double val = gtk_adjustment_get_value(adj);
-	printf("%f\n", val);
 	if (adj == sxdl -> vadj){
-		//sxdl -> offset_v = - (sxdl -> height_total - sxdl -> height_visible) * val;
 		sxdl -> offset_v = -val;
+		gtk_widget_queue_draw(sxdl);
+	}
+	if (adj == sxdl -> hadj){
+		sxdl -> offset_h = -val;
 		gtk_widget_queue_draw(sxdl);
 	}
 }
 
 void sxdl_widget_update_adjustments(SxdlWidget * sxdl)
 {
-	int total = sxdl -> height_total;
-	int visible = sxdl -> height_visible;
-	gtk_adjustment_set_page_size(sxdl -> vadj, visible);
-	//gtk_adjustment_set_page_size(sxdl -> vadj, 0.5);
-//	gtk_adjustment_set_lower(sxdl -> vadj, 0.0);
-	gtk_adjustment_set_upper(sxdl -> vadj, total);
-//	gtk_adjustment_changed(sxdl -> vadj);
+	gtk_adjustment_set_page_size(sxdl -> vadj, sxdl -> height_visible);
+	gtk_adjustment_set_upper(sxdl -> vadj, sxdl -> height_total);
+	gtk_adjustment_set_page_size(sxdl -> hadj, sxdl -> width_visible);
+	gtk_adjustment_set_upper(sxdl -> hadj, sxdl -> width_total);
 }
 
 void sxdl_widget_set_uri(SxdlWidget * sxdl_widget, char * filename)
@@ -363,11 +362,29 @@ static gboolean expose_cb(GtkWidget *widget, GdkEventExpose *event)
 	sxdl_base_get_size(GOSM_SXDL_BASE(sxdl -> document), widget, -1, -1, &max_w, &max_w_h);
 	//printf("%dx%d %dx%d\n", min_w, min_w_h, max_w, max_w_h);
 	int layout_w = min_w > width ? min_w : width;
-	sxdl_base_render(GOSM_SXDL_BASE(sxdl -> document), widget, 0, sxdl -> offset_v, layout_w, -1, &w, &h);
+	sxdl_base_render(GOSM_SXDL_BASE(sxdl -> document), widget, 
+		sxdl -> offset_h, sxdl -> offset_v, layout_w, -1, &w, &h);
 
-	if (sxdl -> height_visible = height){
+	gboolean adjust = FALSE;
+	if (sxdl -> height_visible != height){
 		sxdl -> height_total = h;
 		sxdl -> height_visible = height;
+		if (height >= h){
+			sxdl -> offset_v = 0;
+			gtk_widget_queue_draw(sxdl);
+		}
+		adjust = TRUE;
+	}
+	if (sxdl -> width_visible != width){
+		sxdl -> width_total = w;
+		sxdl -> width_visible = width;
+		if (width >= w){
+			sxdl -> offset_h = 0;
+			gtk_widget_queue_draw(sxdl);
+		}
+		adjust = TRUE;
+	}
+	if (adjust){
 		sxdl_widget_update_adjustments(sxdl);
 	}
 	

@@ -59,6 +59,8 @@ struct _SxdlWidget
 	GtkAdjustment * vadj;
 	int height_total;
 	int height_visible;
+	int width_total;
+	int width_visible;
 	int offset_h;
 	int offset_v;
 };
