@@ -84,6 +84,16 @@ bookmark/bookmark_location.c \
 bookmark/bookmark_manager.c \
 bookmark/bookmark_widget.c \
 bookmark/bookmark_enter_name_dialog.c \
+sxdl/sxdl_base.c \
+sxdl/sxdl_break.c \
+sxdl/sxdl_container.c \
+sxdl/sxdl_font.c \
+sxdl/sxdl_image.c \
+sxdl/sxdl_size_cache.c \
+sxdl/sxdl_table.c \
+sxdl/sxdl_table_cell.c \
+sxdl/sxdl_table_row.c \
+sxdl/sxdl_widget.c \
 gosm.c
 
 OBJ = \
@@ -170,6 +180,16 @@ bookmark/bookmark_location.o \
 bookmark/bookmark_manager.o \
 bookmark/bookmark_widget.o \
 bookmark/bookmark_enter_name_dialog.o \
+sxdl/sxdl_base.o \
+sxdl/sxdl_break.o \
+sxdl/sxdl_container.o \
+sxdl/sxdl_font.o \
+sxdl/sxdl_image.o \
+sxdl/sxdl_size_cache.o \
+sxdl/sxdl_table.o \
+sxdl/sxdl_table_cell.o \
+sxdl/sxdl_table_row.o \
+sxdl/sxdl_widget.o \
 gosm.o
 
 CC  = /usr/bin/gcc

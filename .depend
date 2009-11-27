@@ -176,7 +176,8 @@ poi_manager.o: poi/poi_manager.c poi/poi_set.h poi/RTree/index.h \
   poi/edit/edit_action.h poi/edit/edit_action_add_tag.h \
   poi/edit/edit_action_remove_tag.h poi/edit/edit_action_change_tag.h \
   poi/edit/edit_action_change_tag_key.h \
-  poi/edit/edit_action_change_tag_value.h
+  poi/edit/edit_action_change_tag_value.h \
+  poi/../data_structures/sorted_sequence.h poi/api_control.h
 poi_tool.o: poi/poi_tool.c poi/poi_tool.h poi/poi_manager.h poi/poi_set.h \
   poi/RTree/index.h poi/r_r_tree.h poi/../map_types.h poi/node.h \
   poi/named_poi_set.h poi/styled_poi_set.h poi/osm_reader.h \
@@ -224,7 +225,8 @@ poi_statistics.o: poi/poi_statistics.c poi/poi_statistics.h \
   poi/../tiles/ringbuffer.h poi/../tiles/../map_types.h \
   poi/../tiles/tilesets.h poi/../poi/poi_set.h poi/../poi/poi_manager.h \
   poi/tag_tree.h poi/osm_data_set.h
-api_control.o: poi/api_control.c poi/api_control.h
+api_control.o: poi/api_control.c poi/api_control.h poi/node.h \
+  poi/../config/config.h
 osm_data_set.o: poi/osm_data_set.c poi/osm_data_set.h poi/tag_tree.h \
   poi/node.h poi/poi_set.h poi/RTree/index.h poi/r_r_tree.h \
   poi/../map_types.h poi/styled_poi_set.h poi/named_poi_set.h \
@@ -280,16 +282,17 @@ gtk_safety.o: gtk_safety.c namefinder/namefinder_countries.h \
   poi/r_r_tree.h poi/poi_set.h poi/poi_manager.h poi/poi_tool.h \
   poi/poi_selector.h poi/poi_source_selector.h poi/edit_widget.h \
   poi/styled_poi_set.h poi/node.h poi/api_control.h poi/osm_data_set.h \
-  poi/node_add_tag_dialog.h poi/edit_widget.h menu.h map_area.h \
-  config/config.h toolbar.h bookmark/bookmark_manager.h \
-  bookmark/bookmark.h atlas/atlas_tool.h atlas/atlas.h \
-  wizzard/wizzard_download.h wizzard/select_use_window.h \
-  wizzard/../map_types.h wizzard/tile_download_window.h \
-  wizzard/../tiles/tile_loader.h wizzard/../tiles/../map_types.h \
-  wizzard/atlas_template_dialog.h wizzard/../atlas/atlas.h \
-  wizzard/wizzard_export.h wizzard/select_export_window.h \
-  wizzard/wizzard_atlas_pdf.h wizzard/wizzard_atlas_pdf_window.h \
-  wizzard/../imageglue/image_glue.h wizzard/../imageglue/../map_types.h \
+  poi/node_add_tag_dialog.h poi/edit_widget.h \
+  data_structures/sorted_sequence.h menu.h map_area.h config/config.h \
+  toolbar.h bookmark/bookmark_manager.h bookmark/bookmark.h \
+  atlas/atlas_tool.h atlas/atlas.h wizzard/wizzard_download.h \
+  wizzard/select_use_window.h wizzard/../map_types.h \
+  wizzard/tile_download_window.h wizzard/../tiles/tile_loader.h \
+  wizzard/../tiles/../map_types.h wizzard/atlas_template_dialog.h \
+  wizzard/../atlas/atlas.h wizzard/wizzard_export.h \
+  wizzard/select_export_window.h wizzard/wizzard_atlas_pdf.h \
+  wizzard/wizzard_atlas_pdf_window.h wizzard/../imageglue/image_glue.h \
+  wizzard/../imageglue/../map_types.h \
   wizzard/../imageglue/../atlas/atlas.h \
   wizzard/wizzard_atlas_pdf_window.h wizzard/tile_download_window.h \
   wizzard/wizzard_atlas_sequence_window.h wizzard/wizzard_delete_tiles.h \
@@ -335,6 +338,29 @@ bookmark_widget.o: bookmark/bookmark_widget.c bookmark/bookmark_widget.h \
   bookmark/bookmark_enter_name_dialog.h
 bookmark_enter_name_dialog.o: bookmark/bookmark_enter_name_dialog.c \
   bookmark/bookmark_enter_name_dialog.h
+sxdl_base.o: sxdl/sxdl_base.c sxdl/sxdl_base.h sxdl/sxdl_size_cache.h
+sxdl_break.o: sxdl/sxdl_break.c sxdl/sxdl_break.h sxdl/sxdl_base.h \
+  sxdl/sxdl_size_cache.h
+sxdl_container.o: sxdl/sxdl_container.c sxdl/sxdl_container.h \
+  sxdl/sxdl_base.h sxdl/sxdl_size_cache.h sxdl/sxdl_break.h
+sxdl_font.o: sxdl/sxdl_font.c sxdl/sxdl_font.h sxdl/sxdl_base.h \
+  sxdl/sxdl_size_cache.h
+sxdl_image.o: sxdl/sxdl_image.c sxdl/sxdl_image.h sxdl/sxdl_base.h \
+  sxdl/sxdl_size_cache.h
+sxdl_size_cache.o: sxdl/sxdl_size_cache.c sxdl/sxdl_size_cache.h
+sxdl_table.o: sxdl/sxdl_table.c sxdl/sxdl_table.h sxdl/sxdl_base.h \
+  sxdl/sxdl_size_cache.h sxdl/sxdl_table_row.h sxdl/sxdl_table_cell.h \
+  sxdl/sxdl_container.h
+sxdl_table_cell.o: sxdl/sxdl_table_cell.c sxdl/sxdl_table_cell.h \
+  sxdl/sxdl_base.h sxdl/sxdl_size_cache.h sxdl/sxdl_container.h \
+  sxdl/sxdl_table.h sxdl/sxdl_table_row.h
+sxdl_table_row.o: sxdl/sxdl_table_row.c sxdl/sxdl_table_row.h \
+  sxdl/sxdl_base.h sxdl/sxdl_size_cache.h sxdl/sxdl_table_cell.h \
+  sxdl/sxdl_container.h sxdl/sxdl_table.h
+sxdl_widget.o: sxdl/sxdl_widget.c sxdl/sxdl_widget.h sxdl/sxdl_base.h \
+  sxdl/sxdl_size_cache.h sxdl/sxdl_container.h sxdl/sxdl_break.h \
+  sxdl/sxdl_font.h sxdl/sxdl_image.h sxdl/sxdl_table_cell.h \
+  sxdl/sxdl_table.h sxdl/sxdl_table_row.h
 gosm.o: gosm.c gosm.h tiles/tilesets.h poi/poi_set.h poi/RTree/index.h \
   poi/r_r_tree.h poi/../map_types.h poi/node.h poi/poi_manager.h \
   poi/poi_set.h poi/named_poi_set.h poi/styled_poi_set.h poi/osm_reader.h \

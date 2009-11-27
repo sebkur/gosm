@@ -317,6 +317,7 @@ int main(int argc, char *argv[])
 	GtkWidget * notebook_side_left = gtk_notebook_new();
 	/* legend */
 	web_legend = webkit_web_view_new();
+	//web_legend = GTK_WIDGET(sxdl_widget_new());
 	set_legend(
 		map_area_get_tileset(map_area),
 		map_area_get_zoom(map_area)
@@ -850,23 +851,21 @@ static gboolean map_tileset_cb(GtkWidget *widget)
 ****************************************************************************************************/
 static void set_legend(Tileset tileset, int zoom)
 {
+	char * uri_legend;
 	if (tileset == TILESET_MAPNIK){
 		char path[100];
 		sprintf(path, GOSM_LEGEND_DIR "mapnik/mapnik_%d.html", zoom);
-		char * uri_legend = get_abs_uri(path);
-		webkit_web_view_open(WEBKIT_WEB_VIEW(web_legend), uri_legend);
-		free(uri_legend);
+		uri_legend = get_abs_uri(path);
 	}else if (tileset == TILESET_CYCLE){
 		char path[100];
 		sprintf(path, GOSM_LEGEND_DIR "cycle/cycle_%d.html", zoom);
-		char * uri_legend = get_abs_uri(path);
-		webkit_web_view_open(WEBKIT_WEB_VIEW(web_legend), uri_legend);
-		free(uri_legend);
+		uri_legend = get_abs_uri(path);
 	}else{
-		char * uri_legend = get_abs_uri(GOSM_LEGEND_DIR "no_legend.html");
-		webkit_web_view_open(WEBKIT_WEB_VIEW(web_legend), uri_legend);
-		free(uri_legend);
+		uri_legend = get_abs_uri(GOSM_LEGEND_DIR "no_legend.html");
 	}
+	webkit_web_view_open(WEBKIT_WEB_VIEW(web_legend), uri_legend);
+	//sxdl_widget_set_uri(SXDL_WIDGET(web_legend), uri_legend);
+	free(uri_legend);
 }
 
 /****************************************************************************************************
