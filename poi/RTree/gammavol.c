@@ -10,7 +10,8 @@
 
 #define EP .0000000001
 
-const double log_pi = log(M_PI);
+//const double log_pi = log(M_PI);
+const double log_pi = 1.1447298858494002;
 
 double sphere_volume(double dimension)
 {
