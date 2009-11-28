@@ -58,9 +58,17 @@ SxdlTableCell * sxdl_table_cell_new_with_align(SxdlTableValign valign, SxdlTable
 	return sxdl_table_cell;
 }
 
+void sxdl_table_cell_finalize(SxdlTableCell * cell)
+{
+	printf("finalize\n");
+	g_object_unref(cell -> content);
+}
+
 static void sxdl_table_cell_class_init(SxdlTableCellClass *class)
 {
+	GObjectClass * object_class = G_OBJECT_CLASS(class);
 	SxdlBaseClass * sxdl_base_class = GOSM_SXDL_BASE_CLASS(class);
+	object_class -> finalize = sxdl_table_cell_finalize;
 	sxdl_base_class -> render = sxdl_table_cell_render;
 	sxdl_base_class -> get_size = sxdl_table_cell_get_size;
         /*sxdl_table_cell_signals[SIGNAL_NAME_n] = g_signal_new(

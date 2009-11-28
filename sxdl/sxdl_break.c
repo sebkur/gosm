@@ -51,9 +51,16 @@ SxdlBreak * sxdl_break_new()
 	return sxdl_break;
 }
 
+void sxdl_break_finalize()
+{
+	printf("finalize\n");
+}
+
 static void sxdl_break_class_init(SxdlBreakClass *class)
 {
+	GObjectClass * object_class = G_OBJECT_CLASS(class);
 	SxdlBaseClass * sxdl_base_class = GOSM_SXDL_BASE_CLASS(class);
+	object_class -> finalize = sxdl_break_finalize;
 	sxdl_base_class -> render = sxdl_break_render;
 	sxdl_base_class -> get_size = sxdl_break_get_size;
         /*sxdl_break_signals[SIGNAL_NAME_n] = g_signal_new(

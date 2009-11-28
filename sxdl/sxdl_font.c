@@ -57,6 +57,13 @@ SxdlFont * sxdl_font_new(int size)
 	return sxdl_font;
 }
 
+void sxdl_font_finalize(SxdlFont * font)
+{
+	printf("finalize\n");
+	g_object_unref(GOSM_SXDL_BASE(font) -> size_cache);
+	free(font -> text);
+}
+
 void sxdl_font_set_text(SxdlFont * sxdl_font, char * text)
 {
 	sxdl_font -> text = g_strdup(text);
@@ -65,7 +72,9 @@ void sxdl_font_set_text(SxdlFont * sxdl_font, char * text)
 
 static void sxdl_font_class_init(SxdlFontClass *class)
 {
+	GObjectClass * object_class = G_OBJECT_CLASS(class);
 	SxdlBaseClass * sxdl_base_class = GOSM_SXDL_BASE_CLASS(class);
+	object_class -> finalize = sxdl_font_finalize;
 	sxdl_base_class -> render = sxdl_font_render;
 	sxdl_base_class -> get_size = sxdl_font_get_size;
         /*sxdl_font_signals[SIGNAL_NAME_n] = g_signal_new(
@@ -127,7 +136,6 @@ void sxdl_font_paint(SxdlFont * sxdl_font, GtkWidget * widget, int * width, int 
 	pango_layout_get_pixel_extents(pl_marker, &rect1, &rect2);
 	*width = rect2.width; *height = rect2.height;
 	if (actually_paint){
-		printf("%d %d %d %d\n", clip -> x, clip -> y, clip -> width, clip -> height);
 		cairo_rectangle(cr_font, clip -> x, clip -> y, clip -> width, clip -> height);
 		cairo_clip(cr_font);
 		cairo_move_to(cr_font, x, y);

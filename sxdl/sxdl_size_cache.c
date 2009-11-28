@@ -54,12 +54,20 @@ int sxdl_size_cache_int_compare(gconstpointer a, gconstpointer b)
 SxdlSizeCache * sxdl_size_cache_new()
 {
 	SxdlSizeCache * sxdl_size_cache = g_object_new(GOSM_TYPE_SXDL_SIZE_CACHE, NULL);
-	sxdl_size_cache -> tree = g_tree_new(sxdl_size_cache_int_compare);
+	sxdl_size_cache -> tree = g_tree_new_full(sxdl_size_cache_int_compare, NULL, free, free);
 	return sxdl_size_cache;
+}
+
+void sxdl_size_cache_finalize(SxdlSizeCache * cache)
+{
+	printf("finalize\n");
+	g_tree_destroy(cache -> tree);
 }
 
 static void sxdl_size_cache_class_init(SxdlSizeCacheClass *class)
 {
+	GObjectClass * object_class = G_OBJECT_CLASS(class);
+	object_class -> finalize = sxdl_size_cache_finalize;
         /*sxdl_size_cache_signals[SIGNAL_NAME_n] = g_signal_new(
                 "signal-name-n",
                 G_OBJECT_CLASS_TYPE (class),

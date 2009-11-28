@@ -56,9 +56,20 @@ SxdlImage * sxdl_image_new(char * base_path, char * src)
 	return sxdl_image;
 }
 
+void sxdl_image_finalize(SxdlImage * image)
+{
+	printf("finalize\n");
+	free(image -> base_path);
+	free(image -> src);
+	free(image -> full_path);
+	cairo_surface_destroy(image -> surface_img);
+}
+
 static void sxdl_image_class_init(SxdlImageClass *class)
 {
+	GObjectClass * object_class = G_OBJECT_CLASS(class);
 	SxdlBaseClass * sxdl_base_class = GOSM_SXDL_BASE_CLASS(class);
+	object_class -> finalize = sxdl_image_finalize;
 	sxdl_base_class -> render = sxdl_image_render;
 	sxdl_base_class -> get_size = sxdl_image_get_size;
         /*sxdl_image_signals[SIGNAL_NAME_n] = g_signal_new(
@@ -90,7 +101,7 @@ sxdl_image_paint(SxdlImage * image, GtkWidget * widget, int * w, int * h, gboole
 	}
 	*w = img_w;
 	*h = img_h;
-	//printf("image\n");
+	cairo_destroy(cr);
 }
 
 void sxdl_image_render(SxdlBase * sxdl_base, GtkWidget * widget, int x, int y, int width_proposed, int height_proposed,

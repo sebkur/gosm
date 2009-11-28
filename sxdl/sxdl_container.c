@@ -56,9 +56,25 @@ SxdlContainer * sxdl_container_new()
 	return sxdl_container;
 }
 
+void sxdl_container_finalize(SxdlContainer * container)
+{
+	printf("finalize\n");
+	int i, e;
+	for (i = 0; i < container -> lines -> len; i++){
+		GArray * array = g_array_index(container -> lines, GArray*, i);
+		for (e = 0; e < array -> len; e++){
+			g_object_unref(g_array_index(array, GObject*, e));
+		}
+		g_array_free(array, TRUE);
+	}
+	g_array_free(container -> lines, TRUE);
+}
+
 static void sxdl_container_class_init(SxdlContainerClass *class)
 {
+	GObjectClass * object_class = G_OBJECT_CLASS(class);
 	SxdlBaseClass * sxdl_base_class = GOSM_SXDL_BASE_CLASS(class);
+	object_class -> finalize = sxdl_container_finalize;
 	sxdl_base_class -> render = sxdl_container_render;
 	sxdl_base_class -> get_size = sxdl_container_get_size;
         /*sxdl_container_signals[SIGNAL_NAME_n] = g_signal_new(

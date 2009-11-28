@@ -52,9 +52,21 @@ SxdlTableRow * sxdl_table_row_new()
 	return sxdl_table_row;
 }
 
+void sxdl_table_row_finalize(SxdlTableRow * row)
+{
+	printf("finalize\n");
+	int c;
+	for (c = 0; c < row -> cells -> len; c++){
+		g_object_unref(g_array_index(row -> cells, GObject*, c));
+	}
+	g_array_free(row -> cells, TRUE);
+}
+
 static void sxdl_table_row_class_init(SxdlTableRowClass *class)
 {
+	GObjectClass * object_class = G_OBJECT_CLASS(class);
 	SxdlBaseClass * sxdl_base_class = GOSM_SXDL_BASE_CLASS(class);
+	object_class -> finalize = sxdl_table_row_finalize;
 	sxdl_base_class -> render = sxdl_table_row_render;
 	sxdl_base_class -> get_size = sxdl_table_row_get_size;
         /*sxdl_table_row_signals[SIGNAL_NAME_n] = g_signal_new(
