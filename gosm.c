@@ -94,7 +94,7 @@
 char * urls[TILESET_LAST] = {
         "http://b.tile.openstreetmap.org/%d/%d/%d.png",
         "http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png",
-	"http://a.andy.sandbox.cloudmade.com/tiles/cycle/%d/%d/%d.png"
+	"http://a.tile.opencyclemap.org/cycle/%d/%d/%d.png"
 };
 
 char * cache_dirs[TILESET_LAST];
