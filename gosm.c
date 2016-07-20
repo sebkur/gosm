@@ -93,7 +93,6 @@
 
 char * urls[TILESET_LAST] = {
         "http://b.tile.openstreetmap.org/%d/%d/%d.png",
-        "http://a.tah.openstreetmap.org/Tiles/tile/%d/%d/%d.png",
 	"http://a.tile.opencyclemap.org/cycle/%d/%d/%d.png"
 };
 
@@ -175,7 +174,6 @@ int main(int argc, char *argv[])
 	int		zoom			= *(int*)		config_get_entry_data(config, "zoom");
 	gboolean	network_state		= *(gboolean*)		config_get_entry_data(config, "online_on_startup");
  	cache_dirs[TILESET_MAPNIK]		= 			config_get_entry_data(config, "cache_dir_mapnik");
- 	cache_dirs[TILESET_OSMARENDER]		= 			config_get_entry_data(config, "cache_dir_osmarender");
  	cache_dirs[TILESET_CYCLE]		= 			config_get_entry_data(config, "cache_dir_cycle");
 	ColorQuadriple	color_selection 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection");
 	ColorQuadriple	color_selection_out 	= *(ColorQuadriple*)	config_get_entry_data(config, "color_selection_out");

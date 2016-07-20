@@ -29,7 +29,6 @@ There is a of work to do in general:
 - let the user edit map-sources (cloudmade, ...)
 - contributors window
 - bookmarks for selections, paths
-- osmarender map-key
 - wikipedia links for countries/cities in namefinder
 - poi-editing...
 - a button for getting a permalink

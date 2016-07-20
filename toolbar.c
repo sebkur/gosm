@@ -144,7 +144,6 @@ GtkWidget * toolbar_new(
 	********************************************************************************************/
 	toolbar -> combo_tiles = gtk_combo_box_new_text();
 	gtk_combo_box_append_text(GTK_COMBO_BOX(toolbar -> combo_tiles), "Mapnik");
-	gtk_combo_box_append_text(GTK_COMBO_BOX(toolbar -> combo_tiles), "Osmarender");
 	gtk_combo_box_append_text(GTK_COMBO_BOX(toolbar -> combo_tiles), "Cycle");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(toolbar -> combo_tiles), map_area_get_tileset(toolbar -> map_area));
 	combo_tiles_cb(toolbar -> combo_tiles, (gpointer)toolbar);

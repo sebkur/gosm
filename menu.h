@@ -62,7 +62,6 @@ struct _Menu
 	GtkWidget * menu_control_move_left;
 	GtkWidget * menu_control_move_right;
 	GtkWidget * menu_tiles_mapnik;
-	GtkWidget * menu_tiles_osmarender;
 	GtkWidget * menu_tiles_openaerial;
 	GtkWidget * menu_tiles_google;
 	GtkWidget * menu_tiles_yahoo;

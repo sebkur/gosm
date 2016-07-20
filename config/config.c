@@ -92,7 +92,6 @@ GObject * config_new()
 		{"size_height",         TYPE_INT,       "600",          	NULL},
 		{"fullscreen",          TYPE_BOOLEAN,   "FALSE",        	NULL},
 		{"cache_dir_mapnik",    TYPE_DIR,       "/tmp/osm_mapnik",     	NULL},
-		{"cache_dir_osmarender",TYPE_DIR,       "/tmp/osm_osmarender",	NULL},
 		{"cache_dir_cycle",	TYPE_DIR,       "/tmp/osm_cycle",	NULL},
 		{"cache_size",          TYPE_INT,       "120",          	NULL},
 		{"java_binary",         TYPE_STRING,    "/usr/bin/java",     	NULL},

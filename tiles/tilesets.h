@@ -9,7 +9,6 @@
 ****************************************************************************************************/
 typedef enum {
 	TILESET_MAPNIK,
-	TILESET_OSMARENDER,
 	TILESET_CYCLE,
 	TILESET_LAST
 } Tileset;

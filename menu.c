@@ -91,10 +91,9 @@ GtkWidget * menu_new(GtkWindow * main_window, MapArea * map_area, Config * confi
 	GtkWidget *item_2_3                    = gtk_menu_item_new_with_label("Tiles");
 	GtkWidget *menu_2_3                    = gtk_menu_new();
 	GtkWidget *item_2_3_1                  = gtk_radio_menu_item_new_with_label(NULL, "Mapnik");
-	GtkWidget *item_2_3_2                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Osmarender");
-	GtkWidget *item_2_3_3                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "OpenAerial");
-	GtkWidget *item_2_3_4                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Google");
-	GtkWidget *item_2_3_5                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Yahoo");
+	GtkWidget *item_2_3_2                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "OpenAerial");
+	GtkWidget *item_2_3_3                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Google");
+	GtkWidget *item_2_3_4                  = gtk_radio_menu_item_new_with_label(gtk_radio_menu_item_get_group((GtkRadioMenuItem*)item_2_3_1), "Yahoo");
 	GtkWidget *item_3                      = gtk_menu_item_new_with_label("Selection");
 	GtkWidget *menu_3                      = gtk_menu_new();
 	GtkWidget *item_3_1                    = gtk_check_menu_item_new_with_label("Snap to Map");
@@ -134,7 +133,6 @@ GtkWidget * menu_new(GtkWindow * main_window, MapArea * map_area, Config * confi
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_2_3),           item_2_3_2);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_2_3),           item_2_3_3);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_2_3),           item_2_3_4);
-	gtk_menu_shell_append(GTK_MENU_SHELL(menu_2_3),           item_2_3_5);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar),            item_3);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_3),             item_3_1);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_3),             item_3_2);
@@ -157,10 +155,9 @@ GtkWidget * menu_new(GtkWindow * main_window, MapArea * map_area, Config * confi
 	menubar -> menu_control_move_left         = item_2_2_5;
 	menubar -> menu_control_move_right        = item_2_2_6;
 	menubar -> menu_tiles_mapnik              = item_2_3_1;
-	menubar -> menu_tiles_osmarender          = item_2_3_2;
-	menubar -> menu_tiles_openaerial          = item_2_3_3;
-	menubar -> menu_tiles_google              = item_2_3_4;
-	menubar -> menu_tiles_yahoo               = item_2_3_5;
+	menubar -> menu_tiles_openaerial          = item_2_3_2;
+	menubar -> menu_tiles_google              = item_2_3_3;
+	menubar -> menu_tiles_yahoo               = item_2_3_4;
 	menubar -> menu_selection_snap            = item_3_1;
 	menubar -> menu_selection_show            = item_3_2;
 	menubar -> menu_selection_export          = item_3_3;
@@ -175,7 +172,6 @@ GtkWidget * menu_new(GtkWindow * main_window, MapArea * map_area, Config * confi
 	* end auto-generated part
 	********************************************************************************************/
 
-	gtk_widget_set_sensitive(menubar -> menu_tiles_osmarender, FALSE);
 	gtk_widget_set_sensitive(menubar -> menu_tiles_openaerial, FALSE);
 	gtk_widget_set_sensitive(menubar -> menu_tiles_google, FALSE);
 	gtk_widget_set_sensitive(menubar -> menu_tiles_yahoo, FALSE);
