@@ -185,6 +185,7 @@ void tile_manager_set_cache_directory(TileManager * tile_manager, char * directo
 	int format_len = strlen(FORMAT_FILES);
 	int len = dir_len + format_len;
 	tile_manager -> cache_files_format = malloc(sizeof(char) * (len + 1));
+	tile_manager -> cache_files_format_len = len;
 	strcpy(tile_manager -> cache_files_format, directory);
 	strcpy(tile_manager -> cache_files_format + dir_len, FORMAT_FILES);
 }
