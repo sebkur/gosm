@@ -40,3 +40,8 @@ libcurl4-openssl-dev                    7.18.2-8.1
 libpng12-dev                            1.2.27-2
 libwebkit-dev                           1.0.1-4
 libbz2-dev				1.0.5
+
+on a Debian-based system you can install all build dependencies using this
+command line:
+
+    apt-get install libglib2.0-dev libgtk2.0-dev libcairo2-dev libcurl4-openssl-dev libpng12-dev libwebkit-dev libbz2-dev
