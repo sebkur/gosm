@@ -1,23 +1,24 @@
-INSTALLATION
+# INSTALLATION
 
 Currently, you can just compile everything and use the software.
 To compile, enter:
 
-make
+    make
 
 gcc will then build a binary named 'gosm' in the src-directory
 This file can be executed from this dir by launching 
 
-./gosm
+    ./gosm
 
 from this directory or from every other path, too.
 
-REQUIREMENTS
+# REQUIREMENTS
 
 The following libraries are required for running/building gosm.
 I'm not sure about minimal version numbers, so that I'll just tell
 which ones I'm using:
 
+## RUNNING
 for RUNNING gosm you'll need:
 
 libglib2.0-0                            2.20.1-1
@@ -29,6 +30,7 @@ libwebkit-1.0-1                         1.0.1-4+b1
 libbz2-1.0 				1.0.5
 java					>=1.5		for PDF-Export
 
+## BUILDING
 for BUILDING gosm you'll need:
 
 libglib2.0-dev                          2.20.1-1
